@@ -72,7 +72,8 @@ class HttpService : KoinComponent {
 
     fun initHearbeatWorker(application: Application, lifecycleOwner: LifecycleOwner) {
         val workerService: WorkerService = WorkerService.getInstance(application)
-        workerService.addOneTimeRequest(HeartbeatWorker::class.java, {} ,lifecycleOwner = lifecycleOwner)
+        //Alle 15 Minuten wird jetzt der Code ausgeführt, der da definiert ist
+        workerService.addPeriodicRequest(HeartbeatWorker::class.java, 15, TimeUnit.MINUTES, {} ,lifecycleOwner = lifecycleOwner)
 
     }
 
