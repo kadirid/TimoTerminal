@@ -31,7 +31,7 @@ var appModule = module {
     single {WebSocketService()}
     single {WorkerService(get())}
 
-    viewModel { MainActivityViewModel() }
+    viewModel { MainActivityViewModel(get()) }
 
     worker(named<HeartbeatWorker>()) {
         HeartbeatWorker(
