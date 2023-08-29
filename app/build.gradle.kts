@@ -45,6 +45,9 @@ android {
     packaging {
         resources.excludes.add("META-INF/*.kotlin_module")
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {

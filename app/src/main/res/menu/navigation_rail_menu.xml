@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/attendance"
+        android:enabled="true"
+        android:icon="@drawable/baseline_access_time_26"
+        android:title="@string/attendance"/>
+    <item
+        android:id="@+id/absence"
+        android:enabled="true"
+        android:icon="@drawable/outline_beach_access_26"
+        android:title="@string/absence"/>
+    <item
+        android:id="@+id/project"
+        android:enabled="true"
+        android:icon="@drawable/outline_table_chart_26"
+        android:title="@string/project"/>
+
+</menu>

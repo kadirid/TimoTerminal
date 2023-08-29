@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TimoTerminal</string>
+    <string name="attendance">Anwesenheit</string>
+    <string name="absence">Abwesenheit</string>
+    <string name="project">Projekt</string>
+    <string name="open_settings">Einstellungen öffnen</string>
+</resources>
