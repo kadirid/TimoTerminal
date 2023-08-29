@@ -42,6 +42,9 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    packaging {
+        resources.excludes.add("META-INF/*.kotlin_module")
+    }
 }
 
 dependencies {
@@ -50,7 +53,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     val fragment_version = "1.6.1"
     val room_version = "2.5.2"
-    val koin_android_version = "3.4.3"
+    val koin_android_version = "3.0.2"
 
     implementation("androidx.work:work-runtime-ktx:2.8.1")
 
@@ -106,9 +109,7 @@ dependencies {
     // Jetpack WorkManager
     implementation("io.insert-koin:koin-androidx-workmanager:$koin_android_version")
     // Navigation Graph
-    implementation("io.insert-koin:koin-androidx-navigation:$koin_android_version")
 
-    ///////////////////////////////////// Plugins for ZKTeco ///////////////////////////
     implementation("com.j256.ormlite:ormlite-android:5.0")
     implementation("com.zkteco.android.core.sdk:CoreServiceSDK:3.5.6.4-release")
     implementation("com.zkteco.ormlite:HelpersORMLite:3.0.5-release")

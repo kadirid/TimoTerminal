@@ -7,6 +7,7 @@ import com.timo.timoterminal.WorkerService
 import com.timo.timoterminal.service.utils.ProgressListener
 import com.timo.timoterminal.service.utils.ProgressResponseBody
 import com.timo.timoterminal.worker.HeartbeatWorker
+import com.zkteco.android.core.sdk.service.FingerprintService
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -19,11 +20,15 @@ import okhttp3.RequestBody
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 
-class HttpService {
+class HttpService : KoinComponent {
+    val fingerPrintService : FingerprintService by inject()
+
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
