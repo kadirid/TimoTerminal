@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.AppCompat.Toolbar.Menu">
+        <item name="iconTint">@color/white</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+    <style name="quoteFragmentPostTextView">
+        <item name="borderRound">16dp</item>
+        <item name="backgroundColor">#E31616</item>
+    </style>
+</resources>

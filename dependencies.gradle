@@ -1,0 +1,29 @@
+
+ext {
+    ZKTDemoVersionCode = 1540
+    ZKTDemoVersionName = "1.5.4.0"
+    globalBuildToolsVersion = '29.0.2'
+    globalCompileSdkVersion = 29
+    supportCompatVersion = '29.0.2'
+    kotlin_version = "1.5.10"
+    androidx_core= '1.6.0'
+    androidx_appcompat = '1.2.0'
+    androidx_preference = '1.1.1'
+    androidx_legacy = '1.0.0'
+    androidx_material = '1.2.1'
+    androidx_constraintlayout= '2.0.4'
+    androidx_navigation = '2.3.1'
+    androidx_lifecycle = '2.2.0'
+    com_j256_ormlite_ormlite_android_version = '5.0'
+    snakeyaml = "1.26"
+    CoreServiceSDKVersion = "3.5.6.4"
+    org_koin_koin_android_version = "3.0.2"
+    ShellUtilsVersion = "1.0.9"
+    VisibleLightSdkVersion = "1.2.2"
+    HelpersORMLiteVersion = "3.0.5"
+    ZkPrinterVersion = "1.0.19"
+    IRModuleSdkVersion = "1.0.8"
+    ZxingVersion="3.3.0"
+    LiveFaceVersion="5.6.2"
+    kotlinx_coroutines_android_version = '1.5.0'
+}
