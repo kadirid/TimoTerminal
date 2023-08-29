@@ -17,6 +17,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //How to start a worker
+        mainActivityViewModel.initHearbeatService(application, this)
+
         mainActivityViewModel.viewModelScope.launch {
             mainActivityViewModel.demoEntities.collect {
                 //dieser Code wird immer ausgeführt, wenn die Daten vom ViewModel aktualisiert werden

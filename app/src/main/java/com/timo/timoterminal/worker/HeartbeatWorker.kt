@@ -1,6 +1,7 @@
 package com.timo.timoterminal.worker
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 
@@ -14,6 +15,7 @@ class HeartbeatWorker(context: Context, workerParameters: WorkerParameters) : Wo
 
     override fun doWork(): Result {
         //....
+        Log.d("WORKER", "doWork: HI WORKER")
         return Result.success()
     }
 
