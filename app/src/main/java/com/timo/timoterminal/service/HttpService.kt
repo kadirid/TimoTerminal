@@ -3,7 +3,6 @@ package com.timo.timoterminal.service
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.LifecycleOwner
-import com.timo.timoterminal.WorkerService
 import com.timo.timoterminal.service.utils.ProgressListener
 import com.timo.timoterminal.service.utils.ProgressResponseBody
 import com.timo.timoterminal.worker.HeartbeatWorker

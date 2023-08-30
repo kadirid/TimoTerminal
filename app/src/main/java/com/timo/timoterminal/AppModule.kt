@@ -5,6 +5,7 @@ import com.timo.timoterminal.database.DemoDatabase
 import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.WebSocketService
+import com.timo.timoterminal.service.WorkerService
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.timo.timoterminal.worker.HeartbeatWorker
 import org.koin.android.ext.koin.androidContext
@@ -29,7 +30,7 @@ var appModule = module {
 
     single {HttpService()}
     single {WebSocketService()}
-    single {WorkerService(get())}
+    single { WorkerService(get()) }
 
     viewModel { MainActivityViewModel(get(), get()) }
 

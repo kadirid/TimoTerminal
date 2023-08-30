@@ -1,4 +1,4 @@
-package com.timo.timoterminal
+package com.timo.timoterminal.activities
 
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -7,8 +7,11 @@ import android.util.Log
 import android.view.View
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.navigationrail.NavigationRailView
-import com.timo.timoterminal.Fragments.AttendanceFragment
+import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
+import com.timo.timoterminal.fragments.AbsenceFragment
+import com.timo.timoterminal.fragments.AttendanceFragment
+import com.timo.timoterminal.fragments.ProjectFragment
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.timo.timoterminal
+package com.timo.timoterminal.service
 
 import android.app.Application
 import android.util.Log
