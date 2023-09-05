@@ -1,4 +1,4 @@
-package com.timo.timoterminal.fragments
+package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

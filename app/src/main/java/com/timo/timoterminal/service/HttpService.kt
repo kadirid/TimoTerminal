@@ -76,6 +76,12 @@ class HttpService : KoinComponent {
 
     }
 
+    fun killHeartBeatWorkers(application : Application){
+        println("killklkhljkklkljukjh")
+        val workerService: WorkerService = WorkerService.getInstance(application)
+        workerService.killAllWorkers()
+    }
+
     fun get(
         url: String,
         parameters: Map<String, String>?,

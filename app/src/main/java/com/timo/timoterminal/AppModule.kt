@@ -2,11 +2,14 @@ package com.timo.timoterminal
 
 import androidx.room.Room
 import com.timo.timoterminal.database.DemoDatabase
+import com.timo.timoterminal.database.UserDatabase
 import com.timo.timoterminal.repositories.DemoRepository
+import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.WebSocketService
 import com.timo.timoterminal.service.WorkerService
 import com.timo.timoterminal.viewModel.MainActivityViewModel
+import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
 import com.timo.timoterminal.worker.HeartbeatWorker
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -24,15 +27,26 @@ var appModule = module {
         ).build()
     }
 
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            UserDatabase::class.java,
+            "user_entity"
+        ).build()
+    }
+
     single { get<DemoDatabase>().demoDao() }
+    single { get<UserDatabase>().userDao() }
 
     single {DemoRepository(get())}
+    single {UserRepository(get())}
 
     single {HttpService()}
     single {WebSocketService()}
     single { WorkerService(get()) }
 
-    viewModel { MainActivityViewModel(get(), get()) }
+    viewModel { MainActivityViewModel(get(), get(), get()) }
+    viewModel { UserSettingsFragmentViewModel(get()) }
 
     worker(named<HeartbeatWorker>()) {
         HeartbeatWorker(

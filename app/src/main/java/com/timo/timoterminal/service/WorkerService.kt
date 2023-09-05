@@ -74,11 +74,15 @@ class WorkerService(application: Application) {
             .observe(lifecycleOwner) {
                 observeCallback(it)
                 if (it.state.isFinished) {
-                    requests.remove(it.id);
+                    requests.remove(it.id)
                     Log.d("WORKER MANAGER", "addOneTimeRequest: removed ${it.id} from hashmap")
                 }
             }
 
         return workerRequest.id
+    }
+
+    fun killAllWorkers(){
+        requests.clear()
     }
 }

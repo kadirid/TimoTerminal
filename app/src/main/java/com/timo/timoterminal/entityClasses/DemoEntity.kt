@@ -1,4 +1,4 @@
-package com.timo.timoterminal.entities
+package com.timo.timoterminal.entityClasses
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

@@ -1,6 +1,5 @@
 package com.timo.timoterminal.service
 
-import android.content.Context
 import android.util.Log
 import io.reactivex.disposables.Disposable
 import ua.naiksoftware.stomp.Stomp

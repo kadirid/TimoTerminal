@@ -5,13 +5,15 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
-import com.google.android.material.navigationrail.NavigationRailView
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
-import com.timo.timoterminal.fragments.AbsenceFragment
-import com.timo.timoterminal.fragments.AttendanceFragment
-import com.timo.timoterminal.fragments.ProjectFragment
+import com.timo.timoterminal.fragmentViews.AbsenceFragment
+import com.timo.timoterminal.fragmentViews.AttendanceFragment
+import com.timo.timoterminal.fragmentViews.ProjectFragment
+import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
@@ -27,16 +29,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        hideStatusAndNavbar()
-
         binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        setContentView(binding.root)
 
-        supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container_view, AttendanceFragment.newInstance("", ""))
-            .commit()
-
+        hideStatusAndNavbar()
         initNavbarListener()
 
         //How to start a worker
@@ -49,38 +45,49 @@ class MainActivity : AppCompatActivity() {
                 Log.d("DATABASE", "demoEntities changed ")
             }
         }
+        mainActivityViewModel.viewModelScope.launch {
+            mainActivityViewModel.userEntities.collect {
+                Log.d("DATABASE", "userEntities was changed")
+            }
+        }
+        binding.settingsFab.setOnClickListener {
+            mainActivityViewModel.viewModelScope.launch {
+                if (mainActivityViewModel.count() == 0) {
+                    supportFragmentManager.commit {
+                        replace(R.id.fragment_container_view, SettingsFragment.newInstance("", ""))
+                    }
+                } else {
+                    supportFragmentManager.commit {
+                        replace(R.id.fragment_container_view, SettingsFragment.newInstance("", ""))
+                    }
+                }
+            }
+        }
+        binding.imageViewLogo.setOnClickListener {
+            mainActivityViewModel.killHeartBeatWorkers(application)
+        }
     }
 
     private fun initNavbarListener() {
-        val navbar: NavigationRailView = binding.navigationRail
-        navbar.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.attendance -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container_view, AttendanceFragment.newInstance("", ""))
-                        .commit()
-                    it.isEnabled = true
-                    true
-                }
-                R.id.absence -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container_view, AbsenceFragment.newInstance("", ""))
-                        .commit()
-                    it.isEnabled = true
-                    true
-                }
-                R.id.project -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container_view, ProjectFragment.newInstance("", ""))
-                        .commit()
-                    it.isEnabled = true
-                    true
-                }
+        binding.navigationRail.setOnItemSelectedListener {
 
-                else -> {
-                    false
+            val fragment: Fragment? = when (it.itemId) {
+                R.id.attendance -> AttendanceFragment.newInstance("","")
+                R.id.absence -> AbsenceFragment.newInstance("","")
+                R.id.project -> ProjectFragment.newInstance("","")
+
+                else -> null
+            }
+
+            if (fragment == null){
+                return@setOnItemSelectedListener false
+            }else{
+                supportFragmentManager.commit {
+                    replace(R.id.fragment_container_view, fragment)
                 }
             }
+
+            true
         }
     }
 
@@ -97,6 +104,5 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-
     }
 }
