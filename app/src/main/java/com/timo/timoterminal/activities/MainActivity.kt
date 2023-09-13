@@ -81,6 +81,10 @@ class MainActivity : AppCompatActivity() {
             val permission = mainActivityViewModel.permission("projekt.use")
             binding.navigationRail.menu.findItem(R.id.project).isVisible = permission == "true"
         }
+        mainActivityViewModel.viewModelScope.launch {
+            val permission = mainActivityViewModel.permission("kommengehen.use")
+            binding.navigationRail.menu.findItem(R.id.attendance).isVisible = permission == "true"
+        }
         binding.navigationRail.setOnItemSelectedListener {
 
             it.isChecked = false

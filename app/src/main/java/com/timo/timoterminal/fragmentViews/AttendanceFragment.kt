@@ -52,23 +52,35 @@ class AttendanceFragment : Fragment(), RfidListener {
         return binding.root
     }
 
+    // remove listener on pause
+    override fun onPause() {
+        RfidService.unregister()
+        binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
+
+        super.onPause()
+    }
+
     // set booking code and start listening
     private fun setOnClickListeners() {
         binding.buttonTestKommen.setOnClickListener {
             funcCode = 100
             setListener()
+            binding.textViewAttendanceState.text = "Kommen"
         }
         binding.buttonTestGehen.setOnClickListener {
             funcCode = 200
             setListener()
+            binding.textViewAttendanceState.text = "Gehen"
         }
         binding.buttonTestPauseAnfang.setOnClickListener {
             funcCode = 110
             setListener()
+            binding.textViewAttendanceState.text = "Pause Dynamisch"
         }
         binding.buttonTestPauseEnde.setOnClickListener {
             funcCode = 210
             setListener()
+            binding.textViewAttendanceState.text = "Pause nur Ende"
         }
     }
 
@@ -137,6 +149,7 @@ class AttendanceFragment : Fragment(), RfidListener {
                 sendBooking(oct,2)
                 funcCode = -1
                 RfidService.unregister()
+                binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
             }
         }
     }

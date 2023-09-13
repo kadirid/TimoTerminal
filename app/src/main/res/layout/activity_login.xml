@@ -22,7 +22,8 @@
         android:layout_height="48dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:text="Has to be removed later to use as url for local test"/>
+        tools:text="Has to be removed later to use as url for local test"
+        android:hint="local Url"/>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/text_input_layout_login_company"

@@ -57,7 +57,6 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container_view"
-        android:name="com.timo.timoterminal.fragmentViews.AttendanceFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         app:layout_constraintEnd_toEndOf="parent"
