@@ -1,14 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragmentViews.AttendanceFragment">
+    tools:context=".fragmentViews.AttendanceFragment"
+    android:orientation="vertical">
 
     <!-- TODO: Update blank fragment layout -->
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:text="hello attendance fragment" />
 
-</FrameLayout>
+    <Button
+        android:id="@+id/button_test_kommen"
+        android:layout_width="400dp"
+        android:layout_height="48dp"
+        android:text="Kommen" />
+
+    <Button
+        android:id="@+id/button_test_gehen"
+        android:layout_width="400dp"
+        android:layout_height="48dp"
+        android:text="Gehen" />
+
+    <Button
+        android:id="@+id/button_test_pause_anfang"
+        android:layout_width="400dp"
+        android:layout_height="48dp"
+        android:text="Pause Anfang" />
+
+    <Button
+        android:id="@+id/button_test_pause_ende"
+        android:layout_width="400dp"
+        android:layout_height="48dp"
+        android:text="Pause Ende" />
+
+</LinearLayout>

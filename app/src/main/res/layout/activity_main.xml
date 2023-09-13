@@ -36,32 +36,19 @@
             app:itemIconSize="@dimen/navigationRailIconSize"
             app:itemTextAppearanceActive="@style/AppTheme.NavigationBar.TextSize"
             app:itemTextAppearanceInactive="@style/AppTheme.NavigationBar.TextSize"
-            app:layout_constraintBottom_toTopOf="@id/settings_fab"
+            app:layout_constraintBottom_toTopOf="@id/button_settings"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/image_view_logo"
             app:menu="@menu/navigation_rail_menu" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/settings_fab"
-            style="?attr/floatingActionButtonPrimaryStyle"
-            android:layout_width="180dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:contentDescription="@string/open_settings"
-            android:src="@drawable/outline_settings_26"
-            app:elevation="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/keyboardButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
         <Button
-            android:id="@+id/keyboardButton"
+            android:id="@+id/button_settings"
             style="?attr/materialIconButtonStyle"
             android:layout_width="180dp"
             android:layout_height="52dp"
             android:layout_margin="10dp"
-            android:drawableTop="@drawable/outline_keyboard_26"
+            android:drawableTop="@drawable/outline_settings_26"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
@@ -75,5 +62,18 @@
         android:layout_height="match_parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/navigation_rail_container" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floating_action_button_keyboard"
+        style="?attr/floatingActionButtonPrimaryStyle"
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="@string/open_settings"
+        android:src="@drawable/outline_keyboard_26"
+        app:elevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

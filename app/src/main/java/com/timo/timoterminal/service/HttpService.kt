@@ -113,7 +113,7 @@ class HttpService : KoinComponent {
     fun post(
         url: String,
         parameters: Map<String, String>,
-        successCallback: (response: JSONObject) -> Unit?,
+        successCallback: (objResponse: JSONObject?, arrResponse : JSONArray?, strResponse : String?) -> Unit?,
         errorCallback: (e: Exception) -> Unit?
     ) {
         val formBody: RequestBody = createRequestBody(parameters)
@@ -124,8 +124,15 @@ class HttpService : KoinComponent {
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val responseStr = response.body!!.string()
-                val obj = JSONObject(responseStr)
-                successCallback(obj)
+                if (responseStr.startsWith("{")) {
+                    val obj = JSONObject(responseStr)
+                    successCallback( obj, null, null)
+                } else if (responseStr.startsWith("[")) {
+                    val obj = JSONArray(responseStr)
+                    successCallback( null, obj, null)
+                } else {
+                    successCallback(null, null, responseStr)
+                }
             }
 
             override fun onFailure(call: Call, e: IOException) {
@@ -166,5 +173,4 @@ class HttpService : KoinComponent {
             }
         })
     }
-
 }

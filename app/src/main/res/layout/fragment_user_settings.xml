@@ -100,6 +100,7 @@
                 android:id="@+id/text_input_edit_text_pin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:inputType="numberPassword"
                 tools:text="824798" />
 
         </com.google.android.material.textfield.TextInputLayout>

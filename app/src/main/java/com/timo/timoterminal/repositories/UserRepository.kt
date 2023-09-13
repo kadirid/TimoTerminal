@@ -21,4 +21,6 @@ class UserRepository(private val userDAO: UserDAO) {
     suspend fun insertOne(user : UserEntity) = userDAO.insertOne(user)
 
     suspend fun delete(user: UserEntity) = userDAO.delete(user)
+
+    suspend fun getEntity(id: Long) = userDAO.loadEntityById(id)
 }

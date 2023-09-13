@@ -66,7 +66,7 @@ class UserSettingsFragment : Fragment() {
         }
     }
 
-    private fun loadFormData(user : UserEntity){
+    private fun loadFormData(user: UserEntity) {
         binding.textViewId.text = "${user.id}"
         binding.textInputEditTextName.setText(user.name)
         binding.textInputEditTextCard.setText(user.card)
@@ -84,7 +84,7 @@ class UserSettingsFragment : Fragment() {
             userSettingsFragmentViewModel.saveOrUpdate(user)
         }
         binding.buttonUserDelete.setOnClickListener {
-            if(!binding.textViewId.text.toString().isNullOrEmpty()) {
+            if (!binding.textViewId.text.toString().isNullOrEmpty()) {
                 val user = UserEntity(
                     binding.textViewId.text.toString().toLong(),
                     binding.textInputEditTextName.text.toString(),
@@ -93,19 +93,26 @@ class UserSettingsFragment : Fragment() {
                 )
                 userSettingsFragmentViewModel.deleteEntity(user)
             }
-            println("Delete User")
         }
         binding.buttonUserLoad.setOnClickListener {
-            httpService.get("http://192.168.0.45/timo_prd/services/rest/iclock/loadUser", mapOf(),{
-                    _, obj, _ ->
-                if(obj != null) {
-                    for(c in 0 until obj.length()){
-                        val item = obj.getJSONObject(c)
-                        val user = UserEntity(item.getLong("id"), item.getString("name"), item.getString("card"), item.getString("pin"))
-                        userSettingsFragmentViewModel.addEntity(user)
+            httpService.get(
+                "http://192.168.0.45/timo_prd/services/rest/zktecoTerminal/loadUser",
+                mapOf(Pair("firma", "standalone")),
+                { _, obj, _ ->
+                    if (obj != null) {
+                        for (c in 0 until obj.length()) {
+                            val item = obj.getJSONObject(c)
+                            val user = UserEntity(
+                                item.getLong("id"),
+                                item.getString("name"),
+                                item.getString("card"),
+                                item.getString("pin")
+                            )
+                            userSettingsFragmentViewModel.addEntity(user)
+                        }
                     }
-                }
-            },{})
+                },
+                {})
         }
     }
 

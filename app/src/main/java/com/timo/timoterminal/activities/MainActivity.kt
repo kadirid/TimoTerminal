@@ -1,15 +1,18 @@
 package com.timo.timoterminal.activities
 
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
+import com.google.android.material.snackbar.Snackbar
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
+import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.fragmentViews.AbsenceFragment
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.fragmentViews.ProjectFragment
@@ -19,6 +22,7 @@ import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         initNavbarListener()
 
         //How to start a worker
-        mainActivityViewModel.initHearbeatService(application, this)
+        mainActivityViewModel.initHeartbeatService(application, this)
 
         mainActivityViewModel.viewModelScope.launch {
             mainActivityViewModel.demoEntities.collect {
@@ -50,38 +54,47 @@ class MainActivity : AppCompatActivity() {
                 Log.d("DATABASE", "userEntities was changed")
             }
         }
-        binding.settingsFab.setOnClickListener {
+        clickListeners()
+    }
+
+    private fun clickListeners() {
+        binding.buttonSettings.setOnClickListener {
             mainActivityViewModel.viewModelScope.launch {
                 if (mainActivityViewModel.count() == 0) {
                     supportFragmentManager.commit {
                         replace(R.id.fragment_container_view, SettingsFragment.newInstance("", ""))
                     }
                 } else {
-                    supportFragmentManager.commit {
-                        replace(R.id.fragment_container_view, SettingsFragment.newInstance("", ""))
-                    }
+                    showVerificationAlert()
                 }
             }
         }
+        // to kill heart beat worker and clear some of the db data
         binding.imageViewLogo.setOnClickListener {
             mainActivityViewModel.killHeartBeatWorkers(application)
         }
     }
 
     private fun initNavbarListener() {
+        // use loaded permission to hide project menu entry as example
+        mainActivityViewModel.viewModelScope.launch {
+            val permission = mainActivityViewModel.permission("projekt.use")
+            binding.navigationRail.menu.findItem(R.id.project).isVisible = permission == "true"
+        }
         binding.navigationRail.setOnItemSelectedListener {
 
+            it.isChecked = false
             val fragment: Fragment? = when (it.itemId) {
-                R.id.attendance -> AttendanceFragment.newInstance("","")
-                R.id.absence -> AbsenceFragment.newInstance("","")
-                R.id.project -> ProjectFragment.newInstance("","")
+                R.id.attendance -> AttendanceFragment.newInstance("", "")
+                R.id.absence -> AbsenceFragment.newInstance("", "")
+                R.id.project -> ProjectFragment.newInstance("", "")
 
                 else -> null
             }
 
-            if (fragment == null){
+            if (fragment == null) {
                 return@setOnItemSelectedListener false
-            }else{
+            } else {
                 supportFragmentManager.commit {
                     replace(R.id.fragment_container_view, fragment)
                 }
@@ -104,5 +117,45 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
+    }
+
+    // verify user if present before opening settings page
+    private fun showVerificationAlert() {
+        val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
+
+        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this)
+        dlgAlert.setMessage("Please Scan finger print or card for verification or enter credentials")
+        dlgAlert.setTitle("Verification")
+        dlgAlert.setView(dialogBinding.root)
+        dlgAlert.setNegativeButton("Cancel") { dia, _ -> dia.dismiss() }
+        dlgAlert.setPositiveButton("OK") { _, _ ->
+            val code = dialogBinding.textInputEditTextVerificationId.text.toString()
+            val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
+            if (!code.isNullOrEmpty()) {
+                mainActivityViewModel.viewModelScope.launch {
+                    val user = mainActivityViewModel.getUserEntity(code.toLong())
+                    if (user != null && user.pin == pin) {
+                        supportFragmentManager.commit {
+                            replace(
+                                R.id.fragment_container_view,
+                                SettingsFragment.newInstance("", "")
+                            )
+                        }
+                    } else {
+                        Snackbar.make(binding.root, "Verification failed", Snackbar.LENGTH_LONG)
+                            .show()
+                    }
+                }
+            }
+        }
+
+        val dialog = dlgAlert.create()
+        dialog.setOnShowListener {
+            dialogBinding.textInputEditTextVerificationId.isFocusable = true
+            dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
+            dialogBinding.textInputEditTextVerificationPin.isFocusable = true
+            dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
+        }
+        dialog.show()
     }
 }
