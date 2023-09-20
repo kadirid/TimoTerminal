@@ -1,6 +1,7 @@
 package com.timo.timoterminal.service
 
 import android.app.Application
+import android.content.res.Resources.NotFoundException
 import android.net.Uri
 import androidx.lifecycle.LifecycleOwner
 import com.timo.timoterminal.service.utils.ProgressListener
@@ -86,12 +87,16 @@ class HttpService : KoinComponent {
         url: String,
         parameters: Map<String, String>?,
         successCallback: (objResponse: JSONObject?, arrResponse : JSONArray?, strResponse : String?) -> Unit?,
-        errorCallback: (e: Exception) -> Unit?
+        errorCallback: ((e: Exception) -> Unit) = {throw it}
     ) {
         val route = appendParametersToUrl(url, parameters)
         val request = Request.Builder().url(route).build()
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
+                if (response.code != 200) {
+                    onFailure(call, IOException(response.message))
+                    return
+                }
                 val responseStr = response.body!!.string()
                 if (responseStr.startsWith("{")) {
                     val obj = JSONObject(responseStr)

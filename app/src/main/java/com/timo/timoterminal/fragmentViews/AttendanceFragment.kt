@@ -55,13 +55,16 @@ class AttendanceFragment : Fragment(), RfidListener {
     // remove listener on pause
     override fun onPause() {
         RfidService.unregister()
-        binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
+        //binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
 
         super.onPause()
     }
 
     // set booking code and start listening
     private fun setOnClickListeners() {
+        /*
+
+
         binding.buttonTestKommen.setOnClickListener {
             funcCode = 100
             setListener()
@@ -82,6 +85,7 @@ class AttendanceFragment : Fragment(), RfidListener {
             setListener()
             binding.textViewAttendanceState.text = "Pause nur Ende"
         }
+         */
     }
 
     // start listening to card reader
@@ -149,7 +153,7 @@ class AttendanceFragment : Fragment(), RfidListener {
                 sendBooking(oct,2)
                 funcCode = -1
                 RfidService.unregister()
-                binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
+                //binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
             }
         }
     }

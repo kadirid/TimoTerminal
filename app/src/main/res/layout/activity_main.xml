@@ -19,7 +19,7 @@
             android:id="@+id/image_view_logo"
             android:layout_width="0dp"
             android:layout_height="80dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="30dp"
             android:contentDescription="@string/timo_logo"
             android:scaleType="fitCenter"
             android:src="@drawable/logo_nur_o_hell_blau_4096x2304"
@@ -30,10 +30,12 @@
         <com.google.android.material.navigationrail.NavigationRailView
             android:id="@+id/navigation_rail"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginVertical="5dp"
-            app:itemMinHeight="72dp"
             app:itemIconSize="@dimen/navigationRailIconSize"
+            app:itemMinHeight="72dp"
+            app:itemPaddingBottom="15dp"
+            app:itemPaddingTop="10dp"
             app:itemTextAppearanceActive="@style/AppTheme.NavigationBar.TextSize"
             app:itemTextAppearanceInactive="@style/AppTheme.NavigationBar.TextSize"
             app:layout_constraintBottom_toTopOf="@id/button_settings"
@@ -45,9 +47,9 @@
         <Button
             android:id="@+id/button_settings"
             style="?attr/materialIconButtonStyle"
-            android:layout_width="180dp"
+            android:layout_width="wrap_content"
             android:layout_height="52dp"
-            android:layout_margin="10dp"
+            android:layout_marginBottom="30dp"
             android:drawableTop="@drawable/outline_settings_26"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -55,9 +57,20 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <View
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toEndOf="@id/navigation_rail_container"
+        app:layout_constraintEnd_toStartOf="@id/fragment_container_view"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@drawable/gradient_drawable_nav_rail"
+        />
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container_view"
         android:layout_width="0dp"
+        android:padding="80dp"
         android:layout_height="match_parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/navigation_rail_container" />
@@ -67,12 +80,41 @@
         style="?attr/floatingActionButtonPrimaryStyle"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:layout_marginEnd="10dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginBottom="30dp"
         android:contentDescription="@string/open_settings"
         android:src="@drawable/outline_keyboard_26"
         app:elevation="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="25dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="10dp"
+            android:src="@drawable/baseline_lan_32"/>
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="10dp"
+            android:src="@drawable/baseline_cloud_queue_32"/>
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="10dp"
+            android:src="@drawable/baseline_battery_full_32"/>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

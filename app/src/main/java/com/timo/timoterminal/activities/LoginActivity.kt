@@ -1,20 +1,23 @@
 package com.timo.timoterminal.activities
 
+import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.snackbar.Snackbar
 import com.timo.timoterminal.databinding.ActivityLoginBinding
 import com.timo.timoterminal.entityClasses.ConfigEntity
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.net.URL
 
 
 class LoginActivity : AppCompatActivity() {
@@ -48,7 +51,7 @@ class LoginActivity : AppCompatActivity() {
                     Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(goToMainActivity)
             } else {
-                checkNetworkConnection()
+                checkNetworkConnection(this@LoginActivity)
             }
         }
     }
@@ -131,35 +134,15 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // check connection to internet by pinging timo24.de
-    private fun checkNetworkConnection() {
-        var connected = true
-        val connectivityManager = ContextCompat.getSystemService(
-            this,
-            ConnectivityManager::class.java
-        ) as ConnectivityManager
-        val network = connectivityManager.activeNetwork
-        if (network != null) {
-            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-            if (networkCapabilities != null) {
-                val runtime = Runtime.getRuntime()
-                try {
-                    val ipProcess = runtime.exec("/system/bin/ping -c 1 -w 1 timo24.de")
-                    val exitValue = ipProcess.waitFor()
-                    if (exitValue != 0) {
-                        connected = false
-                    }
-                } catch (e: Exception) {
-                    connected = false
-                }
-            } else {
-                connected = false
-            }
-        } else {
-            connected = false
-        }
-
-        if (!connected) {
-            startActivity(Intent(this, NoInternetNetworkSettingsActivity::class.java))
+    private fun checkNetworkConnection(context: Context) = runBlocking(Dispatchers.IO) {
+        try {
+            val myUrl = URL("https://timo24.de")
+            val connection = myUrl.openConnection()
+            connection.connectTimeout = 5000
+            connection.connect()
+        } catch (e: Exception) {
+            Log.d("INTERNET CHECK", "checkNetworkConnection: ${e.localizedMessage}")
+            startActivity(Intent(context, NoInternetNetworkSettingsActivity::class.java))
         }
     }
 }

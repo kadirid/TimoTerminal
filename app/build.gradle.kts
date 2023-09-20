@@ -124,4 +124,6 @@ dependencies {
     implementation("com.zkteco.android.visiblelightsdk:VisibleLightSdk:1.2.2-release")
     implementation("com.zkteco.liveface562:liveface:5.6.2")
 
+    implementation("com.airbnb.android:lottie:6.1.0")
+
 }

@@ -3,9 +3,11 @@ package com.timo.timoterminal.activities
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuItemImpl
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
@@ -19,6 +21,7 @@ import com.timo.timoterminal.fragmentViews.ProjectFragment
 import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -43,17 +46,18 @@ class MainActivity : AppCompatActivity() {
         mainActivityViewModel.initHeartbeatService(application, this)
 
         mainActivityViewModel.viewModelScope.launch {
+
             mainActivityViewModel.demoEntities.collect {
                 //dieser Code wird immer ausgeführt, wenn die Daten vom ViewModel aktualisiert werden
                 // Hier kann man dann das UI demenstprechend updaten
                 Log.d("DATABASE", "demoEntities changed ")
             }
-        }
-        mainActivityViewModel.viewModelScope.launch {
+
             mainActivityViewModel.userEntities.collect {
                 Log.d("DATABASE", "userEntities was changed")
             }
         }
+
         clickListeners()
     }
 
@@ -78,13 +82,15 @@ class MainActivity : AppCompatActivity() {
     private fun initNavbarListener() {
         // use loaded permission to hide project menu entry as example
         mainActivityViewModel.viewModelScope.launch {
-            val permission = mainActivityViewModel.permission("projekt.use")
-            binding.navigationRail.menu.findItem(R.id.project).isVisible = permission == "true"
+            val projectPermission = mainActivityViewModel.permission("projekt.use")
+            binding.navigationRail.menu.findItem(R.id.project).isVisible =
+                projectPermission == "true"
+
+            val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
+            binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
+                attendancePermission == "true"
         }
-        mainActivityViewModel.viewModelScope.launch {
-            val permission = mainActivityViewModel.permission("kommengehen.use")
-            binding.navigationRail.menu.findItem(R.id.attendance).isVisible = permission == "true"
-        }
+
         binding.navigationRail.setOnItemSelectedListener {
 
             it.isChecked = false
@@ -103,9 +109,24 @@ class MainActivity : AppCompatActivity() {
                     replace(R.id.fragment_container_view, fragment)
                 }
             }
-
             true
         }
+
+        //init correct fragment, this could be also configurable if needed, but this is for the future
+        if (binding.navigationRail.menu.findItem(R.id.attendance).isVisible) {
+            supportFragmentManager.commit {
+                replace(R.id.fragment_container_view, AttendanceFragment.newInstance("", ""))
+            }
+        } else if (binding.navigationRail.menu.findItem(R.id.project).isVisible) {
+            supportFragmentManager.commit {
+                replace(R.id.fragment_container_view, ProjectFragment.newInstance("", ""))
+            }
+        } else if (binding.navigationRail.menu.findItem(R.id.absence).isVisible) {
+            supportFragmentManager.commit {
+                replace(R.id.fragment_container_view, AbsenceFragment.newInstance("", ""))
+            }
+        }
+
     }
 
     private fun hideStatusAndNavbar() {

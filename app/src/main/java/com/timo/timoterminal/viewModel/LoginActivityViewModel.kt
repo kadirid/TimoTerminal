@@ -1,5 +1,6 @@
 package com.timo.timoterminal.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.entityClasses.ConfigEntity
@@ -41,10 +42,13 @@ class LoginActivityViewModel(
                             )
                         )
                     }
+                    //callback should only be called if the array is really loaded!
+                    callback()
                 }
-                callback()
             },
-            {}
+            {
+                Log.e("ERROR", "loadPermissions: ${it.printStackTrace()}", )
+            }
         )
     }
 
