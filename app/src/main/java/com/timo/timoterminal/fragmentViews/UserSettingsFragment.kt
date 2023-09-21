@@ -1,5 +1,6 @@
 package com.timo.timoterminal.fragmentViews
 
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -12,6 +13,9 @@ import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor
 import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor.OnItemClickListener
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
+import com.zkteco.android.core.interfaces.RfidListener
+import com.zkteco.android.core.sdk.service.RfidService
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -25,7 +29,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [UserSettingsFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class UserSettingsFragment : Fragment() {
+class UserSettingsFragment : Fragment(), RfidListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -48,21 +52,33 @@ class UserSettingsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentUserSettingsBinding.inflate(inflater, container, false)
-
         setUpOnClickListeners()
+        RfidService.setListener(this)
+        RfidService.register()
         setAdapter()
         return binding.root
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        RfidService.unregister()
+    }
+
+    override fun onResume() {
+        super.onResume()
+    }
+
     private fun setAdapter() {
         userSettingsFragmentViewModel.viewModelScope.launch {
-            adapter = UserEntityAdaptor(userSettingsFragmentViewModel.getAllUserEntities(),
-                object : OnItemClickListener {
-                    override fun onItemClick(user: UserEntity) {
-                        loadFormData(user)
-                    }
-                })
-            binding.viewRecyclerUser.adapter = adapter
+            userSettingsFragmentViewModel.getAllUserEntities().collect {
+                adapter = UserEntityAdaptor(it,
+                    object : OnItemClickListener {
+                        override fun onItemClick(user: UserEntity) {
+                            loadFormData(user)
+                        }
+                    })
+                binding.viewRecyclerUser.adapter = adapter
+            }
         }
     }
 
@@ -96,7 +112,7 @@ class UserSettingsFragment : Fragment() {
         }
         binding.buttonUserLoad.setOnClickListener {
             httpService.get(
-                "http://192.168.0.45/timo_prd/services/rest/zktecoTerminal/loadUser",
+                "http://10.0.2.2/timo_prd/services/rest/zktecoTerminal/loadUser",
                 mapOf(Pair("firma", "standalone")),
                 { _, obj, _ ->
                     if (obj != null) {
@@ -111,8 +127,7 @@ class UserSettingsFragment : Fragment() {
                             userSettingsFragmentViewModel.addEntity(user)
                         }
                     }
-                },
-                {})
+                })
         }
     }
 
@@ -135,4 +150,16 @@ class UserSettingsFragment : Fragment() {
                 }
             }
     }
+
+    override fun onRfidRead(rfidInfo: String) {
+        val rfidCode = rfidInfo.toLongOrNull(16)
+        if (rfidCode != null) {
+            var oct = rfidCode.toString(8)
+            while (oct.length < 9) {
+                oct = "0$oct"
+            }
+            binding.textInputEditTextCard.setText(rfidCode.toString(8))
+        }
+    }
+
 }

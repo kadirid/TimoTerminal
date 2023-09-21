@@ -8,7 +8,7 @@ import kotlinx.coroutines.launch
 
 class UserSettingsFragmentViewModel(private val userRepository: UserRepository): ViewModel() {
 
-    suspend fun getAllUserEntities() = userRepository.getAllAsList()
+    fun getAllUserEntities() = userRepository.getAllAsList()
 
     fun addEntity(userEntity: UserEntity) {
         viewModelScope.launch {

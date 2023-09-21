@@ -114,6 +114,7 @@
 
 
         <Button
+            android:id="@+id/button_kommen"
             android:layout_width="115dp"
             android:layout_height="115dp"
             android:layout_marginHorizontal="30dp"
@@ -129,6 +130,7 @@
 
 
         <Button
+            android:id="@+id/button_pause_anfang"
             android:layout_width="115dp"
             android:layout_height="115dp"
             android:layout_marginHorizontal="30dp"
@@ -144,6 +146,7 @@
 
 
         <Button
+            android:id="@+id/button_pause_ende"
             android:layout_width="115dp"
             android:layout_height="115dp"
             android:layout_marginHorizontal="30dp"
@@ -160,6 +163,7 @@
 
 
         <Button
+            android:id="@+id/button_gehen"
             android:layout_width="115dp"
             android:layout_height="115dp"
             android:layout_marginHorizontal="30dp"

@@ -1,6 +1,7 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,9 +9,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.snackbar.Snackbar
 import com.timo.timoterminal.databinding.FragmentAttendanceBinding
+import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
+import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
+import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -23,7 +27,7 @@ private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
 
-class AttendanceFragment : Fragment(), RfidListener {
+class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -32,6 +36,7 @@ class AttendanceFragment : Fragment(), RfidListener {
     private val httpService: HttpService = HttpService()
     private val viewModel: AttendanceFragmentViewModel by viewModel()
     private var funcCode = -1
+    private lateinit var mbSheetFingerprintCardReader : MBSheetFingerprintCardReader
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,13 +45,12 @@ class AttendanceFragment : Fragment(), RfidListener {
             param2 = it.getString(ARG_PARAM2)
         }
     }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentAttendanceBinding.inflate(inflater, container, false)
-
+        mbSheetFingerprintCardReader = MBSheetFingerprintCardReader()
         setOnClickListeners()
 
         return binding.root
@@ -62,40 +66,52 @@ class AttendanceFragment : Fragment(), RfidListener {
 
     // set booking code and start listening
     private fun setOnClickListeners() {
-        /*
 
-
-        binding.buttonTestKommen.setOnClickListener {
+        binding.buttonKommen.setOnClickListener {
             funcCode = 100
             setListener()
-            binding.textViewAttendanceState.text = "Kommen"
+            val bundle = Bundle()
+            bundle.putString("status", "Kommen")
+            mbSheetFingerprintCardReader.arguments = bundle
+            mbSheetFingerprintCardReader.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
+            //mbSheetFingerprintCardReader.updateBookingState("Kommen")
         }
-        binding.buttonTestGehen.setOnClickListener {
+        binding.buttonPauseAnfang.setOnClickListener {
             funcCode = 200
             setListener()
-            binding.textViewAttendanceState.text = "Gehen"
+            val bundle = Bundle()
+            bundle.putString("status", "Pause Anfang")
+            mbSheetFingerprintCardReader.arguments = bundle
+            mbSheetFingerprintCardReader.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
         }
-        binding.buttonTestPauseAnfang.setOnClickListener {
+        binding.buttonPauseEnde.setOnClickListener {
             funcCode = 110
             setListener()
-            binding.textViewAttendanceState.text = "Pause Dynamisch"
+            val bundle = Bundle()
+            bundle.putString("status", "Pause Ende")
+            mbSheetFingerprintCardReader.arguments = bundle
+            mbSheetFingerprintCardReader.show(childFragmentManager, MBSheetFingerprintCardReader.TAG)
         }
-        binding.buttonTestPauseEnde.setOnClickListener {
+        binding.buttonGehen.setOnClickListener {
             funcCode = 210
             setListener()
-            binding.textViewAttendanceState.text = "Pause nur Ende"
+            val bundle = Bundle()
+            bundle.putString("status", "Gehen")
+            mbSheetFingerprintCardReader.arguments = bundle
+            mbSheetFingerprintCardReader.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
         }
-         */
     }
 
     // start listening to card reader
     private fun setListener(){
         RfidService.setListener(this)
         RfidService.register()
+        FingerprintService.setListener(this)
+        FingerprintService.register()
     }
 
     // send all necessary information to timo to create a booking
-    private fun sendBooking(card :String ,inputCode : Int){
+    private fun sendBooking(card :String ,inputCode : Int) {
         val dateFormatter  = SimpleDateFormat("dd.MM.yyyy HH:mm:ss")
         viewModel.viewModelScope.launch {
             val url = viewModel.getURl()
@@ -143,6 +159,7 @@ class AttendanceFragment : Fragment(), RfidListener {
     // get code of scanned card
     override fun onRfidRead(rfidInfo: String) {
         val rfidCode = rfidInfo.toLongOrNull(16)
+        mbSheetFingerprintCardReader.dismiss()
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)
             while (oct.length < 9) {
@@ -156,5 +173,17 @@ class AttendanceFragment : Fragment(), RfidListener {
                 //binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
             }
         }
+    }
+
+    override fun onFingerprintPressed(
+        fingerprint: String,
+        template: String,
+        width: Int,
+        height: Int
+    ) {
+        Log.d("FP", fingerprint)
+        mbSheetFingerprintCardReader.addTextView("1234556")
+        mbSheetFingerprintCardReader.dismiss()
+        FingerprintService.unregister()
     }
 }

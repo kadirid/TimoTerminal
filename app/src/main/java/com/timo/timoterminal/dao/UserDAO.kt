@@ -16,7 +16,7 @@ interface UserDAO {
     fun getAll() : Flow<List<UserEntity>>
 
     @Query("SELECT * FROM UserEntity")
-    suspend fun getAllAsList() : List<UserEntity>
+    fun getAllAsList() : Flow<List<UserEntity>>
 
     @Query("SELECT * FROM UserEntity WHERE id = :id")
     suspend fun loadEntityById(id: Long) : List<UserEntity>

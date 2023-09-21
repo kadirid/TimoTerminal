@@ -3,11 +3,9 @@ package com.timo.timoterminal.activities
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.view.menu.MenuItemImpl
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
@@ -21,7 +19,6 @@ import com.timo.timoterminal.fragmentViews.ProjectFragment
 import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -59,6 +56,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         clickListeners()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        hideStatusAndNavbar()
+    }
+
+    override fun onResume() {
+        hideStatusAndNavbar()
+        super.onResume()
     }
 
     private fun clickListeners() {
@@ -136,9 +143,12 @@ class MainActivity : AppCompatActivity() {
             window.decorView.apply {
                 // Hide both the navigation bar and the status bar.
                 systemUiVisibility =
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
                             View.SYSTEM_UI_FLAG_FULLSCREEN or
-                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            View.SYSTEM_UI_FLAG_IMMERSIVE
 
             }
         }
