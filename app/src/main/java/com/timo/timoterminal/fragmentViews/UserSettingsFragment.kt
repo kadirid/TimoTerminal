@@ -70,7 +70,7 @@ class UserSettingsFragment : Fragment(), RfidListener {
 
     private fun setAdapter() {
         userSettingsFragmentViewModel.viewModelScope.launch {
-            userSettingsFragmentViewModel.getAllUserEntities().collect {
+            userSettingsFragmentViewModel.getAll().collect {
                 adapter = UserEntityAdaptor(it,
                     object : OnItemClickListener {
                         override fun onItemClick(user: UserEntity) {

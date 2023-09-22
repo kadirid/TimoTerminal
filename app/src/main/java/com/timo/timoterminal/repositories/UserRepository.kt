@@ -16,7 +16,7 @@ class UserRepository(private val userDAO: UserDAO) {
 
     suspend fun count() = userDAO.count()
 
-    fun getAllAsList() = userDAO.getAllAsList()
+    suspend fun getAllAsList() = userDAO.getAllAsList()
 
     suspend fun insertOne(user : UserEntity) = userDAO.insertOne(user)
 

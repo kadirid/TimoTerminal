@@ -19,6 +19,7 @@ import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 
 // TODO: Rename parameter arguments, choose names that match
@@ -52,8 +53,13 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         binding = FragmentAttendanceBinding.inflate(inflater, container, false)
         mbSheetFingerprintCardReader = MBSheetFingerprintCardReader()
         setOnClickListeners()
-
+        adaptLottieAnimationTime()
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adaptLottieAnimationTime()
     }
 
     // remove listener on pause
@@ -66,7 +72,6 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     // set booking code and start listening
     private fun setOnClickListeners() {
-
         binding.buttonKommen.setOnClickListener {
             funcCode = 100
             setListener()
@@ -185,5 +190,19 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         mbSheetFingerprintCardReader.addTextView("1234556")
         mbSheetFingerprintCardReader.dismiss()
         FingerprintService.unregister()
+    }
+
+    private fun adaptLottieAnimationTime() {
+        super.onResume()
+        val calendar: Calendar = Calendar.getInstance()
+        val hour: Int = calendar.get(Calendar.HOUR_OF_DAY) +4
+
+        if ( hour < 7 || hour > 20) {
+            binding.lottieAnimationView.setMinAndMaxFrame(0, 60)
+            binding.lottieAnimationView.playAnimation()
+        } else {
+            binding.lottieAnimationView.setMinAndMaxFrame(60, 120)
+            binding.lottieAnimationView.playAnimation()
+        }
     }
 }
