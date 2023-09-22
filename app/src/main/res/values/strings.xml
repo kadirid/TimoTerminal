@@ -5,5 +5,8 @@
     <string name="project">Project</string>
     <string name="open_settings">Open Settings</string>
     <string name="timo_logo">TimO Logo</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="rfidcard">RFID-Card</string>
+    <string name="wait_for_ident">Waiting for identification ...</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

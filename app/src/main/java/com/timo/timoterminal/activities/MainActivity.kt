@@ -1,8 +1,12 @@
 package com.timo.timoterminal.activities
 
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
+import android.os.NetworkOnMainThreadException
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +21,9 @@ import com.timo.timoterminal.fragmentViews.AbsenceFragment
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.fragmentViews.ProjectFragment
 import com.timo.timoterminal.fragmentViews.SettingsFragment
+import com.timo.timoterminal.utils.BatteryReceiver
+import com.timo.timoterminal.utils.NetworkChangeReceiver
+import com.timo.timoterminal.utils.enums.NetworkType
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
@@ -24,12 +31,14 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback, NetworkChangeReceiver.NetworkStatusCallback {
 
     private val mainActivityViewModel: MainActivityViewModel by viewModel()
     private val hardwareSource: IHardwareSource by inject()
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var batteryReceiver: BatteryReceiver
+    private lateinit var networkChangeReceiver: NetworkChangeReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,23 +48,25 @@ class MainActivity : AppCompatActivity() {
         hideStatusAndNavbar()
         initNavbarListener()
 
+        registerBatteryReceiver()
+        registerNetworkReceiver()
+
         //How to start a worker
         mainActivityViewModel.initHeartbeatService(application, this)
 
-        mainActivityViewModel.viewModelScope.launch {
-
-            mainActivityViewModel.demoEntities.collect {
-                //dieser Code wird immer ausgeführt, wenn die Daten vom ViewModel aktualisiert werden
-                // Hier kann man dann das UI demenstprechend updaten
-                Log.d("DATABASE", "demoEntities changed ")
-            }
-
-            mainActivityViewModel.userEntities.collect {
-                Log.d("DATABASE", "userEntities was changed")
-            }
-        }
-
         clickListeners()
+    }
+
+    private fun registerNetworkReceiver() {
+        networkChangeReceiver = NetworkChangeReceiver(this)
+        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        registerReceiver(networkChangeReceiver, filter)
+    }
+
+    private fun registerBatteryReceiver() {
+        batteryReceiver = BatteryReceiver(this)
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        registerReceiver(batteryReceiver, filter)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -66,6 +77,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         hideStatusAndNavbar()
         super.onResume()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(batteryReceiver)
+        unregisterReceiver(networkChangeReceiver)
     }
 
     private fun clickListeners() {
@@ -192,5 +209,41 @@ class MainActivity : AppCompatActivity() {
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
         }
         dialog.show()
+    }
+
+    override fun onBatteryStatusChanged(batteryPercentage: Int, usbCharge: Boolean, plugCharge: Boolean) {
+        binding.batteryPercent.text = "$batteryPercentage%"
+
+        if (usbCharge || plugCharge) {
+            binding.batteryIcon.setImageResource(R.drawable.baseline_battery_charging_full_32)
+        } else if (batteryPercentage < 10) {
+            binding.batteryIcon.setImageResource(R.drawable.baseline_battery_1_bar_32)
+        } else if (batteryPercentage in 10..25) {
+            binding.batteryIcon.setImageResource(R.drawable.baseline_battery_2_bar_32)
+        } else if (batteryPercentage in 26..49) {
+            binding.batteryIcon.setImageResource(R.drawable.baseline_battery_3_bar_32)
+        } else if (batteryPercentage in 51..74) {
+            binding.batteryIcon.setImageResource(R.drawable.baseline_battery_4_bar_32)
+        } else if (batteryPercentage in 76..99) {
+            binding.batteryIcon.setImageResource(R.drawable.baseline_battery_5_bar_32)
+        } else {
+            binding.batteryIcon.setImageResource(R.drawable.baseline_battery_full_32)
+        }
+    }
+
+    override fun onNetworkChanged(networkType: NetworkType) {
+        val res = when (networkType) {
+            NetworkType.WIFI -> R.drawable.baseline_wifi_24
+            NetworkType.ETHERNET -> R.drawable.baseline_lan_32
+            NetworkType.LTE -> R.drawable.baseline_lte_mobiledata_24
+            NetworkType.THIRD_GEN -> R.drawable.baseline_3g_mobiledata_24
+            NetworkType.SECOND_GEN -> R.drawable.baseline_3g_mobiledata_24
+            NetworkType.NOT_CONNECTED -> R.drawable.baseline_signal_cellular_connected_no_internet_0_bar_24
+            else -> {
+                R.drawable.baseline_signal_cellular_connected_no_internet_0_bar_24
+            }
+        }
+
+        binding.networkConnectionIcon.setImageResource(res)
     }
 }

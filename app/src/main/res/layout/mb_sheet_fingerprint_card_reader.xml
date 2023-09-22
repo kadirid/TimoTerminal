@@ -3,54 +3,137 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/scan_bottom_sheet"
     style="?attr/bottomSheetDialogTheme"
-    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <com.google.android.material.bottomsheet.BottomSheetDragHandleView
             android:id="@+id/drag_handle"
-            app:layout_constraintTop_toTopOf="parent"
             android:layout_width="0dp"
-            app:layout_constraintStart_toStartOf="parent"
+            android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_height="wrap_content" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/identification_text"
+            style="@style/TextAppearance.AppCompat.Headline"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/drag_handle"
+            android:text="@string/wait_for_ident"
             app:layout_constraintBottom_toTopOf="@id/linear_icon_container"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            style="@style/TextAppearance.AppCompat.Headline"
-            android:text="Warte auf Identifizierung..."/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/drag_handle" />
 
         <LinearLayout
             android:id="@+id/linear_icon_container"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/identification_text"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
 
-            android:orientation="horizontal">
+            app:layout_constraintTop_toBottomOf="@id/identification_text">
+
             <ImageView
+                android:id="@+id/fingerprint_image"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:background="@drawable/baseline_fingerprint_24"/>
-            <View
+                android:background="@drawable/baseline_fingerprint_24"
+                android:contentDescription="@string/fingerprint" />
+
+            <LinearLayout
+                android:id="@+id/progress_container"
                 android:layout_width="55dp"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent"
+                android:gravity="center">
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:progress="0"
+                    android:indeterminate="false"
+                    android:progressTint="@color/come"
+                    android:id="@+id/progress_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
             <ImageView
                 android:layout_width="90dp"
                 android:layout_height="60dp"
-                android:background="@drawable/smart_card"/>
+                android:background="@drawable/smart_card"
+                android:contentDescription="@string/rfidcard" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/name_container"
+            style="@style/TextAppearance.Material3.HeadlineSmall"
+            android:layout_width="500dp"
+            android:alpha="0"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/rounded_container_16dp"
+            android:backgroundTint="?attr/colorPrimaryContainer"
+            android:paddingVertical="20dp"
+            android:text="Elias Kadiri"
+            android:textAlignment="center"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/linear_icon_container" />
+
+        <LinearLayout
+            android:id="@+id/booking_info_container"
+            android:layout_width="0dp"
+            android:alpha="0"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/name_container"
+            app:layout_constraintStart_toStartOf="@id/name_container"
+            app:layout_constraintTop_toBottomOf="@id/name_container">
+
+            <TextView
+                android:id="@+id/booking_type_text_container"
+                style="@style/TextAppearance.Material3.HeadlineSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_container_16dp"
+                android:backgroundTint="@color/come_pastell"
+                android:paddingHorizontal="30dp"
+                android:paddingVertical="20dp"
+                android:text="Kommen"
+                android:textAlignment="center"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/linear_icon_container" />
+
+            <TextView
+                android:id="@+id/time_text_container"
+                style="@style/TextAppearance.Material3.HeadlineSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_container_16dp"
+                android:backgroundTint="?attr/colorPrimary"
+                android:paddingHorizontal="30dp"
+                android:paddingVertical="20dp"
+                android:text="Kommen"
+                android:textAlignment="center"
+                android:textColor="#fff"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/linear_icon_container" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
