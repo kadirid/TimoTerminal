@@ -1,23 +1,24 @@
 package com.timo.timoterminal.fragmentViews
 
-import android.os.Build
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.databinding.FragmentUserSettingsBinding
-import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor
 import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor.OnItemClickListener
+import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
 import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.RfidService
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -56,7 +57,34 @@ class UserSettingsFragment : Fragment(), RfidListener {
         RfidService.setListener(this)
         RfidService.register()
         setAdapter()
+        initSearchFilter()
         return binding.root
+    }
+
+    private fun initSearchFilter() {
+        val search = binding.searchView.editText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+                // This method is called before the text changes.
+            }
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                userSettingsFragmentViewModel.viewModelScope.launch {
+                    val queriedList = userSettingsFragmentViewModel.getAllAsList().filter {
+                        it.name.contains(s) || s.toString().equals(it.card)
+                    }
+                    binding.viewRecyclerUserFilter.adapter = UserEntityAdaptor(queriedList,
+                        object : OnItemClickListener {
+                            override fun onItemClick(user: UserEntity) {
+                                loadFormData(user)
+                            }
+                        })
+                }
+            }
+
+            override fun afterTextChanged(s: Editable) {
+                // This method is called after the text changes.
+            }
+        })
     }
 
     override fun onDetach() {
@@ -77,7 +105,7 @@ class UserSettingsFragment : Fragment(), RfidListener {
                             loadFormData(user)
                         }
                     })
-                binding.viewRecyclerUser.adapter = adapter
+                binding.viewRecyclerUserAll.adapter = adapter
             }
         }
     }
@@ -159,6 +187,8 @@ class UserSettingsFragment : Fragment(), RfidListener {
                 oct = "0$oct"
             }
             binding.textInputEditTextCard.setText(rfidCode.toString(8))
+            binding.searchView.show()
+            binding.searchView.setText(rfidCode.toString(8))
         }
     }
 

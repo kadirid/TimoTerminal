@@ -8,5 +8,6 @@
     <string name="fingerprint">Fingerprint</string>
     <string name="rfidcard">RFID-Card</string>
     <string name="wait_for_ident">Waiting for identification ...</string>
+    <string name="choose_worker">Mitarbeiter auswählen</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

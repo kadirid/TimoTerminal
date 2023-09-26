@@ -9,4 +9,5 @@
     <string name="fingerprint">Fingerabdruck</string>
     <string name="rfidcard">RFID-Karte</string>
     <string name="wait_for_ident">Warte auf Identifizierung ...</string>
+    <string name="choose_worker">Choose an employee</string>
 </resources>
