@@ -11,7 +11,7 @@ class ProgressBarAnimation(
     private val to: Float
 ) :
     Animation() {
-    protected override fun applyTransformation(interpolatedTime: Float, t: Transformation?) {
+    override fun applyTransformation(interpolatedTime: Float, t: Transformation?) {
         super.applyTransformation(interpolatedTime, t)
         val value = from + (to - from) * interpolatedTime
         progressBar.progress = value.toInt()
