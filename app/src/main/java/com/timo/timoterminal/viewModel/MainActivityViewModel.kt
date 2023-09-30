@@ -10,6 +10,7 @@ import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.SharedPrefService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -17,6 +18,7 @@ class MainActivityViewModel(
     private val demoRepository: DemoRepository,
     private val userRepository: UserRepository,
     private val configRepository: ConfigRepository,
+    private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService
 ) : ViewModel() {
     val demoEntities: Flow<List<DemoEntity>> = demoRepository.getAllEntities
@@ -29,7 +31,7 @@ class MainActivityViewModel(
     fun killHeartBeatWorkers(application: Application) {
         httpService.killHeartBeatWorkers(application)
         viewModelScope.launch {
-            configRepository.clearCompanyAndURL()
+            sharedPrefService.removeAllCreds()
         }
     }
 
@@ -42,7 +44,7 @@ class MainActivityViewModel(
 
     fun addEntity(userEntity: UserEntity) {
         viewModelScope.launch {
-            userRepository.insertUserEntity(userEntity)
+            userRepository.insertOne(userEntity)
         }
     }
 

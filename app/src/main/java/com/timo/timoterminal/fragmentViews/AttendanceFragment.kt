@@ -121,23 +121,26 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         viewModel.viewModelScope.launch {
             val url = viewModel.getURl()
             val company = viewModel.getCompany()
-            httpService.post(
-                "${url}services/rest/zktecoTerminal/booking",
-                mapOf(
-                    Pair("card", card),
-                    Pair("firma", company),
-                    Pair("date", dateFormatter.format(Date())),
-                    Pair("funcCode", "$funcCode"),
-                    Pair("inputCode", "$inputCode"),
-                    Pair("terminalId", "DU")
-                ),
-                { _, _, msg ->
-                    if (msg != null) {
-                        Snackbar.make(binding.root,msg,Snackbar.LENGTH_LONG).show()
+            val terminalId = viewModel.getTerminalID()
+            if (!company.isNullOrEmpty() && !terminalId.isNullOrEmpty()) {
+                httpService.post(
+                    "${url}services/rest/zktecoTerminal/booking",
+                    mapOf(
+                        Pair("card", card),
+                        Pair("firma", company),
+                        Pair("date", dateFormatter.format(Date())),
+                        Pair("funcCode", "$funcCode"),
+                        Pair("inputCode", "$inputCode"),
+                        Pair("terminalId", terminalId)
+                    ),
+                    requireContext(),
+                    { _, _, msg ->
+                        if (msg != null) {
+                            Snackbar.make(binding.root,msg,Snackbar.LENGTH_LONG).show()
+                        }
                     }
-                },
-                {}
-            )
+                )
+            }
         }
     }
 

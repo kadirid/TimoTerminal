@@ -1,11 +1,21 @@
 package com.timo.timoterminal.service
 
+import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.Application
+import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.LifecycleOwner
-import com.timo.timoterminal.service.utils.ProgressListener
-import com.timo.timoterminal.service.utils.ProgressResponseBody
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.timo.timoterminal.R
+import com.timo.timoterminal.service.serviceUtils.ProgressListener
+import com.timo.timoterminal.service.serviceUtils.ProgressResponseBody
+import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.ResponseToJSON
 import com.timo.timoterminal.worker.HeartbeatWorker
+import mcv.facepass.BuildConfig
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -79,34 +89,75 @@ class HttpService : KoinComponent {
         workerService.killAllWorkers()
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun handleGenericRequestError(e: Exception?, response: Response?, context: Context?, output : ResponseToJSON?) {
+        //If the context is null, we cannot show a dialogue
+        if (context != null && response != null) {
+            Handler(Looper.getMainLooper()).post {
+                val dialog = MaterialAlertDialogBuilder(context)
+                dialog.setTitle(context.getString(R.string.error))
+                dialog.setIcon(context.getDrawable(R.drawable.baseline_error_24))
+                //If you are running the app on debug mode, the url will appear next to the error message
+                val debugAttachString = if (BuildConfig.DEBUG) "\n${response.request.url}" else ""
+                if (output != null) {
+                    if (output.obj != null) {
+                        val message = output.obj.getString("message")
+                        dialog.setMessage(message + debugAttachString)
+                    } else if (output.array != null) {
+                        dialog.setMessage(output.array.toString())
+                    } else {
+                        dialog.setMessage("${response.code}: ${output.string}" +  debugAttachString)
+                    }
+                } else {
+                    if (e != null) {
+                        dialog.setMessage(e.message)
+                    } else {
+                        dialog.setMessage(context.getString(R.string.unknown_error)+ debugAttachString)
+                    }
+                }
+                dialog.setPositiveButton("OK") {dia, _ ->
+                    dia.dismiss()
+                }
+                dialog.show()
+            }
+        }
+    }
+
     fun get(
         url: String,
         parameters: Map<String, String>?,
+        context: Context?,
         successCallback: (objResponse: JSONObject?, arrResponse : JSONArray?, strResponse : String?) -> Unit?,
-        errorCallback: ((e: Exception) -> Unit) = {throw it}
+        errorCallback:  ((e: Exception?, response: Response?, context: Context?, output : ResponseToJSON?) -> Unit?) = { e, res, context, output -> handleGenericRequestError(e, res, context, output) }
     ) {
         val route = appendParametersToUrl(url, parameters)
         val request = Request.Builder().url(route).build()
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                if (response.code != 200) {
-                    onFailure(call, IOException(response.message))
+                val responseString = if (response.body!!.contentLength() > 0) {
+                    response.body!!.string()
+                } else {
+                    response.message
+                }
+                val output : ResponseToJSON = Utils.parseResponseToJSON(responseString)
+
+                if (response.code == 200 || response.isSuccessful) {
+                    successCallback(output.obj, output.array, output.string)
+                } else {
+                    errorCallback(null ,response, context, output)
+                }
+
+                if (response.isSuccessful || response.code == 200) {
+                    successCallback(output.obj, output.array, output.string)
+                } else {
+                    errorCallback(null, response, context, output)
                     return
                 }
-                val responseStr = response.body!!.string()
-                if (responseStr.startsWith("{")) {
-                    val obj = JSONObject(responseStr)
-                    successCallback( obj, null, null)
-                } else if (responseStr.startsWith("[")) {
-                    val obj = JSONArray(responseStr)
-                    successCallback( null, obj, null)
-                } else {
-                    successCallback(null, null, responseStr)
-                }
+
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                errorCallback(e)
+                errorCallback(e, null, context, null)
             }
         })
     }
@@ -114,8 +165,9 @@ class HttpService : KoinComponent {
     fun post(
         url: String,
         parameters: Map<String, String>,
+        context: Context?,
         successCallback: (objResponse: JSONObject?, arrResponse : JSONArray?, strResponse : String?) -> Unit?,
-        errorCallback: (e: Exception) -> Unit?
+        errorCallback:  ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit) = { e, response, context, output -> handleGenericRequestError(e, response, context, output) }
     ) {
         val formBody: RequestBody = createRequestBody(parameters)
         val request = Request.Builder()
@@ -124,20 +176,21 @@ class HttpService : KoinComponent {
             .build()
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                val responseStr = response.body!!.string()
-                if (responseStr.startsWith("{")) {
-                    val obj = JSONObject(responseStr)
-                    successCallback( obj, null, null)
-                } else if (responseStr.startsWith("[")) {
-                    val obj = JSONArray(responseStr)
-                    successCallback( null, obj, null)
+                val responseString = if (response.body!!.contentLength() > 0) {
+                    response.body!!.string()
                 } else {
-                    successCallback(null, null, responseStr)
+                    response.message
+                }
+                val output : ResponseToJSON = Utils.parseResponseToJSON(responseString)
+                if (response.code == 200 || response.isSuccessful) {
+                    successCallback(output.obj, output.array, output.string)
+                } else {
+                    errorCallback(null,response, context, output)
                 }
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                errorCallback(e)
+                errorCallback(e, null, context, null)
             }
         })
     }

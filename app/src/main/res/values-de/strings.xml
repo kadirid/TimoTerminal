@@ -10,4 +10,6 @@
     <string name="rfidcard">RFID-Karte</string>
     <string name="wait_for_ident">Warte auf Identifizierung ...</string>
     <string name="choose_worker">Choose an employee</string>
+    <string name="error">Error</string>
+    <string name="unknown_error">Unknown Error</string>
 </resources>

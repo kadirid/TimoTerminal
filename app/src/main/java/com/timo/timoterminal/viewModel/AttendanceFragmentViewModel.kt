@@ -1,15 +1,20 @@
 package com.timo.timoterminal.viewModel
 
 import androidx.lifecycle.ViewModel
-import com.timo.timoterminal.repositories.ConfigRepository
+import com.timo.timoterminal.enums.SharedPreferenceKeys
+import com.timo.timoterminal.service.SharedPrefService
 
-class AttendanceFragmentViewModel(private val configRepository: ConfigRepository): ViewModel(){
+class AttendanceFragmentViewModel(private val sharedPrefService: SharedPrefService): ViewModel(){
 
-    suspend fun getCompany(): String {
-        return configRepository.getCompanyString()
+    fun getCompany(): String? {
+        return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
     }
 
-    suspend fun  getURl():String {
-        return configRepository.getUrlString()
+    fun  getURl():String? {
+        return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+    }
+
+    fun getTerminalID() : String? {
+        return sharedPrefService.getString(SharedPreferenceKeys.TIMO_TERMINAL_ID)
     }
 }

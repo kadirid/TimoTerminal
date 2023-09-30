@@ -11,7 +11,7 @@ import android.net.NetworkInfo
 import android.os.Build
 import android.telephony.TelephonyManager
 import androidx.core.app.ActivityCompat
-import com.timo.timoterminal.utils.enums.NetworkType
+import com.timo.timoterminal.enums.NetworkType
 
 class NetworkChangeReceiver(private val callback : NetworkStatusCallback) : BroadcastReceiver() {
 

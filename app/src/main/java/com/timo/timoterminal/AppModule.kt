@@ -9,6 +9,8 @@ import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LoginService
+import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.service.WebSocketService
 import com.timo.timoterminal.service.WorkerService
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
@@ -52,8 +54,6 @@ var appModule = module {
     single { get<UserDatabase>().userDao() }
     single { get<ConfigDatabase>().configDao() }
 
-    single { KeyValueDataStore(androidContext()) }
-
     single {DemoRepository(get())}
     single {UserRepository(get())}
     single {ConfigRepository(get())}
@@ -61,10 +61,12 @@ var appModule = module {
     single {HttpService()}
     single {WebSocketService()}
     single {WorkerService(get())}
-    single {LoginService(get(), get())}
+    single {LoginService(get(), get(), get(), get())}
+    single {UserService(get(), get(), get())}
+    single { SharedPrefService(androidContext()) }
 
-    viewModel { MainActivityViewModel(get(), get(), get(), get()) }
-    viewModel { UserSettingsFragmentViewModel(get()) }
+    viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
+    viewModel { UserSettingsFragmentViewModel(get(), get()) }
     viewModel { LoginActivityViewModel(get(), get()) }
     viewModel { AttendanceFragmentViewModel(get()) }
 

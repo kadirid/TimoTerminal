@@ -4,27 +4,32 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.repositories.UserRepository
+import com.timo.timoterminal.service.UserService
 import kotlinx.coroutines.launch
 
-class UserSettingsFragmentViewModel(private val userRepository: UserRepository): ViewModel() {
+class UserSettingsFragmentViewModel(
+    private val userRepository: UserRepository,
+    private val userService: UserService
+): ViewModel() {
 
     suspend fun getAllAsList() = userRepository.getAllAsList()
     fun getAll() = userRepository.getAllEntities
 
     fun addEntity(userEntity: UserEntity) {
         viewModelScope.launch {
-            userRepository.insertUserEntity(userEntity)
+            userRepository.insertOne(userEntity)
         }
     }
 
     fun saveOrUpdate(user: UserEntity) {
         viewModelScope.launch {
-            if(user.id == null){
-                userRepository.insertOne(user)
-            }else{
-                userRepository.insertUserEntity(user)
-            }
+            userRepository.insertOne(user)
         }
+    }
+
+    fun loadUserFromServer() {
+        //Get User from Server
+        userService.loadUserFromServer(viewModelScope)
     }
 
     fun deleteEntity(user: UserEntity){

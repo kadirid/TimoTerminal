@@ -23,7 +23,7 @@ import com.timo.timoterminal.fragmentViews.ProjectFragment
 import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
-import com.timo.timoterminal.utils.enums.NetworkType
+import com.timo.timoterminal.enums.NetworkType
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch

@@ -36,25 +36,6 @@ class ConfigRepository(private val configDao: ConfigDAO){
         return company
     }
 
-    suspend fun getUrl(): ConfigEntity? = configDao.getUrl()
-
-    suspend fun getUrlString(): String {
-        if(url.isEmpty()){
-            val config = configDao.getUrl()
-            if(config != null) {
-                url = config.value
-            }
-        }
-        return url
-    }
-
-    suspend fun clearCompanyAndURL(){
-        val url = getUrl()
-        val comp = getCompany()
-        if(url != null) configDao.delete(url)
-        if(comp != null) configDao.delete(comp)
-    }
-
     companion object {
         const val TYPE_COMPANY: Int = 0
         const val TYPE_URL: Int = 1

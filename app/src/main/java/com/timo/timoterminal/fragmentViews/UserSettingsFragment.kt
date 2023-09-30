@@ -56,6 +56,7 @@ class UserSettingsFragment : Fragment(), RfidListener {
         setUpOnClickListeners()
         RfidService.setListener(this)
         RfidService.register()
+        userSettingsFragmentViewModel.loadUserFromServer()
         setAdapter()
         initSearchFilter()
         return binding.root
@@ -142,6 +143,7 @@ class UserSettingsFragment : Fragment(), RfidListener {
             httpService.get(
                 "http://10.0.2.2/timo_prd/services/rest/zktecoTerminal/loadUser",
                 mapOf(Pair("firma", "standalone")),
+                requireContext(),
                 { _, obj, _ ->
                     if (obj != null) {
                         for (c in 0 until obj.length()) {

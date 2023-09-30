@@ -6,12 +6,11 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.viewModelScope
-import com.google.android.material.snackbar.Snackbar
+import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityLoginBinding
-import com.timo.timoterminal.entityClasses.ConfigEntity
-import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,6 +20,10 @@ import java.net.URL
 
 
 class LoginActivity : AppCompatActivity() {
+
+    companion object {
+        const val TAG = "LoginActivity"
+    }
 
     private lateinit var binding: ActivityLoginBinding
     private val loginActivityViewModel: LoginActivityViewModel by viewModel()
@@ -38,20 +41,15 @@ class LoginActivity : AppCompatActivity() {
     //check if logged in then open main activity else check connection
     override fun onResume() {
         super.onResume()
-
         loginActivityViewModel.viewModelScope.launch {
-            var loggedIn = true
-            val url = loginActivityViewModel.getUrl()
-            if (url == null || url.value.isEmpty()) {
-                loggedIn = false
-            }
-            if (loggedIn) {
-                val goToMainActivity = Intent(this@LoginActivity, MainActivity::class.java)
-                goToMainActivity.flags =
-                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(goToMainActivity)
-            } else {
-                checkNetworkConnection(this@LoginActivity)
+            val saved : Boolean = loginActivityViewModel.checkIfCredsAreLocallySaved()
+            if (saved) {
+                Log.d(TAG, "onResume: $saved")
+                /*
+                OUTSOURCE THIS LOGIC INTO LOGINSERVICE, so we can use this approach in several areas
+                ONLINE => validate local token => getPermissions => login
+                OFFLINE => check if permissions are also present => login
+                 */
             }
         }
     }
@@ -64,41 +62,16 @@ class LoginActivity : AppCompatActivity() {
             val password = binding.textInputEditTextLoginPassword.text.toString()
             val customUrl = binding.customUrl.text.toString()
 
-            if(customUrl.isNotEmpty()){
-                loginActivityViewModel.addConfig(
-                    ConfigEntity(
-                        ConfigRepository.TYPE_URL,
-                        "url",
-                        customUrl
-                    )
-                )
-                loginActivityViewModel.addConfig(
-                    ConfigEntity(
-                        ConfigRepository.TYPE_COMPANY,
-                        "company",
-                        "standalone"
-                    )
-                )
-                openMainView(user, customUrl, "standalone")
-            }else {
-                if (company.isNotEmpty()) {
-                    loginActivityViewModel.getURlFromServer(company) { url ->
-                        loginActivityViewModel.addConfig(
-                            ConfigEntity(
-                                ConfigRepository.TYPE_URL,
-                                "url",
-                                url
-                            )
-                        )
-                        loginActivityViewModel.addConfig(
-                            ConfigEntity(
-                                ConfigRepository.TYPE_COMPANY,
-                                "company",
-                                company
-                            )
-                        )
-                        Snackbar.make(binding.root, url, Snackbar.LENGTH_LONG).show()
-                        openMainView(user, url, company)
+            loginActivityViewModel.loginCompany(
+                company,
+                user,
+                password,
+                customUrl,
+                this
+            ) {
+                loginActivityViewModel.loadPermissions(this) { worked ->
+                    if (worked) {
+                        openMainView()
                     }
                 }
             }
@@ -106,15 +79,11 @@ class LoginActivity : AppCompatActivity() {
     }
 
     //load permission from server and open main activity
-    private fun openMainView(user: String, url:String, company: String) {
-        if (user.isNotEmpty()) {
-            loginActivityViewModel.loadPermissions(url, company) {
-                var goToMainActivity = Intent(this, MainActivity::class.java)
-                goToMainActivity.flags =
-                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(goToMainActivity)
-            }
-        }
+    private fun openMainView() {
+        var goToMainActivity = Intent(this, MainActivity::class.java)
+        goToMainActivity.flags =
+            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(goToMainActivity)
     }
 
     private fun hideStatusAndNavbar() {

@@ -9,5 +9,7 @@
     <string name="rfidcard">RFID-Card</string>
     <string name="wait_for_ident">Waiting for identification ...</string>
     <string name="choose_worker">Mitarbeiter auswählen</string>
+    <string name="error">Fehler</string>
+    <string name="unknown_error">Unbekannter Fehler</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

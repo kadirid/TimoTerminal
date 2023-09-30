@@ -25,9 +25,9 @@ interface UserDAO {
     suspend fun count() : Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(vararg entities : UserEntity)
+    suspend fun insertAll(entities : List<UserEntity>)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOne(entity: UserEntity)
 
     @Delete

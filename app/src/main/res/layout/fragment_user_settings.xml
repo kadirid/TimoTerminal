@@ -7,6 +7,7 @@
     android:layout_marginVertical="10dp"
     tools:context=".fragmentViews.UserSettingsFragment">
 
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -16,6 +17,15 @@
         app:layout_constraintEnd_toStartOf="@id/layout_form"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.search.SearchBar
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
+            app:elevation="0dp"
+            android:backgroundTint="?attr/colorSurfaceContainerHighest"
+            android:background="@drawable/rounded_container_16dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/choose_worker" />
 
         <!-- NestedScrollingChild goes here (NestedScrollView, RecyclerView, etc.). -->
         <androidx.core.widget.NestedScrollView
@@ -30,18 +40,6 @@
                 android:layout_height="wrap_content"/>
         </androidx.core.widget.NestedScrollView>
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <com.google.android.material.search.SearchBar
-                android:id="@+id/search_bar"
-                android:layout_width="match_parent"
-                app:elevation="0dp"
-                android:backgroundTint="?attr/colorSurfaceContainerHighest"
-                android:background="@drawable/rounded_container_16dp"
-                android:layout_height="wrap_content"
-                android:hint="@string/choose_worker" />
-        </com.google.android.material.appbar.AppBarLayout>
 
         <com.google.android.material.search.SearchView
             android:id="@+id/search_view"

@@ -22,9 +22,6 @@ interface ConfigDAO {
     @Query("SELECT * FROM ConfigEntity WHERE type = ${ConfigRepository.TYPE_COMPANY} LIMIT 1")
     suspend fun getCompany() : ConfigEntity?
 
-    @Query("SELECT * FROM ConfigEntity WHERE type = ${ConfigRepository.TYPE_URL} LIMIT 1")
-    suspend fun getUrl() : ConfigEntity?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(vararg entities : ConfigEntity)
 

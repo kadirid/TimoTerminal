@@ -1,4 +1,4 @@
-package com.timo.timoterminal.service.utils
+package com.timo.timoterminal.service.serviceUtils
 
 import okhttp3.MediaType
 import okhttp3.ResponseBody

@@ -10,7 +10,7 @@ class UserRepository(private val userDAO: UserDAO) {
     val getAllEntities : Flow<List<UserEntity>> = userDAO.getAll()
 
     @WorkerThread
-    suspend fun insertUserEntity(entity: UserEntity) {
+    suspend fun insertUserEntity(entity: List<UserEntity>) {
         userDAO.insertAll(entity)
     }
 
