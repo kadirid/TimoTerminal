@@ -26,20 +26,22 @@ class LoginService(
     private val hardware: IHardwareSource
 ) : KoinComponent {
 
+    companion object {
+        private const val TAG = "LoginService"
+    }
+
     fun loginProcess(
         company: String,
         username: String,
         password: String,
         customUrl: String?,
         context: Context,
-        coroutineScope: CoroutineScope,
         successCallback: () -> Unit?
     ) {
         if (Utils.isOnline(context)) {
             if (customUrl.isNullOrEmpty()) {
                 getURlFromServer(
                     company,
-                    coroutineScope,
                     context
                 ) { url ->
                     loginCompany(
@@ -48,7 +50,6 @@ class LoginService(
                         password,
                         url,
                         context,
-                        coroutineScope,
                         successCallback,
                     )
                 };
@@ -59,7 +60,6 @@ class LoginService(
                     password,
                     customUrl,
                     context,
-                    coroutineScope,
                     successCallback
                 )
             }
@@ -80,7 +80,6 @@ class LoginService(
 
     private fun getURlFromServer(
         company: String,
-        coroutineScope: CoroutineScope,
         context: Context,
         successCallback: (url: String) -> Unit?,
     ) {
@@ -90,9 +89,7 @@ class LoginService(
             context,
             { _, _, url ->
                 if (!url.isNullOrEmpty()) {
-                    coroutineScope.launch {
                         successCallback(url)
-                    }
                 }
             }
         )
@@ -105,9 +102,8 @@ class LoginService(
         password: String,
         url: String,
         context: Context,
-        coroutineScope: CoroutineScope, callback: () -> Unit?
+        callback: () -> Unit?
     ) {
-        coroutineScope.launch {
 
             //if not created, create a ID for the device. This ID is the recognizer for the timo
             // system and will be used as terminal id
@@ -153,7 +149,6 @@ class LoginService(
                         }
                     }
                 )
-            }
 
 
             //OFFLINE
@@ -164,42 +159,83 @@ class LoginService(
     }
 
     fun loadPermissions(
-        coroutineScope: CoroutineScope,
+        coroutineScope : CoroutineScope,
         context :Context,
-        callback: (worked: Boolean) -> Unit?
+        callback: (worked: Boolean) -> Unit
     ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-        if (!url.isNullOrEmpty() && !company.isNullOrEmpty()) {
-            httpService.get(
-                "${url}services/rest/zktecoTerminal/permission",
-                mapOf(Pair("firma", company)),
-                context,
-                { _, array, _ ->
-                    if (array != null && array.length() > 0) {
-                        for (i in 0 until array.length()) {
-                            val obj = array.getJSONObject(i)
-                            addConfig(
-                                coroutineScope,
-                                ConfigEntity(
-                                    ConfigRepository.TYPE_PERMISSION,
-                                    obj.getString("name"),
-                                    obj.getString("value")
+
+        if (Utils.isOnline(context)) {
+            if (!url.isNullOrEmpty() && !company.isNullOrEmpty()) {
+                httpService.get(
+                    "${url}services/rest/zktecoTerminal/permission",
+                    mapOf(Pair("firma", company)),
+                    context,
+                    { _, array, _ ->
+                        if (array != null && array.length() > 0) {
+                            for (i in 0 until array.length()) {
+                                val obj = array.getJSONObject(i)
+                                addConfig(
+                                    coroutineScope,
+                                    ConfigEntity(
+                                        ConfigRepository.TYPE_PERMISSION,
+                                        obj.getString("name"),
+                                        obj.getString("value")
+                                    )
                                 )
-                            )
+                            }
+                            //callback should only be called if the array is really loaded!
+                            callback(true)
+                        } else {
+                            callback(false)
                         }
-                        //callback should only be called if the array is really loaded!
-                        callback(true)
                     }
-                }
-            )
+                )
+            }
+        } else {
+            //check if permissions table is really populated
+            coroutineScope.launch {
+                val size = configRepository.getItemCount()
+                if (size > 10) callback(true) else callback(false)
+            }
         }
-        callback(false)
     }
 
     private fun addConfig(scope: CoroutineScope, config: ConfigEntity) {
         scope.launch {
             configRepository.insertConfigEntity(config)
+        }
+    }
+
+    fun autoLogin(context: Context, callback: () -> Unit) {
+        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
+        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
+        val terminalID = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+        validateLogin(company, token, terminalID,  context, url, callback)
+    }
+
+    private fun validateLogin(
+        company: String?,
+        token : String?,
+        terminalID: Int,
+        context: Context?,
+        url: String?,
+        callback: () -> Unit) {
+        val serverUrl = if (!url.isNullOrEmpty()) url else sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+        if (!serverUrl.isNullOrEmpty()) {
+            val parameterMap = HashMap<String, String>()
+            parameterMap.put("company", company!!)
+            parameterMap.put("token", token!!)
+            parameterMap.put("terminalId", terminalID.toString())
+            httpService.post(
+                "${url}services/rest/zktecoTerminal/validateLogin",
+                parameterMap,
+                context,
+                { res, _, _ ->
+                    callback()
+                })
         }
     }
 }

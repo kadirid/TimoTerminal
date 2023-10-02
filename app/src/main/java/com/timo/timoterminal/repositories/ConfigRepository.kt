@@ -48,4 +48,8 @@ class ConfigRepository(private val configDao: ConfigDAO){
         }
         return permissionMap[name] ?: ""
     }
+
+    suspend fun getItemCount() : Int {
+        return configDao.getDataCount()
+    }
 }

@@ -41,17 +41,14 @@ class LoginActivity : AppCompatActivity() {
     //check if logged in then open main activity else check connection
     override fun onResume() {
         super.onResume()
-        loginActivityViewModel.viewModelScope.launch {
-            val saved : Boolean = loginActivityViewModel.checkIfCredsAreLocallySaved()
-            if (saved) {
-                Log.d(TAG, "onResume: $saved")
-                /*
-                OUTSOURCE THIS LOGIC INTO LOGINSERVICE, so we can use this approach in several areas
-                ONLINE => validate local token => getPermissions => login
-                OFFLINE => check if permissions are also present => login
-                 */
+        loginActivityViewModel.onResume(this) {
+            loginActivityViewModel.loadPermissions(this) { worked ->
+                if (worked) {
+                    openMainView()
+                }
             }
         }
+
     }
 
     //setting button Listener getting url and setting and saving url and company
