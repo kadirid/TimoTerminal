@@ -8,9 +8,12 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityLoginBinding
+import com.timo.timoterminal.fragmentViews.AttendanceFragment
+import com.timo.timoterminal.fragmentViews.LoginFragment
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,7 +35,11 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         hideStatusAndNavbar()
         binding = ActivityLoginBinding.inflate(layoutInflater)
-        initButtonListener()
+
+        //init login fragment
+        supportFragmentManager.commit {
+            replace(R.id.fragment_container_view, LoginFragment())
+        }
 
         val view = binding.root
         setContentView(view)
@@ -41,6 +48,7 @@ class LoginActivity : AppCompatActivity() {
     //check if logged in then open main activity else check connection
     override fun onResume() {
         super.onResume()
+        /*
         loginActivityViewModel.onResume(this) {
             loginActivityViewModel.loadPermissions(this) { worked ->
                 if (worked) {
@@ -48,32 +56,11 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+         */
 
     }
 
     //setting button Listener getting url and setting and saving url and company
-    private fun initButtonListener() {
-        binding.buttonLogin.setOnClickListener {
-            val company = binding.textInputEditTextLoginCompany.text.toString()
-            val user = binding.textInputEditTextLoginUser.text.toString()
-            val password = binding.textInputEditTextLoginPassword.text.toString()
-            val customUrl = binding.customUrl.text.toString()
-
-            loginActivityViewModel.loginCompany(
-                company,
-                user,
-                password,
-                customUrl,
-                this
-            ) {
-                loginActivityViewModel.loadPermissions(this) { worked ->
-                    if (worked) {
-                        openMainView()
-                    }
-                }
-            }
-        }
-    }
 
     //load permission from server and open main activity
     private fun openMainView() {

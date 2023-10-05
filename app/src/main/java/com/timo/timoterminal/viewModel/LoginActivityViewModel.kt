@@ -19,28 +19,8 @@ class LoginActivityViewModel(
         loginService.loadPermissions(viewModelScope, context, callback)
     }
 
-    fun checkIfCredsAreLocallySaved(): Boolean {
+    private fun checkIfCredsAreLocallySaved(): Boolean {
         return sharedPrefService.checkIfCredsAreSaved()
-    }
-
-    fun loginCompany(
-        company: String,
-        username: String,
-        password: String,
-        customUrl: String?,
-        context: Context,
-        callback: () -> Unit?
-    ) {
-        viewModelScope.launch {
-            loginService.loginProcess(
-                company,
-                username,
-                password,
-                customUrl,
-                context,
-                callback
-            )
-        }
     }
 
     fun onResume(context: Context, callback: () -> Unit) {

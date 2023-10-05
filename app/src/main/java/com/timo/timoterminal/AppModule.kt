@@ -15,6 +15,7 @@ import com.timo.timoterminal.service.WebSocketService
 import com.timo.timoterminal.service.WorkerService
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
+import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
 import com.timo.timoterminal.worker.HeartbeatWorker
@@ -68,6 +69,7 @@ var appModule = module {
     viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get()) }
     viewModel { LoginActivityViewModel(get(), get()) }
+    viewModel { LoginFragmentViewModel(get()) }
     viewModel { AttendanceFragmentViewModel(get()) }
 
     worker(named<HeartbeatWorker>()) {

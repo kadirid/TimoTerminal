@@ -8,8 +8,11 @@
     <string name="fingerprint">Fingerprint</string>
     <string name="rfidcard">RFID-Card</string>
     <string name="wait_for_ident">Waiting for identification ...</string>
-    <string name="choose_worker">Mitarbeiter auswählen</string>
-    <string name="error">Fehler</string>
-    <string name="unknown_error">Unbekannter Fehler</string>
+    <string name="choose_worker">Choose an employee</string>
+    <string name="error">Error</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="language">Language</string>
+    <string name="timezone">Timezone</string>
+    <string name="bitte_loggen_sie_sich_mit_einem_account_ein_damit_das_terminal_sich_einrichten_kann">Please log into terminal to proceed the configuration</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

@@ -6,98 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".activities.LoginActivity">
 
-    <Button
-        android:id="@+id/button_login"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GO TO MAIN ACTIVITY"
-        android:layout_marginBottom="100dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
-
-    <EditText
-        android:id="@+id/custom_url"
-        android:layout_width="500dp"
-        android:layout_height="48dp"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:text="Has to be removed later to use as url for local test"
-        android:hint="local Url"/>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/text_input_layout_login_company"
-        android:layout_width="300dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/text_view_login_title"
-        app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
-        android:hint="Company">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/text_input_edit_text_login_company"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:inputType="text"
-            tools:text="timo"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/text_input_layout_login_user"
-        android:layout_width="300dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="10dp"
-        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_company"
-        app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_password"
-        android:hint="Loginname">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/text_input_edit_text_login_user"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:inputType="text"
-            tools:text="admin"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/text_input_layout_login_password"
-        android:layout_width="300dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="40dp"
-        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
-        app:layout_constraintBottom_toTopOf="@id/button_login"
-        app:passwordToggleEnabled="true"
-        android:hint="Password">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/text_input_edit_text_login_password"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:inputType="textPassword"
-            tools:text="TestPW" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <TextView
-        android:id="@+id/text_view_login_title"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:text="Login"
-        android:textSize="60sp"
-        app:layout_constraintTop_toTopOf="@id/text_input_layout_login_company"
-        app:layout_constraintEnd_toStartOf="@id/text_input_layout_login_company"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <TextView
-        android:layout_width="300dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="10dp"
-        android:text="Bitte loggen Sie sich mit einem Account ein, damit das Terminal sich einrichten kann"
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="@id/text_view_login_title"
-        app:layout_constraintTop_toBottomOf="@id/text_view_login_title"/>
+         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

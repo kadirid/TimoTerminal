@@ -9,7 +9,10 @@
     <string name="fingerprint">Fingerabdruck</string>
     <string name="rfidcard">RFID-Karte</string>
     <string name="wait_for_ident">Warte auf Identifizierung ...</string>
-    <string name="choose_worker">Choose an employee</string>
-    <string name="error">Error</string>
-    <string name="unknown_error">Unknown Error</string>
+    <string name="choose_worker">Mitarbeiter auswählen</string>
+    <string name="error">Fehler</string>
+    <string name="unknown_error">Unbekannter Fehler</string>
+    <string name="language">Sprache</string>
+    <string name="timezone">Zeitzone</string>
+    <string name="bitte_loggen_sie_sich_mit_einem_account_ein_damit_das_terminal_sich_einrichten_kann">Bitte loggen Sie sich mit einem Account ein, damit das Terminal sich einrichten kann</string>
 </resources>
