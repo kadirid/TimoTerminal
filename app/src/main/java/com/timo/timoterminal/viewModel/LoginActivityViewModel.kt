@@ -5,15 +5,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.activities.LoginActivity
-import com.timo.timoterminal.entityClasses.ConfigEntity
-import com.timo.timoterminal.enums.SharedPreferenceKeys
-import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class LoginActivityViewModel(
     private val loginService: LoginService,
@@ -47,8 +42,6 @@ class LoginActivityViewModel(
             )
         }
     }
-
-    fun getUrl(): String? = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
 
     fun onResume(context: Context, callback: () -> Unit) {
         viewModelScope.launch {
