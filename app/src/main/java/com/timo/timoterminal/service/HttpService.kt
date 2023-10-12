@@ -134,10 +134,10 @@ class HttpService : KoinComponent {
         val request = Request.Builder().url(route).build()
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                val responseString = if (response.body!!.contentLength() > 0) {
-                    response.body!!.string()
-                } else {
-                    response.message
+                var responseString = response.body!!.string()
+
+                if(responseString.isNullOrEmpty()) {
+                    responseString = response.message
                 }
                 val output : ResponseToJSON = Utils.parseResponseToJSON(responseString)
 
@@ -176,10 +176,10 @@ class HttpService : KoinComponent {
             .build()
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                val responseString = if (response.body!!.contentLength() > 0) {
-                    response.body!!.string()
-                } else {
-                    response.message
+                var responseString = response.body!!.string()
+
+                if(responseString.isNullOrEmpty()) {
+                    responseString = response.message
                 }
                 val output : ResponseToJSON = Utils.parseResponseToJSON(responseString)
                 if (response.code == 200 || response.isSuccessful) {
