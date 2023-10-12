@@ -6,6 +6,8 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toLowerCase
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.databinding.FragmentUserSettingsBinding
@@ -71,7 +73,7 @@ class UserSettingsFragment : Fragment(), RfidListener {
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 userSettingsFragmentViewModel.viewModelScope.launch {
                     val queriedList = userSettingsFragmentViewModel.getAllAsList().filter {
-                        it.name.contains(s) || s.toString().equals(it.card)
+                        it.name.toLowerCase(Locale.current).contains(s) || s.toString().equals(it.card)
                     }
                     binding.viewRecyclerUserFilter.adapter = UserEntityAdaptor(queriedList,
                         object : OnItemClickListener {
@@ -188,9 +190,9 @@ class UserSettingsFragment : Fragment(), RfidListener {
             while (oct.length < 9) {
                 oct = "0$oct"
             }
-            binding.textInputEditTextCard.setText(rfidCode.toString(8))
+            binding.textInputEditTextCard.setText(oct)
             binding.searchView.show()
-            binding.searchView.setText(rfidCode.toString(8))
+            binding.searchView.setText(oct)
         }
     }
 
