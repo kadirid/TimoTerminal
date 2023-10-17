@@ -1,6 +1,7 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +22,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import kotlin.math.abs
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -33,6 +35,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     private var param1: String? = null
     private var param2: String? = null
 
+    private var lastClick : Long = 0
     private lateinit var binding: FragmentAttendanceBinding
     private val httpService: HttpService = HttpService()
     private val viewModel: AttendanceFragmentViewModel by viewModel()
@@ -73,38 +76,41 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     // set booking code and start listening
     private fun setOnClickListeners() {
         binding.buttonKommen.setOnClickListener {
-            funcCode = 100
-            setListener()
-            val bundle = Bundle()
-            bundle.putString("status", "Kommen")
-            mbSheetFingerprintCardReader.arguments = bundle
-            mbSheetFingerprintCardReader.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
-            //mbSheetFingerprintCardReader.updateBookingState("Kommen")
+            if(abs(lastClick-SystemClock.elapsedRealtime()) > 500){
+                funcCode = 100
+                executeClick()
+                lastClick = SystemClock.elapsedRealtime()
+            }
         }
         binding.buttonPauseAnfang.setOnClickListener {
-            funcCode = 200
-            setListener()
-            val bundle = Bundle()
-            bundle.putString("status", "Pause Anfang")
-            mbSheetFingerprintCardReader.arguments = bundle
-            mbSheetFingerprintCardReader.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
+            if(abs(lastClick-SystemClock.elapsedRealtime()) > 500){
+                funcCode = 110
+                executeClick()
+                lastClick = SystemClock.elapsedRealtime()
+            }
         }
         binding.buttonPauseEnde.setOnClickListener {
-            funcCode = 110
-            setListener()
-            val bundle = Bundle()
-            bundle.putString("status", "Pause Ende")
-            mbSheetFingerprintCardReader.arguments = bundle
-            mbSheetFingerprintCardReader.show(childFragmentManager, MBSheetFingerprintCardReader.TAG)
+            if(abs(lastClick-SystemClock.elapsedRealtime()) > 500){
+                funcCode = 210
+                executeClick()
+                lastClick = SystemClock.elapsedRealtime()
+            }
         }
-        binding.buttonGehen.setOnClickListener {
-            funcCode = 210
-            setListener()
-            val bundle = Bundle()
-            bundle.putString("status", "Gehen")
-            mbSheetFingerprintCardReader.arguments = bundle
-            mbSheetFingerprintCardReader.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
+        binding.buttonGehen.setOnClickListener{
+            if(abs(lastClick-SystemClock.elapsedRealtime()) > 500){
+                funcCode = 200
+                executeClick()
+                lastClick = SystemClock.elapsedRealtime()
+            }
         }
+    }
+
+    private fun executeClick() {
+        setListener()
+        val bundle = Bundle()
+        bundle.putInt("status", funcCode)
+        mbSheetFingerprintCardReader.arguments = bundle
+        mbSheetFingerprintCardReader.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
     }
 
     // start listening to card reader
@@ -134,9 +140,9 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                         Pair("terminalId", terminalId)
                     ),
                     requireContext(),
-                    { _, _, msg ->
-                        if (msg != null) {
-                            Snackbar.make(binding.root,msg,Snackbar.LENGTH_LONG).show()
+                    { obj, _, _ ->
+                        if (obj != null) {
+                            Snackbar.make(binding.root,obj.getString("message"),Snackbar.LENGTH_LONG).show()
                         }
                     }
                 )
@@ -175,7 +181,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
             }
             oct = oct.reversed()
             if(funcCode > 0) {
-                sendBooking(oct,2)
+//                sendBooking(oct,2)
                 funcCode = -1
                 RfidService.unregister()
                 //binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"

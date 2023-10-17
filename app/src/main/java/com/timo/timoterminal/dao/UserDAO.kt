@@ -21,6 +21,9 @@ interface UserDAO {
     @Query("SELECT * FROM UserEntity WHERE id = :id")
     suspend fun loadEntityById(id: Long) : List<UserEntity>
 
+    @Query("SELECT * FROM UserEntity WHERE card like :card")
+    suspend fun loadEntityByCard(card: String) : List<UserEntity>
+
     @Query("SELECT count(*) FROM UserEntity")
     suspend fun count() : Int
 

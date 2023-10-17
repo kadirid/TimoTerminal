@@ -64,9 +64,18 @@
             </LinearLayout>
 
             <ImageView
+                android:id="@+id/card_image"
                 android:layout_width="90dp"
                 android:layout_height="60dp"
                 android:background="@drawable/smart_card"
+                android:contentDescription="@string/rfidcard" />
+
+            <ImageView
+                android:id="@+id/keyboard_image"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:background="@drawable/outline_keyboard_26"
+                android:layout_marginStart="50dp"
                 android:contentDescription="@string/rfidcard" />
         </LinearLayout>
 

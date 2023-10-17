@@ -32,6 +32,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginVertical="5dp"
+            app:labelVisibilityMode="labeled"
             app:itemIconSize="@dimen/navigationRailIconSize"
             app:itemMinHeight="72dp"
             app:itemPaddingBottom="15dp"
@@ -70,10 +71,11 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container_view"
         android:layout_width="0dp"
-        android:padding="80dp"
+        android:padding="40dp"
         android:layout_height="match_parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/navigation_rail_container" />
+        app:layout_constraintStart_toEndOf="@id/navigation_rail_container"
+        android:name="com.timo.timoterminal.fragmentViews.AttendanceFragment" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floating_action_button_keyboard"

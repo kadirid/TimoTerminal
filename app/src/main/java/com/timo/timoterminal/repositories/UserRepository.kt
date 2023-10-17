@@ -23,4 +23,6 @@ class UserRepository(private val userDAO: UserDAO) {
     suspend fun delete(user: UserEntity) = userDAO.delete(user)
 
     suspend fun getEntity(id: Long) = userDAO.loadEntityById(id)
+
+    suspend fun getEntityByCard(card: String) = userDAO.loadEntityByCard(card)
 }

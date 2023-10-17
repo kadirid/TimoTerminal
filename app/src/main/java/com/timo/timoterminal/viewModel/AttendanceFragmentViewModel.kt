@@ -10,7 +10,7 @@ class AttendanceFragmentViewModel(private val sharedPrefService: SharedPrefServi
         return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
     }
 
-    fun  getURl():String? {
+    fun getURl():String? {
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
     }
 

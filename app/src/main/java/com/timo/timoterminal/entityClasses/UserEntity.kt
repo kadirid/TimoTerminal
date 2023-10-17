@@ -16,12 +16,12 @@ class UserEntity(
 
     companion object {
         fun parseJsonToUserEntity(obj: JSONObject) : UserEntity{
-            val id = obj.getInt("id")
+            val id = obj.getLong("id")
             val name = obj.getString("lastName")
             //TODO: Therefore a real infrastructure must be set
             val card = "123"
             val pin = "0"
-            return UserEntity(id.toLong(), name, card, pin )
+            return UserEntity(id, name, card, pin )
         }
     }
 

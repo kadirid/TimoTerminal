@@ -190,6 +190,7 @@ class UserSettingsFragment : Fragment(), RfidListener {
             while (oct.length < 9) {
                 oct = "0$oct"
             }
+            oct = oct.reversed()
             binding.textInputEditTextCard.setText(oct)
             binding.searchView.show()
             binding.searchView.setText(oct)

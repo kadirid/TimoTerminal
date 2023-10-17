@@ -3,10 +3,8 @@ package com.timo.timoterminal.activities
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
-import android.net.Network
 import android.os.Build
 import android.os.Bundle
-import android.os.NetworkOnMainThreadException
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -183,7 +181,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dlgAlert.setPositiveButton("OK") { _, _ ->
             val code = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (!code.isNullOrEmpty()) {
+            if (code.isNotEmpty()) {
                 mainActivityViewModel.viewModelScope.launch {
                     val user = mainActivityViewModel.getUserEntity(code.toLong())
                     if (user != null && user.pin == pin) {
