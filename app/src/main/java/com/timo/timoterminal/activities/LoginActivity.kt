@@ -6,18 +6,16 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
-import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityLoginBinding
-import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.fragmentViews.LoginFragment
+import com.timo.timoterminal.service.PropertyService
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import mcv.facepass.BuildConfig
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.net.URL
 
@@ -48,7 +46,7 @@ class LoginActivity : AppCompatActivity() {
     //check if logged in then open main activity else check connection
     override fun onResume() {
         super.onResume()
-        /*
+        loginActivityViewModel.syncTimezone(this)
         loginActivityViewModel.onResume(this) {
             loginActivityViewModel.loadPermissions(this) { worked ->
                 if (worked) {
@@ -56,7 +54,6 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
-         */
 
     }
 
@@ -67,7 +64,7 @@ class LoginActivity : AppCompatActivity() {
         var goToMainActivity = Intent(this, MainActivity::class.java)
         goToMainActivity.flags =
             Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(goToMainActivity)
+        startActivity(goToMainActivity.addCategory(Intent.CATEGORY_LAUNCHER))
     }
 
     private fun hideStatusAndNavbar() {

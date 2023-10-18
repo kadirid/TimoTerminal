@@ -99,4 +99,14 @@ class SharedPrefService(context: Context) : KoinComponent {
         editor.apply()
     }
 
+    fun removeField(p0: SharedPreferenceKeys) {
+        getEditor().remove(p0.name).commit()
+    }
+
+    fun updateToken(token: String) {
+        val editor = getEditor()
+        editor.putString(SharedPreferenceKeys.TOKEN.name, token)
+        editor.apply()
+    }
+
 }

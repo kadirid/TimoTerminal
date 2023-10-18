@@ -6,13 +6,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.activities.LoginActivity
 import com.timo.timoterminal.service.LoginService
+import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.launch
 
 class LoginActivityViewModel(
     private val loginService: LoginService,
-    private val sharedPrefService: SharedPrefService
+    private val sharedPrefService: SharedPrefService,
+    private val settingsService: SettingsService
 ) : ViewModel() {
 
     fun loadPermissions(context: Context, callback: (worked: Boolean) -> Unit) {
@@ -29,12 +31,16 @@ class LoginActivityViewModel(
             if (saved) {
                 Log.d(LoginActivity.TAG, "onResume: $saved")
                 if (Utils.isOnline(context)) {
-                    loginService.autoLogin(context, callback);
+                    loginService.autoLogin(context, callback)
                 } else {
                     //If we are offline, we just check whether the credentials are stored or not
                     callback()
                 }
             }
         }
+    }
+
+    fun syncTimezone(context: Context) {
+        settingsService.loadTimezone(context)
     }
 }

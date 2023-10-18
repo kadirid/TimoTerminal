@@ -7,11 +7,11 @@
     tools:context=".fragmentViews.LoginFragment">
 
     <Button
-        android:id="@+id/button_login"
+        android:id="@+id/button_submit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="80dp"
-        android:text="GO TO MAIN ACTIVITY"
+        android:text="@string/login"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -78,7 +78,7 @@
             android:layout_height="60dp"
             android:layout_marginBottom="10dp"
             android:hint="Password"
-            app:layout_constraintBottom_toTopOf="@id/button_login"
+            app:layout_constraintBottom_toTopOf="@id/button_submit"
             app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
             app:passwordToggleEnabled="true">
 
@@ -92,7 +92,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_language"
+            android:id="@+id/dropdown_menu_layout_language"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="300dp"
             android:layout_height="60dp"
@@ -104,6 +104,7 @@
             app:layout_constraintStart_toEndOf="@id/text_view_login_title">
 
             <AutoCompleteTextView
+                android:id="@+id/dropdown_menu_language"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:inputType="none" />
@@ -111,7 +112,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_timezone"
+            android:id="@+id/dropdown_menu_layout_timezone"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="300dp"
             android:layout_height="60dp"
@@ -122,9 +123,10 @@
             app:layout_constraintStart_toEndOf="@id/text_view_login_title">
 
             <AutoCompleteTextView
+                android:id="@+id/dropdown_menu_timezone"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:inputType="none" />
+                android:inputType="text" />
 
         </com.google.android.material.textfield.TextInputLayout>
 

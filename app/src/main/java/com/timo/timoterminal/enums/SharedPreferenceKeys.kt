@@ -7,5 +7,7 @@ enum class SharedPreferenceKeys {
     COMPANY,
     USER,
     PASSWORD,
-    TOKEN
+    TOKEN,
+    LANGUAGE,
+    TIMEZONE
 }

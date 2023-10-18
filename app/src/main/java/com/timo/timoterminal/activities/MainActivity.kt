@@ -9,6 +9,7 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.snackbar.Snackbar
@@ -22,6 +23,8 @@ import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
 import com.timo.timoterminal.enums.NetworkType
+import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
+import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
@@ -37,10 +40,18 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private lateinit var binding: ActivityMainBinding
     private lateinit var batteryReceiver: BatteryReceiver
     private lateinit var networkChangeReceiver: NetworkChangeReceiver
+    private lateinit var mbLoginWelcomeSheet: MBLoginWelcomeSheet
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val isNewTerminal = intent.getBooleanExtra("isNewTerminal", false)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        mbLoginWelcomeSheet = MBLoginWelcomeSheet()
+
+        if (isNewTerminal) {
+            showDialog()
+        }
+
         setContentView(binding.root)
 
         hideStatusAndNavbar()
@@ -53,6 +64,20 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.initHeartbeatService(application, this)
 
         clickListeners()
+    }
+
+    private fun showDialog() {
+        val fragmentManager = supportFragmentManager
+        // The device is smaller, so show the fragment fullscreen.
+        val transaction = fragmentManager.beginTransaction()
+        // For a polished look, specify a transition animation.
+        // To make it fullscreen, use the 'content' root view as the container
+        // for the fragment, which is always the root view for the activity.
+        transaction
+            .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_out_down, R.anim.slide_in_up, R.anim.slide_out_down)
+            .add(android.R.id.content, mbLoginWelcomeSheet)
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun registerNetworkReceiver() {
@@ -133,6 +158,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             }
             true
         }
+
 
         //init correct fragment, this could be also configurable if needed, but this is for the future
         if (binding.navigationRail.menu.findItem(R.id.attendance).isVisible) {

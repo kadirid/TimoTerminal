@@ -14,5 +14,11 @@
     <string name="language">Language</string>
     <string name="timezone">Timezone</string>
     <string name="bitte_loggen_sie_sich_mit_einem_account_ein_damit_das_terminal_sich_einrichten_kann">Please log into terminal to proceed the configuration</string>
+    <string name="english">English</string>
+    <string name="deutsch">German</string>
+    <string name="login">Login</string>
+    <string name="save_settings">Save Settings</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="wilkommen_bei_timo">Wilkommen bei TimO™</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

@@ -9,6 +9,8 @@ import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LoginService
+import com.timo.timoterminal.service.PropertyService
+import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.service.WebSocketService
@@ -56,21 +58,23 @@ var appModule = module {
     single { get<UserDatabase>().userDao() }
     single { get<ConfigDatabase>().configDao() }
 
-    single {DemoRepository(get())}
-    single {UserRepository(get())}
-    single {ConfigRepository(get())}
+    single { DemoRepository(get()) }
+    single { UserRepository(get()) }
+    single { ConfigRepository(get()) }
 
-    single {HttpService()}
-    single {WebSocketService()}
-    single {WorkerService(get())}
-    single {LoginService(get(), get(), get(), get())}
-    single {UserService(get(), get(), get())}
+    single { HttpService() }
+    single { WebSocketService() }
+    single { WorkerService(get()) }
+    single { LoginService(get(), get(), get(), get()) }
+    single { UserService(get(), get(), get()) }
     single { SharedPrefService(androidContext()) }
+    single { SettingsService(get(), get()) }
+    single { PropertyService(androidContext()) }
 
     viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get()) }
-    viewModel { LoginActivityViewModel(get(), get()) }
-    viewModel { LoginFragmentViewModel(get()) }
+    viewModel { LoginActivityViewModel(get(), get(), get()) }
+    viewModel { LoginFragmentViewModel(get(), get()) }
     viewModel { AttendanceFragmentViewModel(get()) }
     viewModel { MBSheetFingerprintCardReaderViewModel(get(), get()) }
 

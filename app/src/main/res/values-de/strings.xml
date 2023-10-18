@@ -15,4 +15,9 @@
     <string name="language">Sprache</string>
     <string name="timezone">Zeitzone</string>
     <string name="bitte_loggen_sie_sich_mit_einem_account_ein_damit_das_terminal_sich_einrichten_kann">Bitte loggen Sie sich mit einem Account ein, damit das Terminal sich einrichten kann</string>
+    <string name="english">Englisch</string>
+    <string name="deutsch">Deutsch</string>
+    <string name="login">Login</string>
+    <string name="save_settings">Einstellungen speichern</string>
+    <string name="wilkommen_bei_timo">Welcome to TimO™</string>
 </resources>

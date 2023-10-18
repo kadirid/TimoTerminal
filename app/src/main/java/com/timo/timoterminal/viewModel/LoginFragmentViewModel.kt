@@ -1,16 +1,22 @@
 package com.timo.timoterminal.viewModel
 
+import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.service.LoginService
+import com.timo.timoterminal.service.SettingsService
 import kotlinx.coroutines.launch
 
 class LoginFragmentViewModel(
-    private val loginService: LoginService
+    private val loginService: LoginService,
+    private val settingsService: SettingsService
 ) : ViewModel(
 
 ) {
+
+    val languages = settingsService.getLanguagesNames()
+
 
     fun loadPermissions(context: Context, callback: (worked: Boolean) -> Unit) {
         loginService.loadPermissions(viewModelScope, context, callback)
@@ -22,7 +28,7 @@ class LoginFragmentViewModel(
         password: String,
         customUrl: String?,
         context: Context,
-        callback: () -> Unit?
+        callback: (isNewTerminal: Boolean) -> Unit?
     ) {
         viewModelScope.launch {
             loginService.loginProcess(
@@ -34,5 +40,10 @@ class LoginFragmentViewModel(
                 callback
             )
         }
+    }
+
+    fun saveLangAndTimezone(activity: Activity, language: String, timezone: String, callback: () -> Unit) {
+        settingsService.changeLanguage(activity, language)
+        settingsService.saveTimeZone(activity, timezone, callback)
     }
 }

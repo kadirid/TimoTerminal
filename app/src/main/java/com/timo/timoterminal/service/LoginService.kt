@@ -36,7 +36,7 @@ class LoginService(
         password: String,
         customUrl: String?,
         context: Context,
-        successCallback: () -> Unit?
+        successCallback: (isNewTerminal: Boolean) -> Unit?
     ) {
         if (Utils.isOnline(context)) {
             if (customUrl.isNullOrEmpty()) {
@@ -89,7 +89,7 @@ class LoginService(
             context,
             { _, _, url ->
                 if (!url.isNullOrEmpty()) {
-                        successCallback(url)
+                    successCallback(url)
                 }
             }
         )
@@ -102,53 +102,56 @@ class LoginService(
         password: String,
         url: String,
         context: Context,
-        callback: () -> Unit?
+        callback: (isNewTerminal: Boolean) -> Unit?
     ) {
 
-            //if not created, create a ID for the device. This ID is the recognizer for the timo
-            // system and will be used as terminal id
-            val hashedAndroidId = Utils.sha256(Secure.getString(context.contentResolver, Secure.ANDROID_ID))
+        //if not created, create a ID for the device. This ID is the recognizer for the timo
+        // system and will be used as terminal id
+        val hashedAndroidId =
+            Utils.sha256(Secure.getString(context.contentResolver, Secure.ANDROID_ID))
 
 
-            if (Utils.isOnline(context)) {
-                val parameters = HashMap<String, String>()
-                val timoTerminalId =
-                    sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-                val ip = Utils.getIPAddress(true)
+        if (Utils.isOnline(context)) {
+            val parameters = HashMap<String, String>()
+            val timoTerminalId =
+                sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+            val ip = Utils.getIPAddress(true)
 
-                parameters["id"] = timoTerminalId.toString()
-                parameters["company"] = company
-                parameters["password"] = password
-                parameters["username"] = username
-                parameters["androidId"] = String(hashedAndroidId)
-                parameters["device"] = hardware.getDevice().naming
-                parameters["brand"] = Build.BRAND
-                parameters["ip"] = ip
-                //Serial number is used as terminalId
-                parameters["serialNumber"] = hardware.serialNumber()
+            parameters["id"] = timoTerminalId.toString()
+            parameters["company"] = company
+            parameters["password"] = password
+            parameters["username"] = username
+            parameters["androidId"] = String(hashedAndroidId)
+            parameters["device"] = hardware.getDevice().naming
+            parameters["brand"] = Build.BRAND
+            parameters["ip"] = ip
+            //Serial number is used as terminalId
+            parameters["serialNumber"] = hardware.serialNumber()
 
-                httpService.post(
-                    "${url}services/rest/zktecoTerminal/loginTerminal", parameters,
-                    context,
-                    { res, _, _ ->
-                        val payload = res?.getJSONObject("payload");
-                        val terminalObj = payload?.getJSONObject("terminal")
-                        val id = terminalObj?.getInt("id")
-                        val token = terminalObj?.getString("token")
-                        if (id != null && !token.isNullOrEmpty()) {
-                            sharedPrefService.saveLoginCredentials(
-                                String(hashedAndroidId),
-                                id,
-                                token,
-                                url,
-                                company,
-                                username,
-                                password
-                            )
-                            callback()
-                        }
+            httpService.post(
+                "${url}services/rest/zktecoTerminal/loginTerminal", parameters,
+                context,
+                { res, _, _ ->
+                    val payload = res?.getJSONObject("payload");
+                    val terminalObj = payload?.getJSONObject("terminal")
+                    val isNewTerminal = payload?.getBoolean("isNewTerminal")
+                    val id = terminalObj?.getInt("id")
+                    val token = terminalObj?.getString("token")
+                    if (id != null && !token.isNullOrEmpty()) {
+                        //save credentials of terminal
+                        sharedPrefService.saveLoginCredentials(
+                            String(hashedAndroidId),
+                            id,
+                            token,
+                            url,
+                            company,
+                            username,
+                            password
+                        )
+                        callback(isNewTerminal!!)
                     }
-                )
+                }
+            )
 
 
             //OFFLINE
@@ -159,8 +162,8 @@ class LoginService(
     }
 
     fun loadPermissions(
-        coroutineScope : CoroutineScope,
-        context :Context,
+        coroutineScope: CoroutineScope,
+        context: Context,
         callback: (worked: Boolean) -> Unit
     ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
@@ -213,17 +216,19 @@ class LoginService(
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
         val terminalID = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-        validateLogin(company, token, terminalID,  context, url, callback)
+        validateLogin(company, token, terminalID, context, url, callback)
     }
 
     private fun validateLogin(
         company: String?,
-        token : String?,
+        token: String?,
         terminalID: Int,
         context: Context?,
         url: String?,
-        callback: () -> Unit) {
-        val serverUrl = if (!url.isNullOrEmpty()) url else sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+        callback: () -> Unit
+    ) {
+        val serverUrl =
+            if (!url.isNullOrEmpty()) url else sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         if (!serverUrl.isNullOrEmpty()) {
             val parameterMap = HashMap<String, String>()
             parameterMap.put("company", company!!)
@@ -234,8 +239,21 @@ class LoginService(
                 parameterMap,
                 context,
                 { res, _, _ ->
-                    callback()
-                })
+                    val payload = res?.getJSONObject("payload");
+                    val terminalObj = payload?.getJSONObject("terminal")
+                    val id = terminalObj?.getInt("id")
+                    val token = terminalObj?.getString("token")
+                    if (id != null && !token.isNullOrEmpty()) {
+                        //save credentials of terminal
+                        sharedPrefService.updateToken(token)
+                        callback()
+                    }
+                },
+                { e, res, c, json ->
+                    HttpService.handleGenericRequestError(e, res, c, json)
+                    sharedPrefService.removeAllCreds()
+                }
+            )
         }
     }
 }

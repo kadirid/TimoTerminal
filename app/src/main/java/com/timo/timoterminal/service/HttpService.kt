@@ -1,7 +1,6 @@
 package com.timo.timoterminal.service
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.net.Uri
@@ -33,7 +32,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 
-class HttpService : KoinComponent {
+class HttpService() : KoinComponent {
 
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -74,6 +73,39 @@ class HttpService : KoinComponent {
 
             return formBodyBuilder.build()
         }
+
+        fun handleGenericRequestError(e: Exception?, response: Response?, context: Context?, output : ResponseToJSON?) {
+            //If the context is null, we cannot show a dialogue
+            if (context != null && response != null) {
+                Handler(Looper.getMainLooper()).post {
+                    val dialog = MaterialAlertDialogBuilder(context)
+                    dialog.setTitle(context.getString(R.string.error))
+                    dialog.setIcon(context.getDrawable(R.drawable.baseline_error_24))
+                    //If you are running the app on debug mode, the url will appear next to the error message
+                    val debugAttachString = if (BuildConfig.DEBUG) "\n${response.request.url}" else ""
+                    if (output != null) {
+                        if (output.obj != null) {
+                            val message = output.obj.getString("message")
+                            dialog.setMessage(message + debugAttachString)
+                        } else if (output.array != null) {
+                            dialog.setMessage(output.array.toString())
+                        } else {
+                            dialog.setMessage("${response.code}: ${output.string}" +  debugAttachString)
+                        }
+                    } else {
+                        if (e != null) {
+                            dialog.setMessage(e.message)
+                        } else {
+                            dialog.setMessage(context.getString(R.string.unknown_error)+ debugAttachString)
+                        }
+                    }
+                    dialog.setPositiveButton("OK") {dia, _ ->
+                        dia.dismiss()
+                    }
+                    dialog.show()
+                }
+            }
+        }
     }
 
     fun initHearbeatWorker(application: Application, lifecycleOwner: LifecycleOwner) {
@@ -87,40 +119,6 @@ class HttpService : KoinComponent {
         println("killklkhljkklkljukjh")
         val workerService: WorkerService = WorkerService.getInstance(application)
         workerService.killAllWorkers()
-    }
-
-    @SuppressLint("UseCompatLoadingForDrawables")
-    private fun handleGenericRequestError(e: Exception?, response: Response?, context: Context?, output : ResponseToJSON?) {
-        //If the context is null, we cannot show a dialogue
-        if (context != null && response != null) {
-            Handler(Looper.getMainLooper()).post {
-                val dialog = MaterialAlertDialogBuilder(context)
-                dialog.setTitle(context.getString(R.string.error))
-                dialog.setIcon(context.getDrawable(R.drawable.baseline_error_24))
-                //If you are running the app on debug mode, the url will appear next to the error message
-                val debugAttachString = if (BuildConfig.DEBUG) "\n${response.request.url}" else ""
-                if (output != null) {
-                    if (output.obj != null) {
-                        val message = output.obj.getString("message")
-                        dialog.setMessage(message + debugAttachString)
-                    } else if (output.array != null) {
-                        dialog.setMessage(output.array.toString())
-                    } else {
-                        dialog.setMessage("${response.code}: ${output.string}" +  debugAttachString)
-                    }
-                } else {
-                    if (e != null) {
-                        dialog.setMessage(e.message)
-                    } else {
-                        dialog.setMessage(context.getString(R.string.unknown_error)+ debugAttachString)
-                    }
-                }
-                dialog.setPositiveButton("OK") {dia, _ ->
-                    dia.dismiss()
-                }
-                dialog.show()
-            }
-        }
     }
 
     fun get(
