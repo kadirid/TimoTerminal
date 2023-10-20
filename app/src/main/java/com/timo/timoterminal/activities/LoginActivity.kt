@@ -12,6 +12,7 @@ import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityLoginBinding
 import com.timo.timoterminal.fragmentViews.LoginFragment
 import com.timo.timoterminal.service.PropertyService
+import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -31,7 +32,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        hideStatusAndNavbar()
+        Utils.hideStatusAndNavbar(this)
         binding = ActivityLoginBinding.inflate(layoutInflater)
 
         //init login fragment
@@ -65,22 +66,6 @@ class LoginActivity : AppCompatActivity() {
         goToMainActivity.flags =
             Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(goToMainActivity.addCategory(Intent.CATEGORY_LAUNCHER))
-    }
-
-    private fun hideStatusAndNavbar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-        } else {
-            window.decorView.apply {
-                // Hide both the navigation bar and the status bar.
-                systemUiVisibility =
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                            View.SYSTEM_UI_FLAG_FULLSCREEN or
-                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-
-            }
-        }
-
     }
 
     // check connection to internet by pinging timo24.de

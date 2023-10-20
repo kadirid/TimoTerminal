@@ -1,11 +1,18 @@
 package com.timo.timoterminal.utils
 
+import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.util.Log
+import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
+import android.view.WindowManager
+import androidx.fragment.app.DialogFragment
 import com.timo.timoterminal.utils.classes.ResponseToJSON
-import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.InetAddress
@@ -40,22 +47,24 @@ class Utils {
             return false
         }
 
-        fun getMACAddress(interfaceName : String) : String {
+        fun getMACAddress(interfaceName: String): String {
             try {
-                val interfaces :List<NetworkInterface> = Collections.list(NetworkInterface.getNetworkInterfaces())
+                val interfaces: List<NetworkInterface> =
+                    Collections.list(NetworkInterface.getNetworkInterfaces())
                 for (inf in interfaces) {
                     if (interfaceName.isNotEmpty()) {
                         if (inf.name.lowercase() == interfaceName.lowercase()) continue;
                     }
 
-                    val mac : ByteArray = inf.hardwareAddress
+                    val mac: ByteArray = inf.hardwareAddress
                     if (mac.isEmpty()) return ""
-                    val buf : StringBuilder = StringBuilder()
+                    val buf: StringBuilder = StringBuilder()
                     for (byte in mac) buf.append(String.format("%02X:", byte))
                     if (buf.length > 0) buf.deleteCharAt(buf.length - 1)
                     return buf.toString()
                 }
-            } catch (ignored : Exception) {}
+            } catch (ignored: Exception) {
+            }
             return ""
         }
 
@@ -91,13 +100,14 @@ class Utils {
             return ""
         }
 
-        fun sha256(str: String): ByteArray = MessageDigest.getInstance("SHA-256").digest(str.toByteArray(UTF_8))
+        fun sha256(str: String): ByteArray =
+            MessageDigest.getInstance("SHA-256").digest(str.toByteArray(UTF_8))
 
-        fun parseResponseToJSON(responseString: String) : ResponseToJSON {
+        fun parseResponseToJSON(responseString: String): ResponseToJSON {
 
-            var obj : JSONObject? = null
-            var arr : JSONArray? = null
-            var str : String? = null
+            var obj: JSONObject? = null
+            var arr: JSONArray? = null
+            var str: String? = null
 
             if (responseString.startsWith("{")) {
                 obj = JSONObject(responseString)
@@ -108,6 +118,43 @@ class Utils {
             }
 
             return ResponseToJSON(obj, arr, str)
+        }
+
+        fun hideNavInDialog(dialog: Dialog?) {
+            if (dialog != null) {
+                dialog.window?.decorView?.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN
+                )
+                dialog.actionBar?.hide()
+                //Clear the not focusable flag from the window
+                dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+            }
+        }
+
+        fun hideStatusAndNavbar(activity: Activity) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                activity.window.attributes.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                activity.window.setDecorFitsSystemWindows(false)
+                activity.window.insetsController?.apply {
+                    hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                @Suppress("DEPRECATION")
+                activity.window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+            }
+            activity.actionBar?.hide()
         }
     }
 

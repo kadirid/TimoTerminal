@@ -9,9 +9,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.snackbar.Snackbar
+import com.journeyapps.barcodescanner.Util
 import com.timo.timoterminal.databinding.FragmentAttendanceBinding
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
@@ -55,6 +57,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     ): View? {
         binding = FragmentAttendanceBinding.inflate(inflater, container, false)
         mbSheetFingerprintCardReader = MBSheetFingerprintCardReader()
+
         setOnClickListeners()
         adaptLottieAnimationTime()
         return binding.root

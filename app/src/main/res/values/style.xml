@@ -18,4 +18,11 @@
     <style name="attendanceTimeViewContainer.dateViewFont">
         <item name="android:textSize">25sp</item>
     </style>
+    <!--
+    Styles for Full Screen Dialog + Animations
+    -->
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_in_up</item>
+        <item name="android:windowExitAnimation">@anim/slide_out_down</item>
+    </style>
 </resources>
