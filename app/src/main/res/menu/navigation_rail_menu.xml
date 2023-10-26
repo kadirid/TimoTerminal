@@ -15,5 +15,10 @@
         android:enabled="true"
         android:icon="@drawable/outline_table_chart_26"
         android:title="@string/project"/>
+    <item
+        android:id="@+id/info"
+        android:enabled="true"
+        android:icon="@drawable/outline_info_24"
+        android:title="@string/info"/>
 
 </menu>

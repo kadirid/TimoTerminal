@@ -16,33 +16,32 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.animation.doOnEnd
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.snackbar.BaseTransientBottomBar
-import com.google.android.material.snackbar.Snackbar
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
+import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.ProgressBarAnimation
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.Calendar
-import java.util.GregorianCalendar
+import org.koin.android.ext.android.inject
 
 
 class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
     FingerprintListener {
-    private val httpService: HttpService = HttpService()
+    private val userRepository: UserRepository by inject()
+    private val sharedPrefService: SharedPrefService by inject()
+    private val httpService: HttpService by inject()
 
-    lateinit var binding: MbSheetFingerprintCardReaderBinding
-    private val viewModel: MBSheetFingerprintCardReaderViewModel by viewModel()
-//    lateinit var textView: TextView
+    private lateinit var binding: MbSheetFingerprintCardReaderBinding
+    private var viewModel: MBSheetFingerprintCardReaderViewModel =
+        MBSheetFingerprintCardReaderViewModel(userRepository, sharedPrefService, httpService)
+
+    //    lateinit var textView: TextView
     private var status: Int = -1
 
     companion object {
@@ -67,12 +66,14 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         //before starting the animation, populate the fields with the correct data! Set the color
         // as well!
         status = arguments?.getInt("status") ?: -1
-        val sStatus = when(arguments?.getInt("status")){
+        val sStatus = when (arguments?.getInt("status")) {
             100 -> "Kommen"
             200 -> "Gehen"
             110 -> "Pause"
             210 -> "Pause Ende"
-            else -> {"No known type"}
+            else -> {
+                "No known type"
+            }
         }
         binding.nameContainer.text = "Elias Kadiri"
         binding.bookingTypeTextContainer.text = sStatus
@@ -86,23 +87,10 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
 
         //for test cases, can be removed later
         binding.cardImage.setOnClickListener {
-            GlobalScope.launch {
-                val dUser = async { viewModel.getUserEntityByCard("505650110") }
-                val user = dUser.await()
-                if(user != null) {
-                    val greg = GregorianCalendar()
-                    val time = "${greg.get(Calendar.HOUR_OF_DAY)}:${greg.get(Calendar.MINUTE)}"
-                    activity?.runOnUiThread {
-                        binding.nameContainer.text = user.name
-                        binding.timeTextContainer.text = time
-                    }
-                    sendBooking(user.card, 1, greg.timeInMillis)
-                    status = -1
-                }
-            }
+            viewModel.sendBookingByCard("505650110", this)
         }
 
-        binding.keyboardImage.setOnClickListener{
+        binding.keyboardImage.setOnClickListener {
             showVerificationAlert()
         }
     }
@@ -140,7 +128,7 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         view?.findViewById<FrameLayout>(R.id.scan_bottom_sheet)?.addView(tv)
     }
 
-    private fun animateSuccess() {
+    fun animateSuccess() {
         binding.identificationText.animate()
             .translationY(-binding.identificationText.height.toFloat())
             .alpha(0.0f)
@@ -224,73 +212,17 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
             })
     }
 
-    // send all necessary information to timo to create a booking
-    private fun sendBooking(card :String ,inputCode : Int, timeInMillies: Long) {
-        val sheet = this
-        animateSuccess()
-        val url = viewModel.getURl()
-        val company = viewModel.getCompany()
-        val terminalId = viewModel.getTerminalID()
-        if (!company.isNullOrEmpty() && terminalId > 0 && status > 0) {
-            httpService.post(
-                "${url}services/rest/zktecoTerminal/booking",
-                mapOf(
-                    Pair("card", card),
-                    Pair("firma", company),
-                    Pair("date", "$timeInMillies"),
-                    Pair("funcCode", "$status"),
-                    Pair("inputCode", "$inputCode"),
-                    Pair("terminalId", terminalId.toString())
-                ),
-                requireContext(),
-                { obj, _, _ ->
-                    if (obj != null) {
-                        val bar = Snackbar.make(binding.root,obj.getString("message"), Snackbar.LENGTH_LONG)
-                        if(obj.getBoolean("success")){
-                            RfidService.unregister()
-                            FingerprintService.unregister()
-
-                            bar.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                                override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-                                    super.onDismissed(transientBottomBar, event)
-                                    sheet.dismiss()
-                                }
-                            })
-                        }
-                        bar.show()
-                    }
-                }
-            )
-        }
-    }
-
-
     // get code of scanned card
     override fun onRfidRead(rfidInfo: String) {
-        GlobalScope.launch {
-            val rfidCode = rfidInfo.toLongOrNull(16)
-            if (rfidCode != null) {
-                var oct = rfidCode.toString(8)
-                while (oct.length < 9) {
-                    oct = "0$oct"
-                }
-                oct = oct.reversed()
-                if (status > 0) {
-                    val dUser = async{viewModel.getUserEntityByCard(oct)}
-                    val user = dUser.await()
-                    if(user != null) {
-                        val greg = GregorianCalendar()
-                        val time = "${greg.get(Calendar.HOUR_OF_DAY)}:${greg.get(Calendar.MINUTE)}"
-                        activity?.runOnUiThread {
-                            binding.nameContainer.text = user.name
-                            binding.timeTextContainer.text = time
-                        }
-                        sendBooking(user.card, 1, greg.timeInMillis)
-                        status = -1
-                    }else{
-                        Snackbar.make(binding.root, "Verification failed", Snackbar.LENGTH_LONG).show()
-                    }
-                }
+        val rfidCode = rfidInfo.toLongOrNull(16)
+        if (rfidCode != null) {
+            var oct = rfidCode.toString(8)
+            while (oct.length < 9) {
+                oct = "0$oct"
+            }
+            oct = oct.reversed()
+            if (status > 0) {
+                viewModel.sendBookingByCard(oct, this)
             }
         }
     }
@@ -313,25 +245,10 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton("Cancel") { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton("OK") { _, _ ->
-            GlobalScope.launch {
-                val code = dialogBinding.textInputEditTextVerificationId.text.toString()
-                val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-                if (code.isNotEmpty()) {
-                    val dUser = async{viewModel.getUserEntity(code.toLong())}
-                    val user = dUser.await()
-                    if (user != null && user.pin == pin) {
-                        val greg = GregorianCalendar()
-                        val time = "${greg.get(Calendar.HOUR_OF_DAY)}:${greg.get(Calendar.MINUTE)}"
-                        activity?.runOnUiThread {
-                            binding.nameContainer.text = user.name
-                            binding.timeTextContainer.text = time
-                        }
-                        sendBooking(user.card, 1, greg.timeInMillis)
-                    } else {
-                        Snackbar.make(binding.root, "Verification failed", Snackbar.LENGTH_LONG)
-                            .show()
-                    }
-                }
+            val code = dialogBinding.textInputEditTextVerificationId.text.toString()
+            val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
+            if (code.isNotEmpty()) {
+                viewModel.sendBookingById(code, pin, this)
             }
         }
 
@@ -339,9 +256,19 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         dialog.setOnShowListener {
             dialogBinding.textInputEditTextVerificationId.isFocusable = true
             dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
+            dialogBinding.textInputEditTextVerificationId.transformationMethod = null
             dialogBinding.textInputEditTextVerificationPin.isFocusable = true
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
         }
         dialog.show()
     }
+
+    fun getStatus() = status
+
+    fun setStatus(status: Int) {
+        this.status = status
+    }
+
+    fun getBinding(): MbSheetFingerprintCardReaderBinding = binding
+
 }

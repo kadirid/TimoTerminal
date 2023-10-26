@@ -19,7 +19,10 @@ import java.net.InetAddress
 import java.net.NetworkInterface
 import java.nio.charset.StandardCharsets.UTF_8
 import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Collections
+import java.util.GregorianCalendar
 import java.util.Locale
 
 
@@ -155,6 +158,46 @@ class Utils {
                         or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
             }
             activity.actionBar?.hide()
+        }
+
+        fun getTimeFromGC(gc: Calendar):String{
+            return "${gc.get(Calendar.HOUR_OF_DAY)}:${gc.get(Calendar.MINUTE)}"
+        }
+
+        fun getDateTimeFromGC(gc:Calendar):String{
+            val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+            return formatter.format(gc.time)
+        }
+
+        fun parseDate(date:String): GregorianCalendar {
+            val greg = GregorianCalendar()
+            val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+            val pDate = formatter.parse(date)
+            if(pDate != null)
+                greg.time = pDate
+            return greg
+        }
+
+        fun convertTime(zeit: Double):String{
+            if (zeit == 0.toDouble()){
+                return "00:00"
+            }
+
+            var sign = ""
+            var min = zeit.toInt() % 60
+            var hrs = (zeit.toInt() - min) / 60
+
+
+            if (hrs < 0) {
+                hrs *= -1
+                sign = "-"
+            }
+            if (min < 0) {
+                min *= -1
+                sign = "-"
+            }
+
+            return sign + (if(hrs < 10) "0$hrs" else "$hrs") + ":" + (if(min < 10) "0$min" else "$min")
         }
     }
 

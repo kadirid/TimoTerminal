@@ -22,7 +22,7 @@ class UserRepository(private val userDAO: UserDAO) {
 
     suspend fun delete(user: UserEntity) = userDAO.delete(user)
 
-    suspend fun getEntity(id: Long) = userDAO.loadEntityById(id)
+    suspend fun getEntity(id: Long): List<UserEntity> = userDAO.loadEntityById(id)
 
-    suspend fun getEntityByCard(card: String) = userDAO.loadEntityByCard(card)
+    suspend fun getEntityByCard(card: String): List<UserEntity>  = userDAO.loadEntityByCard(card)
 }

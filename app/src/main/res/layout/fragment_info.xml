@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragmentViews.InfoFragment">
+
+    <LinearLayout
+        android:id="@+id/linear_validation_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/fingerprint_image"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/baseline_fingerprint_24"
+            android:contentDescription="@string/fingerprint" />
+
+        <ImageView
+            android:id="@+id/card_image"
+            android:layout_width="90dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
+            android:background="@drawable/smart_card"
+            android:contentDescription="@string/rfidcard" />
+
+        <ImageView
+            android:id="@+id/keyboard_image"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:background="@drawable/outline_keyboard_26"
+            android:contentDescription="@string/rfidcard" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linear_load_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="invisible">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true" />
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/linear_text_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="13dp"
+        android:layout_marginBottom="26dp"
+        android:visibility="invisible">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_linear_time_information"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginVertical="20dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/rounded_container_16dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@id/textview_second_close"
+            app:layout_constraintEnd_toStartOf="@id/layout_linear_vacation_information"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                style="@style/attendanceTimeViewContainer.dateViewFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Aktueller Tag"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textview_time_target"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/textview_time_actual"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/textview_time_startOfWork"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/textview_time_breakTotal"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/textview_time_endOfWork"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/textview_time_overtime"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_linear_vacation_information"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginVertical="20dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/rounded_container_16dp"
+            app:layout_constraintBottom_toTopOf="@id/textview_second_close"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/layout_linear_time_information"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                style="@style/attendanceTimeViewContainer.dateViewFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Urlaub"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textview_vacation_entitlement"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/textview_vacation_taken"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/textview_vacation_requested"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/textview_vacation_remaining"
+                    style="@style/attendanceTimeViewContainer.dateViewFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/textview_second_close"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="10" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

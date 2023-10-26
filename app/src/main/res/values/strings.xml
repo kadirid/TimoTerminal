@@ -3,6 +3,7 @@
     <string name="attendance">Attendance</string>
     <string name="absence">Absence</string>
     <string name="project">Project</string>
+    <string name="info">Info</string>
     <string name="open_settings">Open Settings</string>
     <string name="timo_logo">TimO Logo</string>
     <string name="fingerprint">Fingerprint</string>
@@ -19,6 +20,6 @@
     <string name="login">Login</string>
     <string name="save_settings">Save Settings</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="wilkommen_bei_timo">Wilkommen bei TimO™</string>
+    <string name="wilkommen_bei_timo">Wilkommen bei TimO�</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

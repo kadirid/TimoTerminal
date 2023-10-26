@@ -28,6 +28,7 @@ import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
 import com.timo.timoterminal.enums.NetworkType
+import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.utils.Utils
@@ -141,6 +142,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                 R.id.attendance -> AttendanceFragment.newInstance("", "")
                 R.id.absence -> AbsenceFragment.newInstance("", "")
                 R.id.project -> ProjectFragment.newInstance("", "")
+                R.id.info -> InfoFragment()
 
                 else -> null
             }
@@ -169,6 +171,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             supportFragmentManager.commit {
                 replace(R.id.fragment_container_view, AbsenceFragment.newInstance("", ""))
             }
+        } else if (binding.navigationRail.menu.findItem(R.id.info).isVisible) {
+            supportFragmentManager.commit {
+                replace(R.id.fragment_container_view, InfoFragment())
+        }
         }
 
     }
@@ -207,6 +213,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dialog.setOnShowListener {
             dialogBinding.textInputEditTextVerificationId.isFocusable = true
             dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
+            dialogBinding.textInputEditTextVerificationId.transformationMethod = null
             dialogBinding.textInputEditTextVerificationPin.isFocusable = true
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
         }

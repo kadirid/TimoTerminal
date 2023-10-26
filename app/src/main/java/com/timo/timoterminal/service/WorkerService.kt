@@ -84,5 +84,6 @@ class WorkerService(application: Application) {
 
     fun killAllWorkers(){
         requests.clear()
+        workManager.cancelAllWork()
     }
 }

@@ -9,7 +9,9 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_constraintEnd_toStartOf="@id/name_container"
+        app:layout_constraintStart_toStartOf="@id/name_container">
 
         <com.google.android.material.bottomsheet.BottomSheetDragHandleView
             android:id="@+id/drag_handle"
@@ -54,13 +56,14 @@
                 android:layout_width="55dp"
                 android:layout_height="match_parent"
                 android:gravity="center">
+
                 <com.google.android.material.progressindicator.CircularProgressIndicator
-                    android:progress="0"
-                    android:indeterminate="false"
-                    android:progressTint="@color/come"
                     android:id="@+id/progress_indicator"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:indeterminate="false"
+                    android:progress="0"
+                    android:progressTint="@color/come" />
             </LinearLayout>
 
             <ImageView
@@ -74,8 +77,8 @@
                 android:id="@+id/keyboard_image"
                 android:layout_width="90dp"
                 android:layout_height="90dp"
-                android:background="@drawable/outline_keyboard_26"
                 android:layout_marginStart="50dp"
+                android:background="@drawable/outline_keyboard_26"
                 android:contentDescription="@string/rfidcard" />
         </LinearLayout>
 
@@ -83,9 +86,9 @@
             android:id="@+id/name_container"
             style="@style/TextAppearance.Material3.HeadlineSmall"
             android:layout_width="500dp"
-            android:alpha="0"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:alpha="0"
             android:background="@drawable/rounded_container_16dp"
             android:backgroundTint="?attr/colorPrimaryContainer"
             android:paddingVertical="20dp"
@@ -99,9 +102,9 @@
         <LinearLayout
             android:id="@+id/booking_info_container"
             android:layout_width="0dp"
-            android:alpha="0"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:alpha="0"
             android:orientation="horizontal"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="@id/name_container"
