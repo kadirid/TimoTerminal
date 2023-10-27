@@ -22,9 +22,13 @@ class UserService(
             //Load from server
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
+            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
+            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
             val params = HashMap<String, String>()
-            if (!url.isNullOrEmpty() && !company.isNullOrEmpty()) {
+            if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 params["company"] = company
+                params["token"] = token
+                params["terminalId"] = terminalId.toString()
                 httpService.get("${url}services/rest/zktecoTerminal/loadAllUsers",
                     params,
                     null,

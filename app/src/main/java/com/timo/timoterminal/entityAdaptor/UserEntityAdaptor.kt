@@ -32,7 +32,7 @@ class UserEntityAdaptor(private val userEntities: List<UserEntity>, private val 
 
         fun bind(user: UserEntity, listener : OnItemClickListener) {
             idView.text = "${user.id}"
-            nameView.text = user.name
+            nameView.text = "${user.firstName} ${user.lastName}"
             cardView.text = user.card
             pinView.text = user.pin
             itemView.setOnClickListener {

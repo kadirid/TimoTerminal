@@ -7,27 +7,27 @@ import org.json.JSONObject
 
 @Entity
 class UserEntity(
-    @ColumnInfo("name") var name: String,
+    @ColumnInfo("firstname") var firstName: String,
+    @ColumnInfo("lastname") var lastName: String,
     @ColumnInfo("card") var card: String,
     @ColumnInfo("pin") var pin: String,
+    @ColumnInfo("hireDate") var hireDate: Long,
+    @PrimaryKey(autoGenerate = false) var id : Long
 ) {
-    @PrimaryKey(autoGenerate = true)
-    var id : Long? = null
 
     companion object {
         fun parseJsonToUserEntity(obj: JSONObject) : UserEntity{
             val id = obj.getLong("id")
-            val name = obj.getString("lastName")
-            //TODO: Therefore a real infrastructure must be set
-            val card = "123"
-            val pin = "0"
-            return UserEntity(id, name, card, pin )
+            val firstName = obj.getString("firstName")
+            val lastName = obj.getString("lastName")
+            val card = obj.getString("cardNumber")
+            val pin = obj.getString("pin")
+            val hireDate = obj.getLong("einstellungsDatum")
+            return UserEntity(id, firstName, lastName, card, pin, hireDate)
         }
     }
 
-    constructor(id : Long, name: String, card: String, pin: String) : this(name, card, pin) {
-        this.id = id
-    }
+    constructor(id : Long, firstName: String, lastName: String, card: String, pin: String, hireDate: Long) : this(firstName, lastName, card, pin, hireDate, id)
 
 
 
@@ -38,7 +38,8 @@ class UserEntity(
         other as UserEntity
 
         if (id != other.id) return false
-        if (name != other.name) return false
+        if (firstName != other.firstName) return false
+        if (lastName != other.lastName) return false
         if (card != other.card) return false
         if (pin != other.pin) return false
 
@@ -47,7 +48,7 @@ class UserEntity(
 
     override fun hashCode(): Int {
         var result = id.hashCode()
-        result = 31 * result + name.hashCode()
+        result = 31 * result + lastName.hashCode()
         result = 31 * result + card.hashCode()
         result = 31 * result + pin.hashCode()
         return result

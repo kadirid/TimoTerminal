@@ -4,14 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginVertical="10dp"
     tools:context=".fragmentViews.UserSettingsFragment">
 
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/view_recycler_user_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:id="@+id/view_recycler_user_container"
         android:background="@drawable/rounded_container_16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/layout_form"
@@ -21,23 +20,24 @@
         <com.google.android.material.search.SearchBar
             android:id="@+id/search_bar"
             android:layout_width="match_parent"
-            app:elevation="0dp"
-            android:backgroundTint="?attr/colorSurfaceContainerHighest"
-            android:background="@drawable/rounded_container_16dp"
             android:layout_height="wrap_content"
-            android:hint="@string/choose_worker" />
+            android:background="@drawable/rounded_container_16dp"
+            android:backgroundTint="?attr/colorSurfaceContainerHighest"
+            android:hint="@string/choose_worker"
+            app:elevation="0dp" />
 
         <!-- NestedScrollingChild goes here (NestedScrollView, RecyclerView, etc.). -->
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_marginTop="80dp"
             android:layout_height="match_parent"
+            android:layout_marginTop="80dp"
             app:layout_behavior="@string/searchbar_scrolling_view_behavior">
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/view_recycler_user_all"
                 android:layout_width="match_parent"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
         </androidx.core.widget.NestedScrollView>
 
 
@@ -47,121 +47,181 @@
             android:layout_height="match_parent"
             android:hint="@string/choose_worker"
             app:layout_anchor="@id/search_bar">
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/view_recycler_user_filter"
                 android:layout_width="match_parent"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                 android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
         </com.google.android.material.search.SearchView>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_form"
         android:layout_width="0px"
         android:layout_height="match_parent"
-        android:layout_marginStart="10dp"
+        android:layout_marginHorizontal="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/view_recycler_user_container"
         app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/button_user_save"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            app:layout_constraintEnd_toStartOf="@id/button_user_delete"
-            app:layout_constraintStart_toStartOf="@id/layout_form"
-            app:layout_constraintTop_toTopOf="@id/layout_form"
-            android:text="Save User" />
+        <LinearLayout
+            android:id="@+id/user_info_container"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@drawable/rounded_container_16dp"
+            android:backgroundTint="?attr/colorPrimaryContainer"
+            android:orientation="vertical"
+            android:padding="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/button_user_delete"
-            android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Id" />
+
+                <TextView
+                    android:id="@+id/personal_id_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Vorname" />
+
+                <TextView
+                    android:id="@+id/first_name_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nachname" />
+
+                <TextView
+                    android:id="@+id/last_name_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Einstellungsdatum" />
+
+                <TextView
+                    android:id="@+id/hire_date_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
-            app:layout_constraintEnd_toEndOf="@id/layout_form"
-            app:layout_constraintStart_toEndOf="@id/button_user_save"
-            app:layout_constraintTop_toTopOf="@id/layout_form"
-            android:text="Delete User" />
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@id/button_user_load"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/user_info_container">
+
+            <Button
+                android:id="@+id/button_rfid"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginHorizontal="25dp"
+                android:background="@drawable/square_button_background"
+                app:backgroundTint="?attr/colorPrimary"
+                app:icon="@drawable/baseline_keyboard_tab_32"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="32dp" />
+
+            <Button
+                android:id="@+id/button_fingerprint"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginHorizontal="25dp"
+                android:background="@drawable/square_button_background"
+                app:backgroundTint="?attr/colorPrimary"
+                app:icon="@drawable/baseline_keyboard_tab_32"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="32dp" />
+
+            <Button
+                android:id="@+id/button_pin"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginHorizontal="25dp"
+                android:background="@drawable/square_button_background"
+                app:backgroundTint="?attr/colorPrimary"
+                app:icon="@drawable/baseline_keyboard_tab_32"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="32dp" />
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/button_user_load"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
+            android:text="Load User"
             app:layout_constraintBottom_toBottomOf="@id/layout_form"
             app:layout_constraintEnd_toEndOf="@id/layout_form"
-            app:layout_constraintStart_toStartOf="@id/layout_form"
-            android:text="Load User" />
+            app:layout_constraintStart_toStartOf="@id/layout_form" />
 
-        <TextView
-            android:id="@+id/text_view_id"
-            android:layout_width="0px"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="15dp"
-            android:layout_marginTop="5dp"
-            app:layout_constraintEnd_toEndOf="@id/layout_form"
-            app:layout_constraintStart_toStartOf="@id/layout_form"
-            app:layout_constraintTop_toBottomOf="@id/button_user_save"
-            tools:text="1"/>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:hint="User name"
-            app:layout_constraintEnd_toEndOf="@id/layout_form"
-            app:layout_constraintStart_toStartOf="@id/layout_form"
-            app:layout_constraintTop_toBottomOf="@id/text_view_id">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_input_edit_text_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Name" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_pin"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:hint="Passcode"
-            app:layout_constraintEnd_toEndOf="@id/layout_form"
-            app:layout_constraintStart_toStartOf="@id/layout_form"
-            app:layout_constraintTop_toBottomOf="@id/text_input_layout_name">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_input_edit_text_pin"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="numberPassword"
-                tools:text="824798" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_card"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:hint="Card"
-            app:layout_constraintEnd_toEndOf="@id/layout_form"
-            app:layout_constraintStart_toStartOf="@id/layout_form"
-            app:layout_constraintTop_toBottomOf="@id/text_input_layout_pin">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_input_edit_text_card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="98203580932" />
-
-        </com.google.android.material.textfield.TextInputLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

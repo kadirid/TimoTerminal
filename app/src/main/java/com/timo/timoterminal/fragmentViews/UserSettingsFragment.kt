@@ -73,7 +73,7 @@ class UserSettingsFragment : Fragment(), RfidListener {
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 userSettingsFragmentViewModel.viewModelScope.launch {
                     val queriedList = userSettingsFragmentViewModel.getAllAsList().filter {
-                        it.name.toLowerCase(Locale.current).contains(s) || s.toString().equals(it.card)
+                        it.lastName.toLowerCase(Locale.current).contains(s) || s.toString() == it.card
                     }
                     binding.viewRecyclerUserFilter.adapter = UserEntityAdaptor(queriedList,
                         object : OnItemClickListener {
@@ -114,52 +114,16 @@ class UserSettingsFragment : Fragment(), RfidListener {
     }
 
     private fun loadFormData(user: UserEntity) {
-        binding.textViewId.text = "${user.id}"
-        binding.textInputEditTextName.setText(user.name)
-        binding.textInputEditTextCard.setText(user.card)
-        binding.textInputEditTextPin.setText(user.pin)
+        binding.personalIdText.text = user.id.toString()
+        binding.firstNameText.text = user.firstName
+        binding.lastNameText.text = user.lastName
+        binding.hireDateText.text = user.hireDate.toString()
     }
 
     private fun setUpOnClickListeners() {
-        binding.buttonUserSave.setOnClickListener {
-            val user = UserEntity(
-                binding.textInputEditTextName.text.toString(),
-                binding.textInputEditTextCard.text.toString(),
-                binding.textInputEditTextPin.text.toString()
-            )
-            user.setId(binding.textViewId.text.toString())
-            userSettingsFragmentViewModel.saveOrUpdate(user)
-        }
-        binding.buttonUserDelete.setOnClickListener {
-            if (!binding.textViewId.text.toString().isNullOrEmpty()) {
-                val user = UserEntity(
-                    binding.textViewId.text.toString().toLong(),
-                    binding.textInputEditTextName.text.toString(),
-                    binding.textInputEditTextCard.text.toString(),
-                    binding.textInputEditTextPin.text.toString()
-                )
-                userSettingsFragmentViewModel.deleteEntity(user)
-            }
-        }
+
         binding.buttonUserLoad.setOnClickListener {
-            httpService.get(
-                "http://10.0.2.2/timo_prd/services/rest/zktecoTerminal/loadUser",
-                mapOf(Pair("firma", "standalone")),
-                requireContext(),
-                { _, obj, _ ->
-                    if (obj != null) {
-                        for (c in 0 until obj.length()) {
-                            val item = obj.getJSONObject(c)
-                            val user = UserEntity(
-                                item.getLong("id"),
-                                item.getString("name"),
-                                item.getString("card"),
-                                item.getString("pin")
-                            )
-                            userSettingsFragmentViewModel.addEntity(user)
-                        }
-                    }
-                })
+            userSettingsFragmentViewModel.loadUserFromServer()
         }
     }
 
@@ -191,7 +155,6 @@ class UserSettingsFragment : Fragment(), RfidListener {
                 oct = "0$oct"
             }
             oct = oct.reversed()
-            binding.textInputEditTextCard.setText(oct)
             binding.searchView.show()
             binding.searchView.setText(oct)
         }

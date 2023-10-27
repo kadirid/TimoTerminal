@@ -3,18 +3,10 @@ package com.timo.timoterminal.activities
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
-import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
-import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.snackbar.Snackbar
@@ -30,12 +22,9 @@ import com.timo.timoterminal.utils.NetworkChangeReceiver
 import com.timo.timoterminal.enums.NetworkType
 import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
-import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.MainActivityViewModel
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
@@ -48,11 +37,16 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private lateinit var networkChangeReceiver: NetworkChangeReceiver
     private lateinit var mbLoginWelcomeSheet: MBLoginWelcomeSheet
 
+    companion object {
+        const val TAG = "MainActivity"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val isNewTerminal = intent.getBooleanExtra("isNewTerminal", false)
         binding = ActivityMainBinding.inflate(layoutInflater)
         mbLoginWelcomeSheet = MBLoginWelcomeSheet()
+
         Utils.hideStatusAndNavbar(this)
 
 
