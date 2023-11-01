@@ -75,10 +75,11 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
+                android:id="@+id/text_view_current_day"
                 style="@style/attendanceTimeViewContainer.dateViewFont"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Aktueller Tag"
+                tools:text="Aktueller Tag"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -142,10 +143,11 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
+                android:id="@+id/text_view_curret_leave"
                 style="@style/attendanceTimeViewContainer.dateViewFont"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Urlaub"
+                tools:text="Urlaub"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

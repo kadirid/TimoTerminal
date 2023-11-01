@@ -12,6 +12,7 @@ import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
 import com.zkteco.android.core.sdk.service.FingerprintService
@@ -28,7 +29,8 @@ import java.util.Locale
 class InfoFragmentViewModel(
     private val userRepository: UserRepository,
     private val sharedPrefService: SharedPrefService,
-    private val httpService: HttpService
+    private val httpService: HttpService,
+    private val languageService: LanguageService
 ) : ViewModel() {
 
     private lateinit var fragment: InfoFragment
@@ -160,7 +162,7 @@ class InfoFragmentViewModel(
     @SuppressLint("SetTextI18n")
     private fun setText(res: JSONObject, binding: FragmentInfoBinding) {
         var ist = res.getDouble("ist")
-        if(res.getInt("zeitTyp") in listOf(1,4,6)){
+        if (res.optInt("zeitTyp", 0) in listOf(1, 4, 6) && !res.optString("zeitLB", "").isNullOrBlank()) {
             val gcDate = GregorianCalendar()
             val greg = Utils.parseDate(res.getString("zeitLB"))
             var diff = gcDate.timeInMillis - greg.timeInMillis
@@ -168,20 +170,30 @@ class InfoFragmentViewModel(
             diff /= 60
             ist += diff
         }
-        binding.textviewTimeTarget.text = "Soll: ${res.getString("soll")}"
-        binding.textviewTimeActual.text = "Ist: ${Utils.convertTime(ist)}"
-        binding.textviewTimeStartOfWork.text = "Kommt: ${res.getString("kommen")}"
-        binding.textviewTimeBreakTotal.text = "Pause: ${res.getString("pause")}"
-        binding.textviewTimeEndOfWork.text = "Geht: ${res.getString("gehen")}"
-        binding.textviewTimeOvertime.text = "Gleitzeit: ${res.getString("overtime")}"
-        binding.textviewVacationEntitlement.text = "Anspruch: ${res.getString("vacation")}"
-        binding.textviewVacationTaken.text = "Genommen: ${res.getString("gVacation")}"
-        binding.textviewVacationRequested.text = "Beantragt: ${res.getString("bVacation")}"
-        binding.textviewVacationRemaining.text = "Rest: ${res.getString("rVacation")}"
+        binding.textviewTimeTarget.text = "${getText("#Target")}: ${res.getString("soll")}"
+        binding.textviewTimeActual.text = "${getText("ALLGEMEIN#Ist")}: ${Utils.convertTime(ist)}"
+        binding.textviewTimeStartOfWork.text =
+            "${getText("#CheckIn")}: ${res.getString("kommen")}"
+        binding.textviewTimeBreakTotal.text =
+            "${getText("ALLGEMEIN#Pause")}: ${res.getString("pause")}"
+        binding.textviewTimeEndOfWork.text =
+            "${getText("#CheckOut")}: ${res.getString("gehen")}"
+        binding.textviewTimeOvertime.text =
+            "${getText("PDFSOLLIST#spalteGzGleitzeit")}: ${res.getString("overtime")}"
+        binding.textviewVacationEntitlement.text =
+            "${getText("ALLGEMEIN#Anspruch")}: ${res.getString("vacation")}"
+        binding.textviewVacationTaken.text =
+            "${getText("ALLGEMEIN#Genommen")}: ${res.getString("gVacation")}"
+        binding.textviewVacationRequested.text =
+            "${getText("ALLGEMEIN#Beantragt")}: ${res.getString("bVacation")}"
+        binding.textviewVacationRemaining.text =
+            "${getText("#Remaining")}: ${res.getString("rVacation")}"
     }
 
     fun restartTimer() {
         timer.cancel()
         timer.start()
     }
+
+    private fun getText(key: String) = languageService.getText(key)
 }

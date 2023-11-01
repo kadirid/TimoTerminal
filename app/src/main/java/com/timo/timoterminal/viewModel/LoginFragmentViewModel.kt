@@ -4,13 +4,15 @@ import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.SettingsService
 import kotlinx.coroutines.launch
 
 class LoginFragmentViewModel(
     private val loginService: LoginService,
-    private val settingsService: SettingsService
+    private val settingsService: SettingsService,
+    private val languageService: LanguageService
 ) : ViewModel(
 
 ) {
@@ -19,6 +21,7 @@ class LoginFragmentViewModel(
 
 
     fun loadPermissions(context: Context, callback: (worked: Boolean) -> Unit) {
+        languageService.requestLanguageFromServer(viewModelScope, context)
         loginService.loadPermissions(viewModelScope, context, callback)
     }
 

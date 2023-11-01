@@ -24,6 +24,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.GregorianCalendar
 import kotlin.math.abs
 
 // TODO: Rename parameter arguments, choose names that match
@@ -60,7 +61,14 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
         setOnClickListeners()
         adaptLottieAnimationTime()
+        setText()
         return binding.root
+    }
+
+    private fun setText() {
+        val gc = GregorianCalendar()
+        binding.textViewDateTimeViewContainer.text = Utils.getDateWithNameFromGC(gc)
+        binding.textViewTimeTimeViewContainer.text = Utils.getTimeFromGC(gc)
     }
 
     override fun onResume() {

@@ -22,15 +22,19 @@ import com.timo.timoterminal.utils.NetworkChangeReceiver
 import com.timo.timoterminal.enums.NetworkType
 import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
-class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback, NetworkChangeReceiver.NetworkStatusCallback {
+class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
+    NetworkChangeReceiver.NetworkStatusCallback {
 
     private val mainActivityViewModel: MainActivityViewModel by viewModel()
+    private val languageService: LanguageService by inject()
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var batteryReceiver: BatteryReceiver
@@ -104,7 +108,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             mainActivityViewModel.viewModelScope.launch {
                 if (mainActivityViewModel.count() == 0) {
                     supportFragmentManager.commit {
-                        replace(R.id.fragment_container_view, SettingsFragment.newInstance("", ""))
+                        replace(R.id.fragment_container_view, SettingsFragment())
                     }
                 } else {
                     showVerificationAlert()
@@ -129,6 +133,15 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                 attendancePermission == "true"
         }
 
+        binding.navigationRail.menu.findItem(R.id.info).title =
+            languageService.getText("ALLGEMEIN#Info")
+        binding.navigationRail.menu.findItem(R.id.project).title =
+            languageService.getText("ALLGEMEIN#Projekt")
+        binding.navigationRail.menu.findItem(R.id.attendance).title =
+            languageService.getText("#Attendance")
+        binding.navigationRail.menu.findItem(R.id.absence).title =
+            languageService.getText("#Absence")
+
         binding.navigationRail.setOnItemSelectedListener {
 
             it.isChecked = false
@@ -151,7 +164,6 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             true
         }
 
-
         //init correct fragment, this could be also configurable if needed, but this is for the future
         if (binding.navigationRail.menu.findItem(R.id.attendance).isVisible) {
             supportFragmentManager.commit {
@@ -168,9 +180,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         } else if (binding.navigationRail.menu.findItem(R.id.info).isVisible) {
             supportFragmentManager.commit {
                 replace(R.id.fragment_container_view, InfoFragment())
+            }
         }
-        }
-
     }
 
     // verify user if present before opening settings page
@@ -178,11 +189,11 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this)
-        dlgAlert.setMessage("Please Scan finger print or card for verification or enter credentials")
-        dlgAlert.setTitle("Verification")
+        dlgAlert.setMessage(languageService.getText("#FingerprintCardCredentials"))
+        dlgAlert.setTitle(languageService.getText("#Verification"))
         dlgAlert.setView(dialogBinding.root)
-        dlgAlert.setNegativeButton("Cancel") { dia, _ -> dia.dismiss() }
-        dlgAlert.setPositiveButton("OK") { _, _ ->
+        dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+        dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             val code = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (code.isNotEmpty()) {
@@ -190,10 +201,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                     val user = mainActivityViewModel.getUserEntity(code.toLong())
                     if (user != null && user.pin == pin) {
                         supportFragmentManager.commit {
-                            replace(
-                                R.id.fragment_container_view,
-                                SettingsFragment.newInstance("", "")
-                            )
+                            replace(R.id.fragment_container_view, SettingsFragment())
                         }
                     } else {
                         Snackbar.make(binding.root, "Verification failed", Snackbar.LENGTH_LONG)
@@ -214,7 +222,11 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dialog.show()
     }
 
-    override fun onBatteryStatusChanged(batteryPercentage: Int, usbCharge: Boolean, plugCharge: Boolean) {
+    override fun onBatteryStatusChanged(
+        batteryPercentage: Int,
+        usbCharge: Boolean,
+        plugCharge: Boolean
+    ) {
         binding.batteryPercent.text = "$batteryPercentage%"
 
         if (usbCharge || plugCharge) {
@@ -223,9 +235,9 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             binding.batteryIcon.setImageResource(R.drawable.baseline_battery_1_bar_32)
         } else if (batteryPercentage in 10..25) {
             binding.batteryIcon.setImageResource(R.drawable.baseline_battery_2_bar_32)
-        } else if (batteryPercentage in 26..49) {
+        } else if (batteryPercentage in 26..50) {
             binding.batteryIcon.setImageResource(R.drawable.baseline_battery_3_bar_32)
-        } else if (batteryPercentage in 51..74) {
+        } else if (batteryPercentage in 51..75) {
             binding.batteryIcon.setImageResource(R.drawable.baseline_battery_4_bar_32)
         } else if (batteryPercentage in 76..99) {
             binding.batteryIcon.setImageResource(R.drawable.baseline_battery_5_bar_32)

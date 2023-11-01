@@ -10,6 +10,7 @@ import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch

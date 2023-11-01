@@ -68,7 +68,7 @@ class MBSheetFingerprintCardReaderViewModel(
                 val greg = GregorianCalendar()
                 val time = Utils.getTimeFromGC(greg)
                 sheet.activity?.runOnUiThread {
-                    sheet.getBinding().nameContainer.text = user.name
+                    sheet.getBinding().nameContainer.text = user.name()
                     sheet.getBinding().timeTextContainer.text = time
                 }
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
@@ -87,7 +87,7 @@ class MBSheetFingerprintCardReaderViewModel(
                 val greg = GregorianCalendar()
                 val time = Utils.getTimeFromGC(greg)
                 sheet.activity?.runOnUiThread {
-                    sheet.getBinding().nameContainer.text = user.name
+                    sheet.getBinding().nameContainer.text = user.name()
                     sheet.getBinding().timeTextContainer.text = time
                 }
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)

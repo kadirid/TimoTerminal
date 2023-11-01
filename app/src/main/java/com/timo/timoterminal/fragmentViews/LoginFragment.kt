@@ -13,7 +13,10 @@ import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentLoginBinding
+import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.PropertyService
+import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.utils.CodesArrayAdapter
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import org.koin.android.ext.android.inject
@@ -23,7 +26,11 @@ import java.util.TimeZone
 
 class LoginFragment : Fragment() {
     private val propertyService: PropertyService by inject()
-    private val viewModel: LoginFragmentViewModel by viewModel()
+    private val loginService: LoginService by inject()
+    private val settingsService: SettingsService by inject()
+    private val languageService: LanguageService by inject()
+    private val viewModel: LoginFragmentViewModel =
+        LoginFragmentViewModel(loginService, settingsService, languageService)
     private lateinit var binding: FragmentLoginBinding
 
     override fun onCreateView(
@@ -45,7 +52,7 @@ class LoginFragment : Fragment() {
             val username = propertyService.getProperties().getProperty("username")
             val password = propertyService.getProperties().getProperty("password")
             binding.customUrl.setText(url)
-            binding.textInputEditTextLoginCompany.setText(if (!company.isNullOrEmpty()) company else "" )
+            binding.textInputEditTextLoginCompany.setText(if (!company.isNullOrEmpty()) company else "")
             binding.textInputEditTextLoginUser.setText(if (!username.isNullOrEmpty()) username else "")
             binding.textInputEditTextLoginPassword.setText(if (!password.isNullOrEmpty()) password else "")
         }
@@ -61,13 +68,15 @@ class LoginFragment : Fragment() {
 
     private fun initLanguageDropdown() {
         val languages = viewModel.languages
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, languages)
+        val adapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, languages)
         binding.dropdownMenuLanguage.setAdapter(adapter)
     }
 
     private fun initTimezoneDropdown() {
         val ids = TimeZone.getAvailableIDs().toMutableList()
-        val adapter = CodesArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, ids)
+        val adapter =
+            CodesArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, ids)
         binding.dropdownMenuTimezone.setAdapter(adapter)
     }
 
@@ -133,7 +142,7 @@ class LoginFragment : Fragment() {
             val lang = binding.dropdownMenuLanguage.text.toString()
             val tz = binding.dropdownMenuTimezone.text.toString()
             //Set language and timezone locally and send it to backend
-            viewModel.saveLangAndTimezone(requireActivity(),  lang , tz) {
+            viewModel.saveLangAndTimezone(requireActivity(), lang, tz) {
                 openMainView(true)
             }
         }

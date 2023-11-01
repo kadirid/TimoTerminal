@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -87,9 +88,10 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/textview_personal_id_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Id" />
+                    tools:text="Id" />
 
                 <TextView
                     android:id="@+id/personal_id_text"
@@ -108,9 +110,10 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/textview_first_name_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Vorname" />
+                    tools:text="Vorname" />
 
                 <TextView
                     android:id="@+id/first_name_text"
@@ -129,9 +132,10 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/textview_last_name_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nachname" />
+                    tools:text="Nachname" />
 
                 <TextView
                     android:id="@+id/last_name_text"
@@ -150,9 +154,10 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/textview_hire_date_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Einstellungsdatum" />
+                    tools:text="Einstellungsdatum" />
 
                 <TextView
                     android:id="@+id/hire_date_text"

@@ -29,7 +29,7 @@ class UserEntity(
 
     constructor(id : Long, firstName: String, lastName: String, card: String, pin: String, hireDate: Long) : this(firstName, lastName, card, pin, hireDate, id)
 
-
+    fun name() : String = "$firstName $lastName"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

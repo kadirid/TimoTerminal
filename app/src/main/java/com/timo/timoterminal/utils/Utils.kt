@@ -11,7 +11,7 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
-import androidx.fragment.app.DialogFragment
+import com.timo.timoterminal.entityClasses.LanguageEntity
 import com.timo.timoterminal.utils.classes.ResponseToJSON
 import org.json.JSONArray
 import org.json.JSONObject
@@ -146,7 +146,8 @@ class Utils {
                 activity.window.setDecorFitsSystemWindows(false)
                 activity.window.insetsController?.apply {
                     hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    systemBarsBehavior =
+                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 }
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 @Suppress("DEPRECATION")
@@ -160,26 +161,32 @@ class Utils {
             activity.actionBar?.hide()
         }
 
-        fun getTimeFromGC(gc: Calendar):String{
-            return "${gc.get(Calendar.HOUR_OF_DAY)}:${gc.get(Calendar.MINUTE)}"
+        fun getTimeFromGC(gc: Calendar): String {
+            val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+            return formatter.format(gc.time)
         }
 
-        fun getDateTimeFromGC(gc:Calendar):String{
+        fun getDateTimeFromGC(gc: Calendar): String {
             val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
             return formatter.format(gc.time)
         }
 
-        fun parseDate(date:String): GregorianCalendar {
+        fun getDateWithNameFromGC(gc: Calendar): String {
+            val formatter = SimpleDateFormat("EEEE, dd.MM.yyyy", Locale.getDefault())
+            return formatter.format(gc.time)
+        }
+
+        fun parseDate(date: String): GregorianCalendar {
             val greg = GregorianCalendar()
             val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
             val pDate = formatter.parse(date)
-            if(pDate != null)
+            if (pDate != null)
                 greg.time = pDate
             return greg
         }
 
-        fun convertTime(zeit: Double):String{
-            if (zeit == 0.toDouble()){
+        fun convertTime(zeit: Double): String {
+            if (zeit == 0.toDouble()) {
                 return "00:00"
             }
 
@@ -197,7 +204,7 @@ class Utils {
                 sign = "-"
             }
 
-            return sign + (if(hrs < 10) "0$hrs" else "$hrs") + ":" + (if(min < 10) "0$min" else "$min")
+            return sign + (if (hrs < 10) "0$hrs" else "$hrs") + ":" + (if (min < 10) "0$min" else "$min")
         }
     }
 

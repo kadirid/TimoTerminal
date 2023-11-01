@@ -11,6 +11,7 @@ import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.FragmentInfoBinding
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -29,8 +30,9 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     private val userRepository: UserRepository by inject()
     private val sharedPrefService: SharedPrefService by inject()
     private val httpService: HttpService by inject()
+    private val languageService: LanguageService by inject()
     private var viewModel: InfoFragmentViewModel =
-        InfoFragmentViewModel(userRepository, sharedPrefService, httpService)
+        InfoFragmentViewModel(userRepository, sharedPrefService, httpService, languageService)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,8 +41,16 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         binding = FragmentInfoBinding.inflate(inflater, container, false)
 
         setUpOnClickListeners()
+        setText()
 
         return binding.root
+    }
+
+    private fun setText() {
+        binding.textViewCurrentDay.text = languageService.getText("ALLGEMEIN#Aktueller Tag")
+        binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
+        binding.cardImage.contentDescription = languageService.getText("#RFID")
+        binding.keyboardImage.contentDescription = languageService.getText("#RFID")
     }
 
     override fun onResume() {
@@ -104,11 +114,11 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext())
-        dlgAlert.setMessage("Please enter your credentials")
-        dlgAlert.setTitle("INFO")
+        dlgAlert.setMessage(languageService.getText("#EnterCredentials"))
+        dlgAlert.setTitle(languageService.getText("ALLGEMEIN#Info"))
         dlgAlert.setView(dialogBinding.root)
-        dlgAlert.setNegativeButton("Cancel") { dia, _ -> dia.dismiss() }
-        dlgAlert.setPositiveButton("OK") { _, _ ->
+        dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+        dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             val code = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (code.isNotEmpty()) {

@@ -86,12 +86,14 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/text_view_time_time_view_container"
                     style="@style/attendanceTimeViewContainer.timeViewFont"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="20:34" />
 
                 <TextView
+                    android:id="@+id/text_view_date_time_view_container"
                     style="@style/attendanceTimeViewContainer.dateViewFont"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

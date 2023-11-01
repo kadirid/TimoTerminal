@@ -3,9 +3,7 @@ package com.timo.timoterminal.service
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
-import android.provider.Settings
 import android.provider.Settings.*
-import android.util.Log
 import com.timo.timoterminal.entityClasses.ConfigEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.ConfigRepository
@@ -13,10 +11,7 @@ import com.timo.timoterminal.utils.Utils
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.json.JSONArray
-import org.json.JSONObject
 import org.koin.core.component.KoinComponent
-import java.util.UUID
 
 
 class LoginService(
@@ -52,7 +47,7 @@ class LoginService(
                         context,
                         successCallback,
                     )
-                };
+                }
             } else {
                 loginCompany(
                     company,
@@ -132,7 +127,7 @@ class LoginService(
                 "${url}services/rest/zktecoTerminal/loginTerminal", parameters,
                 context,
                 { res, _, _ ->
-                    val payload = res?.getJSONObject("payload");
+                    val payload = res?.getJSONObject("payload")
                     val terminalObj = payload?.getJSONObject("terminal")
                     val isNewTerminal = payload?.getBoolean("isNewTerminal")
                     val id = terminalObj?.getInt("id")
@@ -231,21 +226,21 @@ class LoginService(
             if (!url.isNullOrEmpty()) url else sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         if (!serverUrl.isNullOrEmpty()) {
             val parameterMap = HashMap<String, String>()
-            parameterMap.put("company", company!!)
-            parameterMap.put("token", token!!)
-            parameterMap.put("terminalId", terminalID.toString())
+            parameterMap["company"] = company!!
+            parameterMap["token"] = token!!
+            parameterMap["terminalId"] = terminalID.toString()
             httpService.post(
                 "${url}services/rest/zktecoTerminal/validateLogin",
                 parameterMap,
                 context,
                 { res, _, _ ->
-                    val payload = res?.getJSONObject("payload");
+                    val payload = res?.getJSONObject("payload")
                     val terminalObj = payload?.getJSONObject("terminal")
                     val id = terminalObj?.getInt("id")
-                    val token = terminalObj?.getString("token")
-                    if (id != null && !token.isNullOrEmpty()) {
+                    val nToken = terminalObj?.getString("token")
+                    if (id != null && !nToken.isNullOrEmpty()) {
                         //save credentials of terminal
-                        sharedPrefService.updateToken(token)
+                        sharedPrefService.updateToken(nToken)
                         callback()
                     }
                 },

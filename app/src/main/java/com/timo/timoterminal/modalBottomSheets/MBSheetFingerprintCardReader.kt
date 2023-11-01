@@ -21,14 +21,17 @@ import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.ProgressBarAnimation
+import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import org.koin.android.ext.android.inject
+import java.util.GregorianCalendar
 
 
 class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
@@ -36,6 +39,7 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
     private val userRepository: UserRepository by inject()
     private val sharedPrefService: SharedPrefService by inject()
     private val httpService: HttpService by inject()
+    private val languageService: LanguageService by inject()
 
     private lateinit var binding: MbSheetFingerprintCardReaderBinding
     private var viewModel: MBSheetFingerprintCardReaderViewModel =
@@ -67,25 +71,27 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         // as well!
         status = arguments?.getInt("status") ?: -1
         val sStatus = when (arguments?.getInt("status")) {
-            100 -> "Kommen"
-            200 -> "Gehen"
-            110 -> "Pause"
-            210 -> "Pause Ende"
+            100 -> languageService.getText("#Kommt")
+            200 -> languageService.getText("#Geht")
+            110 -> languageService.getText("ALLGEMEIN#Pause")
+            210 -> languageService.getText("ALLGEMEIN#Pausenende")
             else -> {
                 "No known type"
             }
         }
-        binding.nameContainer.text = "Elias Kadiri"
         binding.bookingTypeTextContainer.text = sStatus
-        binding.timeTextContainer.text = "15:02"
+        binding.cardImage.contentDescription = languageService.getText("#RFID")
+        binding.keyboardImage.contentDescription = languageService.getText("#RFID")
+        binding.identificationText.text = languageService.getText("#WaitIdentification")
     }
 
     private fun setUpOnClickListeners() {
         binding.fingerprintImage.setOnClickListener {
+            binding.timeTextContainer.text = Utils.getTimeFromGC(GregorianCalendar())
             animateSuccess()
         }
 
-        //for test cases, can be removed later
+        //for test cases, has to be removed later
         binding.cardImage.setOnClickListener {
             viewModel.sendBookingByCard("505650110", this)
         }
@@ -240,11 +246,11 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext())
-        dlgAlert.setMessage("Please enter your credentials")
-        dlgAlert.setTitle("Booking")
+        dlgAlert.setMessage(languageService.getText("#EnterCredentials"))
+        dlgAlert.setTitle(languageService.getText("#Buchung"))
         dlgAlert.setView(dialogBinding.root)
-        dlgAlert.setNegativeButton("Cancel") { dia, _ -> dia.dismiss() }
-        dlgAlert.setPositiveButton("OK") { _, _ ->
+        dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+        dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             val code = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (code.isNotEmpty()) {
