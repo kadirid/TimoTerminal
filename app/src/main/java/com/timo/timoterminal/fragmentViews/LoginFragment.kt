@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
+import com.timo.timoterminal.activities.NoInternetNetworkSettingsActivity
 import com.timo.timoterminal.databinding.FragmentLoginBinding
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
@@ -134,6 +135,11 @@ class LoginFragment : Fragment() {
                     }
                 }
             }
+        }
+
+        binding.goToInetSettingsButton.setOnClickListener {
+            val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
+            startActivity(goToInetSettingsActivity)
         }
     }
 
