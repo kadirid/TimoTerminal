@@ -14,13 +14,16 @@ import androidx.fragment.app.commit
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.FragmentSettingsBinding
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.viewModel.SettingsFragmentViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SettingsFragment : Fragment() {
     private lateinit var binding: FragmentSettingsBinding
     private val hardwareSource: IHardwareSource by inject()
     private val languageService: LanguageService by inject()
+    private val viewModel: SettingsFragmentViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -99,6 +102,9 @@ class SettingsFragment : Fragment() {
                     InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             }
             dialog.show()
+        }
+        binding.buttonLogout.setOnClickListener {
+            viewModel.logout(requireContext());
         }
     }
 }

@@ -22,6 +22,7 @@ import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import com.timo.timoterminal.viewModel.MainActivityViewModel
+import com.timo.timoterminal.viewModel.SettingsFragmentViewModel
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
 import com.timo.timoterminal.worker.HeartbeatWorker
 import org.koin.android.ext.koin.androidContext
@@ -77,7 +78,7 @@ var appModule = module {
     single { HttpService() }
     single { WebSocketService() }
     single { WorkerService(get()) }
-    single { LoginService(get(), get(), get(), get()) }
+    single { LoginService(get(), get(), get(), get(), get(), get(), get()) }
     single { UserService(get(), get(), get()) }
     single { SharedPrefService(androidContext()) }
     single { SettingsService(get(), get()) }
@@ -89,6 +90,7 @@ var appModule = module {
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get()) }
     viewModel { AttendanceFragmentViewModel(get()) }
+    viewModel { SettingsFragmentViewModel(get()) }
 
     worker(named<HeartbeatWorker>()) {
         HeartbeatWorker(

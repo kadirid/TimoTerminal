@@ -34,6 +34,7 @@ class LoginActivityViewModel(
             if (saved) {
                 Log.d(LoginActivity.TAG, "onResume: $saved")
                 if (Utils.isOnline(context)) {
+                    settingsService.loadTimezone(context)
                     languageService.requestLanguageFromServer(viewModelScope, context)
                     loginService.autoLogin(context, callback)
                 } else {
@@ -42,9 +43,5 @@ class LoginActivityViewModel(
                 }
             }
         }
-    }
-
-    fun syncTimezone(context: Context) {
-        settingsService.loadTimezone(context)
     }
 }

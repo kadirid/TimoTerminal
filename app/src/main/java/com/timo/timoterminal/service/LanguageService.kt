@@ -77,7 +77,11 @@ class LanguageService(
     }
 
     fun getText(key: String): String {
-        return (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)]?.get(key))?:""
+        if (!sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE).isNullOrEmpty()) {
+            return (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)]?.get(key))?:""
+        } else {
+            return key
+        }
     }
 
     private fun convertJSONObjectToLanguageEntity(obj: JSONObject): LanguageEntity {

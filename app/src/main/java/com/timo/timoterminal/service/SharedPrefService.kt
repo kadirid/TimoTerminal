@@ -66,7 +66,8 @@ class SharedPrefService(context: Context) : KoinComponent {
         url: String,
         company: String,
         username: String,
-        password: String
+        password: String,
+        language: String
     ) {
         val editor = getEditor()
         editor.putString(SharedPreferenceKeys.DEVICE_UUID.name, terminalUUID);
@@ -76,6 +77,7 @@ class SharedPrefService(context: Context) : KoinComponent {
         editor.putString(SharedPreferenceKeys.SERVER_URL.name, url)
         editor.putString(SharedPreferenceKeys.USER.name, String(Utils.sha256(username)))
         editor.putString(SharedPreferenceKeys.PASSWORD.name, String(Utils.sha256(password)))
+        editor.putString(SharedPreferenceKeys.LANGUAGE.name, language)
         editor.apply()
     }
 

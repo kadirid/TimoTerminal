@@ -47,7 +47,6 @@ class LoginActivity : AppCompatActivity() {
     //check if logged in then open main activity else check connection
     override fun onResume() {
         super.onResume()
-        loginActivityViewModel.syncTimezone(this)
         loginActivityViewModel.onResume(this) {
             loginActivityViewModel.loadPermissions(this) { worked ->
                 if (worked) {

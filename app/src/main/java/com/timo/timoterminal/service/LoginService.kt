@@ -2,8 +2,10 @@ package com.timo.timoterminal.service
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.provider.Settings.*
+import com.timo.timoterminal.activities.LoginActivity
 import com.timo.timoterminal.entityClasses.ConfigEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.ConfigRepository
@@ -18,7 +20,10 @@ class LoginService(
     private val httpService: HttpService,
     private val configRepository: ConfigRepository,
     private val sharedPrefService: SharedPrefService,
-    private val hardware: IHardwareSource
+    private val hardware: IHardwareSource,
+    private val userService: UserService,
+    private val workerService: WorkerService,
+    private val settingsService: SettingsService
 ) : KoinComponent {
 
     companion object {
@@ -132,6 +137,9 @@ class LoginService(
                     val isNewTerminal = payload?.getBoolean("isNewTerminal")
                     val id = terminalObj?.getInt("id")
                     val token = terminalObj?.getString("token")
+                    var language = terminalObj?.getString("language")
+                    if (language.isNullOrEmpty()) language = "de"
+
                     if (id != null && !token.isNullOrEmpty()) {
                         //save credentials of terminal
                         sharedPrefService.saveLoginCredentials(
@@ -141,7 +149,8 @@ class LoginService(
                             url,
                             company,
                             username,
-                            password
+                            password,
+                            language
                         )
                         callback(isNewTerminal!!)
                     }
@@ -238,9 +247,13 @@ class LoginService(
                     val terminalObj = payload?.getJSONObject("terminal")
                     val id = terminalObj?.getInt("id")
                     val nToken = terminalObj?.getString("token")
+                    val language = terminalObj?.getString("language")
                     if (id != null && !nToken.isNullOrEmpty()) {
                         //save credentials of terminal
                         sharedPrefService.updateToken(nToken)
+                        if (!language.isNullOrEmpty()) {
+                            settingsService.changeLanguage(context, language);
+                        }
                         callback()
                     }
                 },
@@ -250,5 +263,13 @@ class LoginService(
                 }
             )
         }
+    }
+
+    fun logout(context: Context, coroutineScope: CoroutineScope) {
+        sharedPrefService.removeAllCreds()
+        val logoutIntent = Intent(context, LoginActivity::class.java)
+        logoutIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        userService.deleteAllUsers(coroutineScope)
+        context.startActivity(logoutIntent)
     }
 }

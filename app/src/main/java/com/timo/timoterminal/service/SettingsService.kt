@@ -43,6 +43,24 @@ class SettingsService(
         LocaleHelper.setLocale(activity.applicationContext, chosenLanguageCode)
     }
 
+    fun changeLanguage(context:Context?, lang: String) {
+        val editor = sharedPrefService.getEditor()
+        var chosenLanguageCode = ""
+        for (loc in getLanguages()) {
+            if (Locale.forLanguageTag(loc.language).displayLanguage.equals(lang)) {
+                chosenLanguageCode = loc.language
+                break
+            }
+        }
+        editor.putString(SharedPreferenceKeys.LANGUAGE.name, chosenLanguageCode)
+        editor.apply()
+
+
+        if (context != null ) {
+            LocaleHelper.setLocale(context, chosenLanguageCode)
+        }
+    }
+
     fun getCurrentLanguage(): String {
         val currentLocale = Locale.getDefault()
         return currentLocale.language
@@ -75,7 +93,13 @@ class SettingsService(
     fun loadTimezone(context: Context) {
         val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
         val am : AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.setTimeZone(timezone);
+        try {
+            am.setTimeZone(timezone);
+        } catch (e: Exception) {
+            //If we set no correct timezone identifier, just set Europe/Berlin as standard
+            sharedPrefService.getEditor().putString(SharedPreferenceKeys.TIMEZONE.name, "Europe/Berlin")
+            am.setTimeZone("Europe/Berlin")
+        }
     }
 
 }

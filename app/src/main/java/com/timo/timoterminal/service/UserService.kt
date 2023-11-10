@@ -1,9 +1,7 @@
 package com.timo.timoterminal.service
 
-import android.util.Log
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
-import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.UserRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -52,4 +50,9 @@ class UserService(
         }
     }
 
+    fun deleteAllUsers(coroutineScope: CoroutineScope) {
+        coroutineScope.launch {
+            userRepository.deleteAll()
+        }
+    }
 }

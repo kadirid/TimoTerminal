@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.Settings
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityNoInternetNetworkSettingsBinding
+import com.timo.timoterminal.utils.Utils
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import org.koin.android.ext.android.inject
 
@@ -20,7 +21,7 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
         binding = ActivityNoInternetNetworkSettingsBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
-
+        Utils.hideStatusAndNavbar(this)
         setupOnClickListeners()
     }
 
