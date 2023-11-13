@@ -139,12 +139,6 @@ class HttpService() : KoinComponent {
                 }
                 val output : ResponseToJSON = Utils.parseResponseToJSON(responseString)
 
-                if (response.code == 200 || response.isSuccessful) {
-                    successCallback(output.obj, output.array, output.string)
-                } else {
-                    errorCallback(null ,response, context, output)
-                }
-
                 if (response.isSuccessful || response.code == 200) {
                     successCallback(output.obj, output.array, output.string)
                 } else {

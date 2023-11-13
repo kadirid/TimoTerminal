@@ -48,7 +48,7 @@ class LoginService(
                         company,
                         username,
                         password,
-                        url,
+                        url.substring(0,url.length-1),
                         context,
                         successCallback,
                     )
@@ -84,7 +84,7 @@ class LoginService(
         successCallback: (url: String) -> Unit?,
     ) {
         httpService.get(
-            "https://www.timo24.de/timoadhttomin/baseurl",
+            "https://www.timo24.de/timoadmin/baseurl",
             mapOf(Pair("company", company)),
             context,
             { _, _, url ->
@@ -104,6 +104,7 @@ class LoginService(
         context: Context,
         callback: (isNewTerminal: Boolean) -> Unit?
     ) {
+
 
         //if not created, create a ID for the device. This ID is the recognizer for the timo
         // system and will be used as terminal id

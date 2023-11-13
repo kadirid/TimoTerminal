@@ -39,7 +39,9 @@ class LanguageService(
                                         for (i in 0 until values.array.length()) {
                                             val oneValue = values.array.getJSONObject(i)
                                             list.add(
-                                                convertJSONObjectToLanguageEntity(oneValue)
+                                                LanguageEntity.convertJSONObjectToLanguageEntity(
+                                                    oneValue
+                                                )
                                             )
                                         }
                                     }
@@ -77,19 +79,11 @@ class LanguageService(
     }
 
     fun getText(key: String): String {
-        if (!sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE).isNullOrEmpty()) {
-            return (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)]?.get(key))?:""
-        } else {
-            return key
+        if(languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)] != null) {
+            return (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)]?.get(key))
+                ?: ""
         }
-    }
-
-    private fun convertJSONObjectToLanguageEntity(obj: JSONObject): LanguageEntity {
-        return LanguageEntity(
-            obj.getString("keyname"),
-            obj.getString("language"),
-            obj.getString("value")
-        )
+        return ""
     }
 
 }

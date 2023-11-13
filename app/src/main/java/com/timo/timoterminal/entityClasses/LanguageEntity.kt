@@ -3,6 +3,7 @@ package com.timo.timoterminal.entityClasses
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import org.json.JSONObject
 
 @Entity
 class LanguageEntity(
@@ -31,5 +32,15 @@ class LanguageEntity(
         result = 31 * result + language.hashCode()
         result = 31 * result + value.hashCode()
         return result
+    }
+
+    companion object {
+        public fun convertJSONObjectToLanguageEntity(obj: JSONObject): LanguageEntity {
+            return LanguageEntity(
+                obj.getString("keyname"),
+                obj.getString("language"),
+                obj.getString("value")
+            )
+        }
     }
 }
