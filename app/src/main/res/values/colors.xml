@@ -73,6 +73,7 @@
     <color name="pause_pastell">#ffdbb9</color>
     <color name="go">#B91A1A</color>
     <color name="go_pastell">#f6c2c2</color>
+    <color name="error_booking">#FBEBBD</color>
     <dimen name="navigationRailIconSize">32dp</dimen>
 
 </resources>

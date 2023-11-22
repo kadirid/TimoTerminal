@@ -1,42 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="20dp">
+    android:layout_marginHorizontal="20dp"
+    android:orientation="vertical">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/text_view_dialog_verification_message"
+        android:layout_width="600dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
-        android:hint="User Id">
+        android:layout_marginTop="25dp"
+        android:textSize="34sp"
+        tools:text="Bitte verifizieren: Finger, RFID oder PIN" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="600dp"
+        android:layout_height="100dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
+        android:hint="@string/timo_login_name">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_input_edit_text_verification_id"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberPassword"
+            android:layout_height="match_parent"
             android:focusable="false"
-            android:digits="1234567890"
-            android:focusableInTouchMode="false"/>
+            android:focusableInTouchMode="false"
+            android:inputType="text"
+            android:textSize="40sp"
+            tools:text="Login name" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="600dp"
+        android:layout_height="100dp"
         android:layout_marginHorizontal="20dp"
-        android:hint="User Passcode"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="20dp"
+        android:hint="@string/user_passcode"
         app:passwordToggleEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_input_edit_text_verification_pin"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberPassword"
+            android:layout_height="match_parent"
             android:focusable="false"
-            android:focusableInTouchMode="false"/>
+            android:focusableInTouchMode="false"
+            android:inputType="numberPassword"
+            android:textSize="40sp"
+            tools:text="1234" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

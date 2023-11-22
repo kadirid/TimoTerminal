@@ -14,12 +14,20 @@
     <string name="unknown_error">Unknown Error</string>
     <string name="language">Language</string>
     <string name="timezone">Timezone</string>
-    <string name="bitte_loggen_sie_sich_mit_einem_account_ein_damit_das_terminal_sich_einrichten_kann">Please log into terminal to proceed the configuration</string>
+    <string name="please_enter_timo_login_data">Please enter TimO login data for terminal configuration</string>
     <string name="english">English</string>
     <string name="deutsch">German</string>
     <string name="login">Login</string>
     <string name="save_settings">Save Settings</string>
+    <string name="save">Save</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="wilkommen_bei_timo">Wilkommen bei TimO�</string>
+    <string name="info_intial_ethernet_settigns">Could not access internet\nPlease verify settings and try again.</string>
+    <string name="ethernet_settings">Ethernet Settings</string>
+    <string name="mobile_network_settings">Mobile Network Settings</string>
+    <string name="wifi_settings">Wifi Settings</string>
+    <string name="retry">Retry</string>
+    <string name="user_passcode">Pin Code</string>
+    <string name="timo_login_name">TimO Login Name</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

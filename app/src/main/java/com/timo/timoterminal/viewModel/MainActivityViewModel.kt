@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.entityClasses.DemoEntity
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.repositories.ConfigRepository
@@ -62,5 +63,16 @@ class MainActivityViewModel(
     suspend fun permission(name: String): String {
         return configRepository.getPermissionValue(name)
     }
+
+    fun getUserForCard(card: String, mainActivity: MainActivity) {
+        viewModelScope.launch {
+            val users = userRepository.getEntityByCard(card)
+            if (users.isNotEmpty()) {
+                mainActivity.showSettings(users[0])
+            }
+        }
+    }
+
+
 }
 

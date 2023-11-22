@@ -8,8 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
-import com.google.android.material.snackbar.Snackbar
-import com.journeyapps.barcodescanner.Util
 import com.timo.timoterminal.databinding.FragmentAttendanceBinding
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.service.HttpService
@@ -32,7 +30,6 @@ import kotlin.math.abs
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-
 class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
@@ -43,7 +40,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     private val httpService: HttpService = HttpService()
     private val viewModel: AttendanceFragmentViewModel by viewModel()
     private var funcCode = -1
-    private lateinit var mbSheetFingerprintCardReader : MBSheetFingerprintCardReader
+    private val mbSheetFingerprintCardReader = MBSheetFingerprintCardReader()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,9 +52,8 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentAttendanceBinding.inflate(inflater, container, false)
-        mbSheetFingerprintCardReader = MBSheetFingerprintCardReader()
 
         setOnClickListeners()
         adaptLottieAnimationTime()
@@ -117,7 +113,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     }
 
     private fun executeClick() {
-        setListener()
+//        setListener()
         val bundle = Bundle()
         bundle.putInt("status", funcCode)
         mbSheetFingerprintCardReader.arguments = bundle
@@ -139,7 +135,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
             val url = viewModel.getURl()
             val company = viewModel.getCompany()
             val terminalId = viewModel.getTerminalID()
-            if (!company.isNullOrEmpty() && !terminalId.isNullOrEmpty()) {
+            if (!company.isNullOrEmpty() && terminalId != null && terminalId > -1) {
                 httpService.post(
                     "${url}services/rest/zktecoTerminal/booking",
                     mapOf(
@@ -148,12 +144,12 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                         Pair("date", dateFormatter.format(Date())),
                         Pair("funcCode", "$funcCode"),
                         Pair("inputCode", "$inputCode"),
-                        Pair("terminalId", terminalId)
+                        Pair("terminalId", "$terminalId")
                     ),
                     requireContext(),
                     { obj, _, _ ->
                         if (obj != null) {
-                            Snackbar.make(binding.root,obj.getString("message"),Snackbar.LENGTH_LONG).show()
+                            Utils.showMessage(parentFragmentManager, obj.getString("message"))
                         }
                     }
                 )
@@ -170,6 +166,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
          * @param param2 Parameter 2.
          * @return A new instance of fragment AttendanceFragment.
          */
+        const val TAG = "AttendanceFragmentTag"
         // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
@@ -192,7 +189,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
             }
             oct = oct.reversed()
             if(funcCode > 0) {
-//                sendBooking(oct,2)
+                sendBooking(oct,2)
                 funcCode = -1
                 RfidService.unregister()
                 //binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
@@ -215,7 +212,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     private fun adaptLottieAnimationTime() {
         super.onResume()
         val calendar: Calendar = Calendar.getInstance()
-        val hour: Int = calendar.get(Calendar.HOUR_OF_DAY) +4
+        val hour: Int = calendar.get(Calendar.HOUR_OF_DAY)
 
         if ( hour < 7 || hour > 20) {
             binding.lottieAnimationView.setMinAndMaxFrame(0, 60)

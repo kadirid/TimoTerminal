@@ -4,15 +4,17 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.os.CountDownTimer
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
-import com.google.android.material.snackbar.Snackbar
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
 import com.timo.timoterminal.databinding.DialogVerificationBinding
+import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.fragmentViews.AbsenceFragment
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.fragmentViews.ProjectFragment
@@ -25,13 +27,16 @@ import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.MainActivityViewModel
+import com.zkteco.android.core.interfaces.FingerprintListener
+import com.zkteco.android.core.interfaces.RfidListener
+import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
-    NetworkChangeReceiver.NetworkStatusCallback {
+    NetworkChangeReceiver.NetworkStatusCallback, RfidListener, FingerprintListener {
 
     private val mainActivityViewModel: MainActivityViewModel by viewModel()
     private val languageService: LanguageService by inject()
@@ -40,9 +45,30 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private lateinit var batteryReceiver: BatteryReceiver
     private lateinit var networkChangeReceiver: NetworkChangeReceiver
     private lateinit var mbLoginWelcomeSheet: MBLoginWelcomeSheet
+    private var dialog: AlertDialog? = null
+    private var isInit: Boolean = false
 
     companion object {
         const val TAG = "MainActivity"
+    }
+
+    private val timer = object : CountDownTimer(10000, 500) {
+        override fun onTick(millisUntilFinished: Long) {}
+
+        override fun onFinish() {
+            supportFragmentManager.commit {
+                replace(
+                    R.id.fragment_container_view,
+                    AttendanceFragment.newInstance("", ""),
+                    AttendanceFragment.TAG
+                )
+            }
+        }
+    }
+
+    fun restartTimer() {
+        timer.cancel()
+        timer.start()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,6 +87,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         setContentView(binding.root)
 
         initNavbarListener()
+        isInit = true
 
         registerBatteryReceiver()
         registerNetworkReceiver()
@@ -92,8 +119,17 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         Utils.hideStatusAndNavbar(this)
     }
 
+    override fun onPause() {
+        timer.cancel()
+        super.onPause()
+    }
+
     override fun onResume() {
+        val frag = supportFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
+        if (!isInit && (frag == null || !frag.isVisible))
+            timer.start()
         Utils.hideStatusAndNavbar(this)
+        isInit = false
         super.onResume()
     }
 
@@ -110,6 +146,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                     supportFragmentManager.commit {
                         replace(R.id.fragment_container_view, SettingsFragment())
                     }
+                    restartTimer()
                 } else {
                     showVerificationAlert()
                 }
@@ -157,8 +194,16 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             if (fragment == null) {
                 return@setOnItemSelectedListener false
             } else {
-                supportFragmentManager.commit {
-                    replace(R.id.fragment_container_view, fragment)
+                if (it.itemId == R.id.attendance) {
+                    supportFragmentManager.commit {
+                        replace(R.id.fragment_container_view, fragment, AttendanceFragment.TAG)
+                    }
+                    timer.cancel()
+                } else {
+                    supportFragmentManager.commit {
+                        replace(R.id.fragment_container_view, fragment)
+                    }
+                    restartTimer()
                 }
             }
             true
@@ -167,30 +212,38 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         //init correct fragment, this could be also configurable if needed, but this is for the future
         if (binding.navigationRail.menu.findItem(R.id.attendance).isVisible) {
             supportFragmentManager.commit {
-                replace(R.id.fragment_container_view, AttendanceFragment.newInstance("", ""))
+                replace(
+                    R.id.fragment_container_view,
+                    AttendanceFragment.newInstance("", ""),
+                    AttendanceFragment.TAG
+                )
             }
+            timer.cancel()
         } else if (binding.navigationRail.menu.findItem(R.id.project).isVisible) {
             supportFragmentManager.commit {
                 replace(R.id.fragment_container_view, ProjectFragment.newInstance("", ""))
             }
+            restartTimer()
         } else if (binding.navigationRail.menu.findItem(R.id.absence).isVisible) {
             supportFragmentManager.commit {
                 replace(R.id.fragment_container_view, AbsenceFragment.newInstance("", ""))
             }
+            restartTimer()
         } else if (binding.navigationRail.menu.findItem(R.id.info).isVisible) {
             supportFragmentManager.commit {
                 replace(R.id.fragment_container_view, InfoFragment())
             }
+            restartTimer()
         }
     }
 
     // verify user if present before opening settings page
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
+        RfidService.setListener(this)
+        RfidService.register()
 
-        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this)
-        dlgAlert.setMessage(languageService.getText("#FingerprintCardCredentials"))
-        dlgAlert.setTitle(languageService.getText("#Verification"))
+        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MyDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
@@ -201,25 +254,52 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                     val user = mainActivityViewModel.getUserEntity(code.toLong())
                     if (user != null && user.pin == pin) {
                         supportFragmentManager.commit {
-                            replace(R.id.fragment_container_view, SettingsFragment())
+                            replace(
+                                R.id.fragment_container_view,
+                                SettingsFragment.newInstance(user.id)
+                            )
                         }
+                        restartTimer()
                     } else {
-                        Snackbar.make(binding.root, "Verification failed", Snackbar.LENGTH_LONG)
-                            .show()
+                        Utils.showMessage(supportFragmentManager, "Verification failed")
                     }
                 }
             }
         }
 
-        val dialog = dlgAlert.create()
-        dialog.setOnShowListener {
+        dialog = dlgAlert.create()
+        val alertTimer = object : CountDownTimer(5000, 500) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                dialog!!.dismiss()
+            }
+        }
+
+        dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
+            alertTimer.cancel()
+            alertTimer.start()
+            true
+        }
+        dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
+            alertTimer.cancel()
+            alertTimer.start()
+            true
+        }
+        dialogBinding.textViewDialogVerificationMessage.text =
+            languageService.getText("#FingerprintCardCredentials")
+        dialog!!.setOnShowListener {
             dialogBinding.textInputEditTextVerificationId.isFocusable = true
             dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
             dialogBinding.textInputEditTextVerificationId.transformationMethod = null
             dialogBinding.textInputEditTextVerificationPin.isFocusable = true
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
         }
-        dialog.show()
+        dialog!!.setOnDismissListener {
+            RfidService.unregister()
+            alertTimer.cancel()
+        }
+        dialog!!.show()
     }
 
     override fun onBatteryStatusChanged(
@@ -260,5 +340,41 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
 
         binding.networkConnectionIcon.setImageResource(res)
+    }
+
+    override fun onFingerprintPressed(
+        fingerprint: String,
+        template: String,
+        width: Int,
+        height: Int
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onRfidRead(rfidInfo: String) {
+        val rfidCode = rfidInfo.toLongOrNull(16)
+        if (rfidCode != null) {
+            var oct = rfidCode.toString(8)
+            while (oct.length < 9) {
+                oct = "0$oct"
+            }
+            oct = oct.reversed()
+            mainActivityViewModel.getUserForCard(oct, this)
+        }
+    }
+
+    fun showSettings(user: UserEntity?) {
+        dialog?.dismiss()
+        if (user != null) {
+            supportFragmentManager.commit {
+                replace(
+                    R.id.fragment_container_view,
+                    SettingsFragment.newInstance(user.id)
+                )
+            }
+            restartTimer()
+        } else {
+            Utils.showMessage(supportFragmentManager, "Verification failed")
+        }
     }
 }

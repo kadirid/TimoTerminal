@@ -2,17 +2,23 @@ package com.timo.timoterminal.viewModel
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.activities.LoginActivity
+import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.SettingsService
+import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.launch
 
 class LoginFragmentViewModel(
     private val loginService: LoginService,
     private val settingsService: SettingsService,
-    private val languageService: LanguageService
+    private val languageService: LanguageService,
+    private val sharedPrefService: SharedPrefService
 ) : ViewModel(
 
 ) {
@@ -45,8 +51,17 @@ class LoginFragmentViewModel(
         }
     }
 
-    fun saveLangAndTimezone(activity: Activity, language: String, timezone: String, callback: () -> Unit) {
+    fun saveLangAndTimezone(activity: Activity, language: String, timezone: String, callback: (isOnline: Boolean) -> Unit) {
         settingsService.changeLanguage(activity, language)
-        settingsService.saveTimeZone(activity, timezone, callback)
+        settingsService.setTimeZone(activity, timezone, callback)
+    }
+
+    fun onResume(context:Context, callback: (isOnline: Boolean) -> Unit) {
+        viewModelScope.launch {
+            val saved: Boolean = !sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "").isNullOrEmpty()
+            if (saved) {
+                callback(Utils.isOnline(context))
+            }
+        }
     }
 }

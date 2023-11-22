@@ -11,25 +11,35 @@ class UserEntity(
     @ColumnInfo("lastname") var lastName: String,
     @ColumnInfo("card") var card: String,
     @ColumnInfo("pin") var pin: String,
+    @ColumnInfo("login") var login: String,
     @ColumnInfo("hireDate") var hireDate: Long,
-    @PrimaryKey(autoGenerate = false) var id : Long
+    @PrimaryKey(autoGenerate = false) var id: Long
 ) {
 
     companion object {
-        fun parseJsonToUserEntity(obj: JSONObject) : UserEntity{
+        fun parseJsonToUserEntity(obj: JSONObject): UserEntity {
             val id = obj.getLong("id")
             val firstName = obj.getString("firstName")
             val lastName = obj.getString("lastName")
             val card = obj.getString("cardNumber")
             val pin = obj.getString("pin")
+            val login = obj.getString("login")
             val hireDate = obj.getLong("einstellungsDatum")
-            return UserEntity(id, firstName, lastName, card, pin, hireDate)
+            return UserEntity(id, firstName, lastName, card, pin, login, hireDate)
         }
     }
 
-    constructor(id : Long, firstName: String, lastName: String, card: String, pin: String, hireDate: Long) : this(firstName, lastName, card, pin, hireDate, id)
+    constructor(
+        id: Long,
+        firstName: String,
+        lastName: String,
+        card: String,
+        pin: String,
+        login: String,
+        hireDate: Long
+    ) : this(firstName, lastName, card, pin, login, hireDate, id)
 
-    fun name() : String = "$firstName $lastName"
+    fun name(): String = "$firstName $lastName"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -42,6 +52,7 @@ class UserEntity(
         if (lastName != other.lastName) return false
         if (card != other.card) return false
         if (pin != other.pin) return false
+        if (login != other.login) return false
 
         return true
     }
@@ -54,8 +65,8 @@ class UserEntity(
         return result
     }
 
-    fun setId(sid: String?){
-        if(!sid.isNullOrEmpty()){
+    fun setId(sid: String?) {
+        if (!sid.isNullOrEmpty()) {
             id = sid.toLong()
         }
     }

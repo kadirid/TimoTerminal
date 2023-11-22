@@ -88,7 +88,7 @@ var appModule = module {
     viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
-    viewModel { LoginFragmentViewModel(get(), get(), get()) }
+    viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
     viewModel { AttendanceFragmentViewModel(get()) }
     viewModel { SettingsFragmentViewModel(get()) }
 

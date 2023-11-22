@@ -1,12 +1,16 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.doOnTextChanged
+import com.timo.timoterminal.R
+import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.FragmentInfoBinding
 import com.timo.timoterminal.repositories.UserRepository
@@ -57,18 +61,26 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         super.onResume()
 
         if (verifying) {
-            RfidService.setListener(this)
-            RfidService.register()
-            FingerprintService.setListener(this)
-            FingerprintService.register()
+            register()
         }
     }
 
+    fun register() {
+        RfidService.setListener(this)
+        RfidService.register()
+        FingerprintService.setListener(this)
+        FingerprintService.register()
+    }
+
     override fun onPause() {
-        RfidService.unregister()
-        FingerprintService.unregister()
+        unregister()
 
         super.onPause()
+    }
+
+    fun unregister() {
+        RfidService.unregister()
+        FingerprintService.unregister()
     }
 
     private fun setUpOnClickListeners() {
@@ -78,11 +90,17 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         }
 
         binding.keyboardImage.setOnClickListener {
+            (requireActivity() as MainActivity).restartTimer()
             showVerificationAlert()
         }
 
         binding.linearTextContainer.setOnClickListener {
+            (requireActivity() as MainActivity).restartTimer()
             viewModel.restartTimer()
+        }
+
+        binding.fragmentInfoRootLayout.setOnClickListener {
+            (requireActivity() as MainActivity).restartTimer()
         }
     }
 
@@ -113,12 +131,11 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
 
-        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext())
-        dlgAlert.setMessage(languageService.getText("#EnterCredentials"))
-        dlgAlert.setTitle(languageService.getText("ALLGEMEIN#Info"))
+        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext(), R.style.MyDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
+            (requireActivity() as MainActivity).restartTimer()
             val code = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (code.isNotEmpty()) {
@@ -127,12 +144,37 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         }
 
         val dialog = dlgAlert.create()
+        val alertTimer = object : CountDownTimer(5000, 500) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                dialog!!.dismiss()
+            }
+        }
+
+        dialogBinding.textViewDialogVerificationMessage.text =
+            languageService.getText("#EnterCredentials")
+        dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
+            alertTimer.cancel()
+            alertTimer.start()
+            (requireActivity() as MainActivity).restartTimer()
+            true
+        }
+        dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
+            alertTimer.cancel()
+            alertTimer.start()
+            (requireActivity() as MainActivity).restartTimer()
+            true
+        }
         dialog.setOnShowListener {
             dialogBinding.textInputEditTextVerificationId.isFocusable = true
             dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
             dialogBinding.textInputEditTextVerificationId.transformationMethod = null
             dialogBinding.textInputEditTextVerificationPin.isFocusable = true
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
+        }
+        dialog.setOnDismissListener {
+            alertTimer.cancel()
         }
         dialog.show()
     }

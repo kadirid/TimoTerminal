@@ -13,10 +13,10 @@
         <item name="background">?attr/colorSurfaceContainer</item>
     </style>
     <style name="attendanceTimeViewContainer.timeViewFont">
-        <item name="android:textSize">75sp</item>
+        <item name="android:textSize">140sp</item>
     </style>
     <style name="attendanceTimeViewContainer.dateViewFont">
-        <item name="android:textSize">25sp</item>
+        <item name="android:textSize">40sp</item>
     </style>
     <!--
     Styles for Full Screen Dialog + Animations
@@ -24,5 +24,49 @@
     <style name="DialogAnimation">
         <item name="android:windowEnterAnimation">@anim/slide_in_up</item>
         <item name="android:windowExitAnimation">@anim/slide_out_down</item>
+    </style>
+
+    <style name="MyDialog" parent="Base.Theme.AppCompat.Light.Dialog">
+        <item name="android:windowTitleStyle">@style/DialogTitle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/NegativeButtonStyle</item>
+        <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
+        <item name="buttonBarStyle">@style/ButtonBarStyle</item>
+    </style>
+
+    <style name="DialogTitle" parent="TextAppearance.AppCompat.Large">
+        <item name="android:textSize">40sp</item>
+    </style>
+
+    <style name="ButtonBarStyle" parent="Widget.AppCompat.ButtonBar.AlertDialog">
+        <item name="android:height">100dp</item>
+        <item name="android:layout_height">100dp</item>
+        <item name="android:width">600dp</item>
+        <item name="android:layout_width">600dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">2dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingBottom">20dp</item>
+    </style>
+
+    <style name="NegativeButtonStyle" parent="PositiveButtonStyle">
+        <item name="android:layout_gravity">start</item>
+        <item name="android:layout_marginEnd">10dp</item>
+    </style>
+
+    <style name="PositiveButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">38sp</item>
+        <item name="android:backgroundTint">#006589</item>
+        <item name="android:width">286dp</item>
+        <item name="android:height">100dp</item>
+        <item name="cornerRadius">50dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:layout_marginStart">10dp</item>
+    </style>
+
+    <style name="SettingsViewButtons">
+        <item name="android:layout_width">300dp</item>
+        <item name="android:layout_height">100dp</item>
+        <item name="android:textSize">20sp</item>
     </style>
 </resources>

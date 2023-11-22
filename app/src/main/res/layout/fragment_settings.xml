@@ -4,91 +4,81 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/fragment_setting_root_layout"
+    tools:padding="60dp"
+    tools:layout_marginStart="200dp"
     tools:context=".fragmentViews.SettingsFragment">
 
-    <Button
-        android:id="@+id/button_user_setting"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        tools:text="Open user setting"
-        android:textSize="16sp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent">
 
-    <Button
-        android:id="@+id/buttonDevOps"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        tools:text="Developer Options"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/button_user_setting"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <Button
+            android:id="@+id/button_user_setting"
+            style="@style/SettingsViewButtons"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Open user setting" />
 
-    <Button
-        android:id="@+id/buttonEthernet"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        tools:text="Ethernet Settings"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/buttonDevOps"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <Button
+            android:id="@+id/buttonReboot"
+            style="@style/SettingsViewButtons"
+            android:layout_marginTop="20dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/button_user_setting"
+            tools:text="Reboot" />
 
-    <Button
-        android:id="@+id/buttonMobileNetwork"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        tools:text="Mobile Network Settings"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/buttonEthernet"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <Button
+            android:id="@+id/buttonLogout"
+            style="@style/SettingsViewButtons"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="@color/black"
+            android:text="Logout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonReboot"
+            tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/buttonTime"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        tools:text="Time Settings"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/buttonMobileNetwork"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <Button
+            android:id="@+id/buttonDevOps"
+            style="@style/SettingsViewButtons"
+            android:layout_marginTop="20dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonLogout"
+            tools:text="Developer Options" />
 
-    <Button
-        android:id="@+id/buttonWifi"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        tools:text="Wifi Settings"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/buttonTime"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <Button
+            android:id="@+id/buttonWifi"
+            style="@style/SettingsViewButtons"
+            android:layout_marginStart="20dp"
+            app:layout_constraintStart_toEndOf="@id/button_user_setting"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Wifi Settings" />
 
-    <Button
-        android:id="@+id/buttonLauncher"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        tools:text="Launcher"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/buttonWifi"
-        app:layout_constraintStart_toStartOf="parent" />
+        <Button
+            android:id="@+id/buttonEthernet"
+            style="@style/SettingsViewButtons"
+            app:layout_constraintStart_toStartOf="@id/buttonWifi"
+            app:layout_constraintTop_toTopOf="@id/buttonReboot"
+            tools:text="Mobilfunknetzeinstellungen" />
 
-    <Button
-        android:id="@+id/buttonReboot"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        android:text="Reboot"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/buttonLauncher"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/buttonMobileNetwork"
+            style="@style/SettingsViewButtons"
+            app:layout_constraintStart_toStartOf="@id/buttonWifi"
+            app:layout_constraintTop_toTopOf="@id/buttonLogout"
+            tools:text="Mobile Network Settings" />
 
-    <Button
-        android:id="@+id/buttonLogout"
-        android:layout_width="300dp"
-        android:layout_height="48dp"
-        android:text="Logout"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/buttonLauncher"
-        app:layout_constraintStart_toStartOf="parent"
-        android:backgroundTint="@color/black"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/buttonLauncher"
+            style="@style/SettingsViewButtons"
+            app:layout_constraintStart_toStartOf="@id/buttonWifi"
+            app:layout_constraintTop_toTopOf="@id/buttonDevOps"
+            tools:text="Launcher" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

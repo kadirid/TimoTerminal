@@ -18,10 +18,10 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.PropertyService
 import com.timo.timoterminal.service.SettingsService
+import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.CodesArrayAdapter
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.TimeZone
 
 
@@ -29,15 +29,16 @@ class LoginFragment : Fragment() {
     private val propertyService: PropertyService by inject()
     private val loginService: LoginService by inject()
     private val settingsService: SettingsService by inject()
+    private val sharedPrefService: SharedPrefService by inject()
     private val languageService: LanguageService by inject()
     private val viewModel: LoginFragmentViewModel =
-        LoginFragmentViewModel(loginService, settingsService, languageService)
+        LoginFragmentViewModel(loginService, settingsService, languageService, sharedPrefService)
     private lateinit var binding: FragmentLoginBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentLoginBinding.inflate(inflater, container, false)
         initButtonListener()
         initLanguageDropdown()
@@ -46,7 +47,20 @@ class LoginFragment : Fragment() {
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume(this.requireContext()) {isOnline ->
+            if(isOnline) {
+                showLogin()
+            }else{
+                val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
+                startActivity(goToInetSettingsActivity)
+            }
+        }
+    }
+
     private fun initDebugFields() {
+//        binding.customUrl.visibility = View.GONE
         if (BuildConfig.DEBUG) {
             val url = propertyService.getProperties().getProperty("customUrl")
             val company = propertyService.getProperties().getProperty("company")
@@ -70,18 +84,18 @@ class LoginFragment : Fragment() {
     private fun initLanguageDropdown() {
         val languages = viewModel.languages
         val adapter =
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, languages)
+            ArrayAdapter(requireContext(), R.layout.dropdown, languages)
         binding.dropdownMenuLanguage.setAdapter(adapter)
     }
 
     private fun initTimezoneDropdown() {
         val ids = TimeZone.getAvailableIDs().toMutableList()
         val adapter =
-            CodesArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, ids)
+            CodesArrayAdapter(requireContext(), R.layout.dropdown, ids)
         binding.dropdownMenuTimezone.setAdapter(adapter)
     }
 
-    private fun showLangAndTimezone() {
+    private fun showLogin() {
         // INIT ANIMATION
         val animSet = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out_move_up)
         val fadeInAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
@@ -91,31 +105,56 @@ class LoginFragment : Fragment() {
             }
 
             override fun onAnimationEnd(p0: Animation?) {
-                binding.textInputLayoutLoginCompany.visibility = View.GONE
-                binding.textInputLayoutLoginPassword.visibility = View.GONE
-                binding.textInputLayoutLoginUser.visibility = View.GONE
+                binding.dropdownMenuLayoutLanguage.visibility = View.GONE
+                binding.dropdownMenuLayoutTimezone.visibility = View.GONE
 
-                binding.dropdownMenuLayoutLanguage.startAnimation(fadeInAnimation)
-                binding.dropdownMenuLayoutLanguage.visibility = View.VISIBLE
+                binding.textInputLayoutLoginCompany.startAnimation(fadeInAnimation)
+                binding.textInputLayoutLoginCompany.visibility = View.VISIBLE
 
-                binding.dropdownMenuLayoutTimezone.startAnimation(fadeInAnimation)
-                binding.dropdownMenuLayoutTimezone.visibility = View.VISIBLE
+                binding.textInputLayoutLoginPassword.startAnimation(fadeInAnimation)
+                binding.textInputLayoutLoginPassword.visibility = View.VISIBLE
 
-                binding.buttonSubmit.setText(R.string.save_settings)
-                initSaveSettingsButton()
+                binding.textInputLayoutLoginUser.startAnimation(fadeInAnimation)
+                binding.textInputLayoutLoginUser.visibility = View.VISIBLE
+
+                binding.linearTitleContainer.startAnimation(fadeInAnimation)
+                binding.linearTitleContainer.visibility = View.VISIBLE
+
+                binding.buttonSubmit.setText(R.string.login)
+                initLoginButton()
             }
 
             override fun onAnimationRepeat(p0: Animation?) {
             }
         })
         activity?.runOnUiThread {
-            binding.textInputLayoutLoginCompany.startAnimation(animSet)
-            binding.textInputLayoutLoginPassword.startAnimation(animSet)
-            binding.textInputLayoutLoginUser.startAnimation(animSet)
+            binding.dropdownMenuLayoutLanguage.startAnimation(animSet)
+            binding.dropdownMenuLayoutTimezone.startAnimation(animSet)
         }
     }
 
     private fun initButtonListener() {
+        binding.buttonSubmit.setOnClickListener {
+            val lang = binding.dropdownMenuLanguage.text.toString()
+            val tz = binding.dropdownMenuTimezone.text.toString()
+            //Set language and timezone locally and send it to backend
+            viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
+                if(isOnline) {
+                    showLogin()
+                }else{
+                    val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
+                    startActivity(goToInetSettingsActivity)
+                }
+            }
+        }
+
+        binding.goToInetSettingsButton.setOnClickListener {
+            val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
+            startActivity(goToInetSettingsActivity)
+        }
+    }
+
+    private fun initLoginButton() {
         binding.buttonSubmit.setOnClickListener {
             val company = binding.textInputEditTextLoginCompany.text.toString()
             val user = binding.textInputEditTextLoginUser.text.toString()
@@ -131,25 +170,9 @@ class LoginFragment : Fragment() {
             ) { isNewTerminal ->
                 viewModel.loadPermissions(requireContext()) { worked ->
                     if (worked) {
-                        if (isNewTerminal) showLangAndTimezone() else openMainView(false)
+                        openMainView(isNewTerminal)
                     }
                 }
-            }
-        }
-
-        binding.goToInetSettingsButton.setOnClickListener {
-            val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
-            startActivity(goToInetSettingsActivity)
-        }
-    }
-
-    private fun initSaveSettingsButton() {
-        binding.buttonSubmit.setOnClickListener {
-            val lang = binding.dropdownMenuLanguage.text.toString()
-            val tz = binding.dropdownMenuTimezone.text.toString()
-            //Set language and timezone locally and send it to backend
-            viewModel.saveLangAndTimezone(requireActivity(), lang, tz) {
-                openMainView(true)
             }
         }
     }

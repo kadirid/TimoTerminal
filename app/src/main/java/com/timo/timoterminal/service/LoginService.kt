@@ -153,6 +153,7 @@ class LoginService(
                             password,
                             language
                         )
+                        settingsService.saveTimeZone(context)
                         callback(isNewTerminal!!)
                     }
                 }
@@ -253,7 +254,7 @@ class LoginService(
                         //save credentials of terminal
                         sharedPrefService.updateToken(nToken)
                         if (!language.isNullOrEmpty()) {
-                            settingsService.changeLanguage(context, language);
+                            settingsService.changeLanguage(context, language)
                         }
                         callback()
                     }

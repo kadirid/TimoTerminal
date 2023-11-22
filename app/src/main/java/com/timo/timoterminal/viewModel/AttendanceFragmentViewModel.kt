@@ -14,7 +14,7 @@ class AttendanceFragmentViewModel(private val sharedPrefService: SharedPrefServi
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
     }
 
-    fun getTerminalID() : String? {
-        return sharedPrefService.getString(SharedPreferenceKeys.TIMO_TERMINAL_ID)
+    fun getTerminalID() : Int? {
+        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
     }
 }

@@ -5,6 +5,7 @@ import android.app.AlarmManager
 import android.content.Context
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.utils.LocaleHelper
+import com.timo.timoterminal.utils.Utils
 import org.koin.core.component.KoinComponent
 import java.util.Locale
 
@@ -47,7 +48,7 @@ class SettingsService(
         val editor = sharedPrefService.getEditor()
         var chosenLanguageCode = ""
         for (loc in getLanguages()) {
-            if (Locale.forLanguageTag(loc.language).displayLanguage.equals(lang)) {
+            if (Locale.forLanguageTag(loc.language).displayLanguage.equals(lang) || loc.language.equals(lang)) {
                 chosenLanguageCode = loc.language
                 break
             }
@@ -66,28 +67,33 @@ class SettingsService(
         return currentLocale.language
     }
 
-    fun saveTimeZone(context: Context,timezone: String, callback: () -> Unit) {
+    fun setTimeZone(context: Context,timezone: String, callback: (isOnline: Boolean) -> Unit) {
         val editor = sharedPrefService.getEditor()
         editor.putString(SharedPreferenceKeys.TIMEZONE.name, timezone)
         editor.apply()
 
-        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-
-        val parameterMap = HashMap<String, String>()
-        parameterMap.put("company", company!!)
-        parameterMap.put("terminalId", terminalId.toString())
-        parameterMap.put("token", token!!)
-        parameterMap.put("timezone", timezone)
-
-        httpService.post("${url}services/rest/zktecoTerminal/saveTimezone", parameterMap, context, { obj, _, _ ->
-            callback()
-        })
-
         val am : AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.setTimeZone(timezone);
+        am.setTimeZone(timezone)
+
+        callback(Utils.isOnline(context))
+    }
+
+    fun saveTimeZone(context: Context){
+        val timezone: String? = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
+        if(timezone != null){
+            val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+            val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
+            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
+
+            val parameterMap = HashMap<String, String>()
+            parameterMap["company"] = company!!
+            parameterMap["terminalId"] = terminalId.toString()
+            parameterMap["token"] = token!!
+            parameterMap["timezone"] = timezone!!
+
+            httpService.post("${url}services/rest/zktecoTerminal/saveTimezone", parameterMap, context, { _, _, _ ->})
+        }
     }
 
     fun loadTimezone(context: Context) {

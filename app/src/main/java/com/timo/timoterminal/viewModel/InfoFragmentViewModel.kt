@@ -3,27 +3,25 @@ package com.timo.timoterminal.viewModel
 import android.annotation.SuppressLint
 import android.os.CountDownTimer
 import androidx.core.view.isVisible
+import androidx.fragment.app.commit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.material.snackbar.Snackbar
+import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.FragmentInfoBinding
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
+import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.text.SimpleDateFormat
 import java.util.GregorianCalendar
-import java.util.Locale
 
 
 class InfoFragmentViewModel(
@@ -96,8 +94,7 @@ class InfoFragmentViewModel(
 
     private suspend fun loadUserInformation(user: UserEntity, fragment: InfoFragment) {
         val binding = fragment.getBinding()
-        RfidService.unregister()
-        FingerprintService.unregister()
+        fragment.unregister()
         fragment.setVerifying(false)
         fragment.activity?.runOnUiThread {
             binding.linearValidationContainer.isVisible = false
@@ -129,11 +126,10 @@ class InfoFragmentViewModel(
                                 }
                             } else {
                                 fragment.activity?.runOnUiThread {
-                                    Snackbar.make(
-                                        binding.root,
-                                        obj.getString("message"),
-                                        Snackbar.LENGTH_LONG
-                                    ).show()
+                                    Utils.showMessage(
+                                        fragment.parentFragmentManager,
+                                        obj.getString("message")
+                                    )
                                 }
                             }
                         }
@@ -151,20 +147,25 @@ class InfoFragmentViewModel(
     }
 
     private fun hideUserInformation() {
-        val binding = fragment.getBinding()
-        fragment.setVerifying(true)
         fragment.activity?.runOnUiThread {
-            binding.linearTextContainer.isVisible = false
-            binding.linearValidationContainer.isVisible = true
+            fragment.parentFragmentManager.commit {
+                replace(
+                    R.id.fragment_container_view,
+                    AttendanceFragment.newInstance("", ""),
+                    AttendanceFragment.TAG
+                )
+            }
         }
     }
 
     @SuppressLint("SetTextI18n")
     private fun setText(res: JSONObject, binding: FragmentInfoBinding) {
         var ist = res.getDouble("ist")
-        if (res.optInt("zeitTyp", 0) in listOf(1, 4, 6) && !res.optString("zeitLB", "").isNullOrBlank()) {
+        if (res.optInt("zeitTyp", 0) in listOf(1, 4, 6) && !res.optString("zeitLB", "")
+                .isNullOrBlank()
+        ) {
             val gcDate = GregorianCalendar()
-            val greg = Utils.parseDate(res.getString("zeitLB"))
+            val greg = Utils.parseDateTime(res.getString("zeitLB"))
             var diff = gcDate.timeInMillis - greg.timeInMillis
             diff /= 1000
             diff /= 60

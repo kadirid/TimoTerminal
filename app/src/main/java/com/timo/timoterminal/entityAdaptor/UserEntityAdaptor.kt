@@ -31,8 +31,9 @@ class UserEntityAdaptor(private val userEntities: List<UserEntity>, private val 
         private val pinView : TextView = itemView.findViewById(R.id.text_view_user_pin)
 
         fun bind(user: UserEntity, listener : OnItemClickListener) {
+            val name = if(user.firstName.isNullOrBlank()) user.lastName else "${user.firstName} ${user.lastName}"
             idView.text = "${user.id}"
-            nameView.text = "${user.firstName} ${user.lastName}"
+            nameView.text = name
             cardView.text = user.card
             pinView.text = user.pin
             itemView.setOnClickListener {

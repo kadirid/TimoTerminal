@@ -3,6 +3,7 @@ package com.timo.timoterminal.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.entityClasses.UserEntity
+import com.timo.timoterminal.fragmentViews.UserSettingsFragment
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.UserService
 import kotlinx.coroutines.launch
@@ -36,5 +37,9 @@ class UserSettingsFragmentViewModel(
         viewModelScope.launch {
             userRepository.delete(user)
         }
+    }
+
+    fun updateUser(paramMap: HashMap<String, String>, fragment: UserSettingsFragment) {
+        userService.sendUpdateRequest(paramMap, fragment, viewModelScope)
     }
 }

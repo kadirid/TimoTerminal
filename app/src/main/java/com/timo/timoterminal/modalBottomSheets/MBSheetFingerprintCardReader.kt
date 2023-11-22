@@ -3,9 +3,9 @@ package com.timo.timoterminal.modalBottomSheets
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.animation.doOnEnd
+import androidx.core.widget.doOnTextChanged
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
@@ -47,6 +48,14 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
 
     //    lateinit var textView: TextView
     private var status: Int = -1
+    private val timer = object : CountDownTimer(10000, 5000) {
+        override fun onTick(millisUntilFinished: Long) {
+        }
+
+        override fun onFinish() {
+            dismiss()
+        }
+    }
 
     companion object {
         const val TAG = "MBSheetFingerprintCardReader"
@@ -65,7 +74,6 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         return binding.root
     }
 
-    @SuppressLint("SetTextI18n")
     private fun setValues() {
         //before starting the animation, populate the fields with the correct data! Set the color
         // as well!
@@ -118,12 +126,14 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         RfidService.register()
         FingerprintService.setListener(this)
         FingerprintService.register()
+        timer.start()
     }
 
     // remove listener on pause
     override fun onPause() {
         RfidService.unregister()
         FingerprintService.unregister()
+        timer.cancel()
 
         super.onPause()
     }
@@ -135,6 +145,7 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
     }
 
     fun animateSuccess() {
+        timer.cancel()
         binding.identificationText.animate()
             .translationY(-binding.identificationText.height.toFloat())
             .alpha(0.0f)
@@ -156,11 +167,7 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
                     }
                     valueAnimator.start()
                     valueAnimator.doOnEnd {
-                        //Animation to show type of booking
-                        binding.nameContainer.visibility = View.VISIBLE
-                        binding.nameContainer.animate()
-                            .alpha(1.0f)
-                        //Animation to show time container
+                        //Animation to value container
                         binding.bookingInfoContainer.visibility = View.VISIBLE
                         binding.bookingInfoContainer.animate()
                             .alpha(1.0f)
@@ -186,7 +193,7 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
                                             0F,
                                             100F
                                         )
-                                        anim.duration = 2000
+                                        anim.duration = 5000
                                         anim.setAnimationListener(object :
                                             Animation.AnimationListener {
                                             override fun onAnimationStart(p0: Animation?) {
@@ -228,6 +235,7 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
             }
             oct = oct.reversed()
             if (status > 0) {
+                timer.cancel()
                 viewModel.sendBookingByCard(oct, this)
             }
         }
@@ -239,32 +247,56 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         width: Int,
         height: Int
     ) {
+        timer.cancel()
         TODO("Not yet implemented")
     }
 
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
+        timer.cancel()
 
-        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext())
-        dlgAlert.setMessage(languageService.getText("#EnterCredentials"))
-        dlgAlert.setTitle(languageService.getText("#Buchung"))
+        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext(), R.style.MyDialog)
         dlgAlert.setView(dialogBinding.root)
-        dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
-            val code = dialogBinding.textInputEditTextVerificationId.text.toString()
+            val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (code.isNotEmpty()) {
-                viewModel.sendBookingById(code, pin, this)
+            if (login.isNotEmpty()) {
+                viewModel.sendBookingById(login, pin, this)
+            }
+        }
+        dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+
+        val dialog = dlgAlert.create()
+        val alertTimer = object : CountDownTimer(5000, 500) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                dialog!!.dismiss()
             }
         }
 
-        val dialog = dlgAlert.create()
+        dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
+            alertTimer.cancel()
+            alertTimer.start()
+            true
+        }
+        dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
+            alertTimer.cancel()
+            alertTimer.start()
+            true
+        }
+        dialogBinding.textViewDialogVerificationMessage.text =
+            languageService.getText("#EnterCredentials")
         dialog.setOnShowListener {
             dialogBinding.textInputEditTextVerificationId.isFocusable = true
             dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
             dialogBinding.textInputEditTextVerificationId.transformationMethod = null
             dialogBinding.textInputEditTextVerificationPin.isFocusable = true
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
+        }
+        dialog.setOnDismissListener {
+            alertTimer.cancel()
+            timer.start()
         }
         dialog.show()
     }

@@ -9,9 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.timo.timoterminal.R
+import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentSettingsBinding
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.viewModel.SettingsFragmentViewModel
@@ -19,11 +22,21 @@ import com.zkteco.android.core.sdk.sources.IHardwareSource
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
+private const val ARG_USERID = "userId"
+
 class SettingsFragment : Fragment() {
     private lateinit var binding: FragmentSettingsBinding
     private val hardwareSource: IHardwareSource by inject()
     private val languageService: LanguageService by inject()
     private val viewModel: SettingsFragmentViewModel by viewModel()
+    private var userId: Long = -1
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            userId = it.getLong(ARG_USERID)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,7 +56,6 @@ class SettingsFragment : Fragment() {
         binding.buttonDevOps.text = languageService.getText("#DevOps")
         binding.buttonEthernet.text = languageService.getText("#EthernetSettings")
         binding.buttonMobileNetwork.text = languageService.getText("#MobileNetworkSettings")
-        binding.buttonTime.text = languageService.getText("#TimeSettings")
         binding.buttonWifi.text = languageService.getText("#WifiSettings")
         binding.buttonLauncher.text = languageService.getText("#Launcher")
         binding.buttonReboot.text = languageService.getText("#RebootTerminal")
@@ -51,9 +63,13 @@ class SettingsFragment : Fragment() {
 
     private fun setupOnClickListeners() {
         binding.buttonUserSetting.setOnClickListener {
-            requireActivity().supportFragmentManager.commit {
-                replace(R.id.fragment_container_view, UserSettingsFragment())
+            (requireActivity() as MainActivity).restartTimer()
+            parentFragmentManager.commit {
+                replace(R.id.fragment_container_view, UserSettingsFragment.newInstance(userId))
             }
+        }
+        binding.fragmentSettingRootLayout.setOnClickListener {
+            (requireActivity() as MainActivity).restartTimer()
         }
         binding.buttonDevOps.setOnClickListener {
             val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
@@ -66,10 +82,6 @@ class SettingsFragment : Fragment() {
             val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
             startActivity(intent)
         }
-        binding.buttonTime.setOnClickListener {
-            val intent = Intent(Settings.ACTION_DATE_SETTINGS)
-            startActivity(intent)
-        }
         binding.buttonWifi.setOnClickListener {
             val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
             startActivity(intent)
@@ -79,6 +91,7 @@ class SettingsFragment : Fragment() {
         }
         //to get to launcher settings you need to enter TimoTimo1 as password
         binding.buttonLauncher.setOnClickListener {
+            (requireActivity() as MainActivity).restartTimer()
             val passCodeEditText = EditText(requireContext())
             passCodeEditText.isFocusableInTouchMode = false
             passCodeEditText.isFocusable = false
@@ -94,7 +107,11 @@ class SettingsFragment : Fragment() {
                 }
             }
             val dialog = dlgAlert.create()
-            dialog.setView(passCodeEditText, 20, 0, 20,0)
+            passCodeEditText.doOnTextChanged {  _, _, _, _ ->
+                (requireActivity() as MainActivity).restartTimer()
+                true
+            }
+            dialog.setView(passCodeEditText, 20, 0, 20, 0)
             dialog.setOnShowListener {
                 passCodeEditText.isFocusableInTouchMode = true
                 passCodeEditText.isFocusable = true
@@ -106,5 +123,14 @@ class SettingsFragment : Fragment() {
         binding.buttonLogout.setOnClickListener {
             viewModel.logout(requireContext());
         }
+    }
+
+    companion object {
+        fun newInstance(userId: Long) =
+            SettingsFragment().apply {
+                arguments = Bundle().apply {
+                    putLong(ARG_USERID, userId)
+                }
+            }
     }
 }

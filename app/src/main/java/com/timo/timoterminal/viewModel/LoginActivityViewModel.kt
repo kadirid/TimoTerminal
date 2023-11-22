@@ -33,9 +33,9 @@ class LoginActivityViewModel(
             val saved: Boolean = checkIfCredsAreLocallySaved()
             if (saved) {
                 Log.d(LoginActivity.TAG, "onResume: $saved")
+                languageService.requestLanguageFromServer(viewModelScope, context)
                 if (Utils.isOnline(context)) {
                     settingsService.loadTimezone(context)
-                    languageService.requestLanguageFromServer(viewModelScope, context)
                     loginService.autoLogin(context, callback)
                 } else {
                     //If we are offline, we just check whether the credentials are stored or not

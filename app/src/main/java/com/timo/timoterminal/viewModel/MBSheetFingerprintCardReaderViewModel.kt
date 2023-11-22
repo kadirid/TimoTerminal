@@ -2,8 +2,7 @@ package com.timo.timoterminal.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.material.snackbar.BaseTransientBottomBar
-import com.google.android.material.snackbar.Snackbar
+import com.timo.timoterminal.R
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
@@ -16,10 +15,7 @@ import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.GregorianCalendar
-import java.util.Locale
 
 class MBSheetFingerprintCardReaderViewModel(
     private val userRepository: UserRepository,
@@ -61,6 +57,16 @@ class MBSheetFingerprintCardReaderViewModel(
         }
     }
 
+    private suspend fun getUserEntityByLogin(login: String): UserEntity? {
+        return withContext(ioDispatcher) {
+            val users = userRepository.getEntityByLogin(login)
+            if (users.isNotEmpty()) {
+                return@withContext users[0]
+            }
+            null
+        }
+    }
+
     fun sendBookingByCard(card: String, sheet: MBSheetFingerprintCardReader) {
         viewModelScope.launch {
             val user = getUserEntityByCard(card)
@@ -74,15 +80,19 @@ class MBSheetFingerprintCardReaderViewModel(
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
                 sheet.setStatus(-1)
             } else {
-                Snackbar.make(sheet.getBinding().root, "Verification failed", Snackbar.LENGTH_LONG)
-                    .show()
+                sheet.animateSuccess()
+                sheet.getBinding().textViewBookingMessage.text = "Verification failed"
+                val color =
+                    sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
+                if (color != null)
+                    sheet.getBinding().bookingInfoContainer.backgroundTintList = color
             }
         }
     }
 
-    fun sendBookingById(id: String, pin: String, sheet: MBSheetFingerprintCardReader) {
+    fun sendBookingById(login: String, pin: String, sheet: MBSheetFingerprintCardReader) {
         viewModelScope.launch {
-            val user = getUserEntity(id.toLong())
+            val user = getUserEntityByLogin(login)
             if (user != null && user.pin == pin) {
                 val greg = GregorianCalendar()
                 val time = Utils.getTimeFromGC(greg)
@@ -93,8 +103,12 @@ class MBSheetFingerprintCardReaderViewModel(
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
                 sheet.setStatus(-1)
             } else {
-                Snackbar.make(sheet.getBinding().root, "Verification failed", Snackbar.LENGTH_LONG)
-                    .show()
+                sheet.animateSuccess()
+                sheet.getBinding().textViewBookingMessage.text = "Verification failed"
+                val color =
+                    sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
+                if (color != null)
+                    sheet.getBinding().bookingInfoContainer.backgroundTintList = color
             }
         }
     }
@@ -106,7 +120,6 @@ class MBSheetFingerprintCardReaderViewModel(
         date: String,
         sheet: MBSheetFingerprintCardReader
     ) {
-        sheet.animateSuccess()
         val url = getURl()
         val company = getCompany()
         val terminalId = getTerminalID()
@@ -125,27 +138,23 @@ class MBSheetFingerprintCardReaderViewModel(
                     sheet.requireContext(),
                     { obj, _, _ ->
                         if (obj != null) {
-                            val bar = Snackbar.make(
-                                sheet.getBinding().root,
-                                obj.getString("message"),
-                                Snackbar.LENGTH_LONG
-                            )
-                            if (obj.getBoolean("success")) {
-                                RfidService.unregister()
-                                FingerprintService.unregister()
-
-                                bar.addCallback(object :
-                                    BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                                    override fun onDismissed(
-                                        transientBottomBar: Snackbar?,
-                                        event: Int
-                                    ) {
-                                        super.onDismissed(transientBottomBar, event)
-                                        sheet.dismiss()
-                                    }
-                                })
+                            sheet.animateSuccess()
+                            RfidService.unregister()
+                            FingerprintService.unregister()
+                            sheet.activity?.runOnUiThread {
+                                sheet.getBinding().textViewBookingMessage.text =
+                                    obj.getString("message")
+                                if (!obj.getBoolean("success")) {
+                                    val color =
+                                        sheet.activity?.resources?.getColorStateList(
+                                            R.color.error_booking,
+                                            null
+                                        )
+                                    if (color != null)
+                                        sheet.getBinding().bookingInfoContainer.backgroundTintList =
+                                            color
+                                }
                             }
-                            bar.show()
                         }
                     }
                 )

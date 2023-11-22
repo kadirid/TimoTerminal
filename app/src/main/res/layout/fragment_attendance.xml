@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    tools:padding="60dp"
+    tools:layout_marginStart="200dp"
     tools:context=".fragmentViews.AttendanceFragment">
 
     <!--
@@ -54,7 +56,7 @@
             android:id="@+id/lottie_animation_view"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:padding="0dp"
+            android:paddingStart="-45dp"
             android:scaleType="centerInside"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/time_view_container"
@@ -71,6 +73,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:gravity="center"
+            android:layout_marginTop="32dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_weight="1.5"
@@ -82,7 +85,6 @@
                 android:layout_height="match_parent"
                 android:background="@drawable/rounded_container_16dp"
                 android:gravity="center"
-                android:paddingVertical="30dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -90,21 +92,21 @@
                     style="@style/attendanceTimeViewContainer.timeViewFont"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="20:34" />
+                    tools:text="20:34" />
 
                 <TextView
                     android:id="@+id/text_view_date_time_view_container"
                     style="@style/attendanceTimeViewContainer.dateViewFont"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Montag, 12.04.2023" />
+                    tools:text="Mi., 12.04.2023" />
             </LinearLayout>
 
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.66"
@@ -116,7 +118,6 @@
             android:id="@+id/button_kommen"
             android:layout_width="115dp"
             android:layout_height="115dp"
-            android:layout_marginHorizontal="30dp"
             android:background="@drawable/square_button_background"
             app:backgroundTint="#1B6900"
             app:icon="@drawable/baseline_keyboard_tab_32"
@@ -125,14 +126,13 @@
             app:iconSize="48dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"  />
 
 
         <Button
             android:id="@+id/button_pause_anfang"
             android:layout_width="115dp"
             android:layout_height="115dp"
-            android:layout_marginHorizontal="30dp"
             android:background="@drawable/square_button_background"
             app:backgroundTint="#FF7A00"
             app:icon="@drawable/outline_coffee_32"
@@ -140,7 +140,8 @@
             app:iconPadding="0dp"
             app:iconSize="48dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/button_kommen"
+            app:layout_constraintEnd_toStartOf="@id/button_pause_ende"
             app:layout_constraintTop_toTopOf="parent" />
 
 
@@ -148,7 +149,6 @@
             android:id="@+id/button_pause_ende"
             android:layout_width="115dp"
             android:layout_height="115dp"
-            android:layout_marginHorizontal="30dp"
             android:background="@drawable/square_button_background"
             android:gravity="center"
             app:backgroundTint="#FF7A00"
@@ -157,7 +157,8 @@
             app:iconPadding="0dp"
             app:iconSize="48dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/button_pause_anfang"
+            app:layout_constraintEnd_toStartOf="@id/button_gehen"
             app:layout_constraintTop_toTopOf="parent" />
 
 
@@ -165,7 +166,6 @@
             android:id="@+id/button_gehen"
             android:layout_width="115dp"
             android:layout_height="115dp"
-            android:layout_marginHorizontal="30dp"
             android:background="@drawable/square_button_background"
             app:backgroundTint="#BA1A1A"
             app:icon="@drawable/baseline_start_32"
@@ -173,11 +173,11 @@
             app:iconPadding="0dp"
             app:iconSize="48dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:rippleColor="#fff" />
 
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

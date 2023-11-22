@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.timo.timoterminal.R
+import com.timo.timoterminal.activities.MainActivity
+import com.timo.timoterminal.databinding.FragmentProjectBinding
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -22,6 +24,8 @@ class ProjectFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
 
+    private lateinit var binding: FragmentProjectBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -34,8 +38,13 @@ class ProjectFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_project, container, false)
+        binding = FragmentProjectBinding.inflate(inflater, container, false)
+
+        binding.fragmentProjectRootLayout.setOnClickListener {
+            (requireActivity() as MainActivity).restartTimer()
+        }
+
+        return binding.root
     }
 
     companion object {
