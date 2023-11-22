@@ -247,11 +247,11 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
-            val code = dialogBinding.textInputEditTextVerificationId.text.toString()
+            val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (code.isNotEmpty()) {
+            if (login.isNotEmpty()) {
                 mainActivityViewModel.viewModelScope.launch {
-                    val user = mainActivityViewModel.getUserEntity(code.toLong())
+                    val user = mainActivityViewModel.getUserForLogin(login)
                     if (user != null && user.pin == pin) {
                         supportFragmentManager.commit {
                             replace(

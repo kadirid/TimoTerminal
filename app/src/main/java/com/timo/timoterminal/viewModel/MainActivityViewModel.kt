@@ -52,8 +52,8 @@ class MainActivityViewModel(
 
     suspend fun count() = userRepository.count()
 
-    suspend fun getUserEntity(id: Long): UserEntity? {
-        val users = userRepository.getEntity(id)
+    suspend fun getUserForLogin(login: String): UserEntity? {
+        val users = userRepository.getEntityByLogin(login)
         if (users.isNotEmpty()) {
             return users[0]
         }

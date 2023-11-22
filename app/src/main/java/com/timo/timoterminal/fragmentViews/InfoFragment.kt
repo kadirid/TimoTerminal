@@ -136,10 +136,10 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             (requireActivity() as MainActivity).restartTimer()
-            val code = dialogBinding.textInputEditTextVerificationId.text.toString()
+            val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (code.isNotEmpty()) {
-                viewModel.loadUserInfoByIdAndPin(code, pin, this)
+            if (login.isNotEmpty()) {
+                viewModel.loadUserInfoByLoginAndPin(login, pin, this)
             }
         }
 

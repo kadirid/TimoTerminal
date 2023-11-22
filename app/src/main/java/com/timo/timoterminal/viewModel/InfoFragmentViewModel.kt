@@ -54,9 +54,9 @@ class InfoFragmentViewModel(
         return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
     }
 
-    private suspend fun getUserEntity(id: Long): UserEntity? {
+    private suspend fun getUserForLogin(login: String): UserEntity? {
         return withContext(Dispatchers.IO) {
-            val users = userRepository.getEntity(id)
+            val users = userRepository.getEntityByLogin(login)
             if (users.isNotEmpty()) {
                 return@withContext users[0]
             }
@@ -83,9 +83,9 @@ class InfoFragmentViewModel(
         }
     }
 
-    fun loadUserInfoByIdAndPin(id: String, pin: String, fragment: InfoFragment) {
+    fun loadUserInfoByLoginAndPin(login: String, pin: String, fragment: InfoFragment) {
         viewModelScope.launch {
-            val user = getUserEntity(id.toLong())
+            val user = getUserForLogin(login)
             if (user != null && user.pin == pin) {
                 loadUserInformation(user, fragment)
             }
