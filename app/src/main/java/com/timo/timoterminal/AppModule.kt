@@ -89,7 +89,7 @@ var appModule = module {
     viewModel { UserSettingsFragmentViewModel(get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
-    viewModel { AttendanceFragmentViewModel(get()) }
+    viewModel { AttendanceFragmentViewModel(get(), get()) }
     viewModel { SettingsFragmentViewModel(get()) }
 
     worker(named<HeartbeatWorker>()) {

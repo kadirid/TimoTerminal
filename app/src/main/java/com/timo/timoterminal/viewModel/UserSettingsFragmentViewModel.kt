@@ -39,7 +39,7 @@ class UserSettingsFragmentViewModel(
         }
     }
 
-    fun updateUser(paramMap: HashMap<String, String>, fragment: UserSettingsFragment) {
-        userService.sendUpdateRequest(paramMap, fragment, viewModelScope)
+    fun updatePin(paramMap: HashMap<String,String>, fragment: UserSettingsFragment){
+        userService.sendUpdateRequestFragment(paramMap,fragment,viewModelScope)
     }
 }

@@ -2,10 +2,8 @@ package com.timo.timoterminal.viewModel
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.timo.timoterminal.activities.LoginActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
@@ -19,9 +17,7 @@ class LoginFragmentViewModel(
     private val settingsService: SettingsService,
     private val languageService: LanguageService,
     private val sharedPrefService: SharedPrefService
-) : ViewModel(
-
-) {
+) : ViewModel() {
 
     val languages = settingsService.getLanguagesNames()
 

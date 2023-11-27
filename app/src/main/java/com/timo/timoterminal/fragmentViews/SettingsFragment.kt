@@ -63,13 +63,13 @@ class SettingsFragment : Fragment() {
 
     private fun setupOnClickListeners() {
         binding.buttonUserSetting.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
             parentFragmentManager.commit {
                 replace(R.id.fragment_container_view, UserSettingsFragment.newInstance(userId))
             }
         }
         binding.fragmentSettingRootLayout.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
         }
         binding.buttonDevOps.setOnClickListener {
             val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
@@ -91,7 +91,7 @@ class SettingsFragment : Fragment() {
         }
         //to get to launcher settings you need to enter TimoTimo1 as password
         binding.buttonLauncher.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
             val passCodeEditText = EditText(requireContext())
             passCodeEditText.isFocusableInTouchMode = false
             passCodeEditText.isFocusable = false
@@ -108,7 +108,7 @@ class SettingsFragment : Fragment() {
             }
             val dialog = dlgAlert.create()
             passCodeEditText.doOnTextChanged {  _, _, _, _ ->
-                (requireActivity() as MainActivity).restartTimer()
+                (activity as MainActivity?)?.restartTimer()
                 true
             }
             dialog.setView(passCodeEditText, 20, 0, 20, 0)

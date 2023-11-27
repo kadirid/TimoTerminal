@@ -2,19 +2,29 @@ package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentUserSettingsBinding
 import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor
 import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor.OnItemClickListener
 import com.timo.timoterminal.entityClasses.UserEntity
+import com.timo.timoterminal.modalBottomSheets.MBUserWaitSheet
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
@@ -22,8 +32,9 @@ import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 private const val ARG_USERID = "userId"
 
@@ -33,7 +44,6 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
     private lateinit var binding: FragmentUserSettingsBinding
     private lateinit var adapter: UserEntityAdaptor
     private val languageService: LanguageService by inject()
-    private var isRegister = false
     private val paramMap = HashMap<String, String>()
     private var userId: Long = -1
 
@@ -50,8 +60,6 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
     ): View {
         binding = FragmentUserSettingsBinding.inflate(inflater, container, false)
         setUpOnClickListeners()
-        RfidService.setListener(this)
-        RfidService.register()
         userSettingsFragmentViewModel.loadUserFromServer()
         setAdapter()
         initSearchFilter()
@@ -74,7 +82,7 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
             }
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                (requireActivity() as MainActivity).restartTimer()
+                (activity as MainActivity?)?.restartTimer()
                 userSettingsFragmentViewModel.viewModelScope.launch {
                     val queriedList = userSettingsFragmentViewModel.getAllAsList().filter {
                         it.lastName.toLowerCase(Locale.current).contains(s) ||
@@ -96,9 +104,17 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
         })
     }
 
-    override fun onDetach() {
-        super.onDetach()
+    override fun onResume() {
+        super.onResume()
+
+        RfidService.setListener(this)
+        RfidService.register()
+    }
+
+    override fun onPause() {
         RfidService.unregister()
+
+        super.onPause()
     }
 
     private fun setAdapter() {
@@ -130,25 +146,62 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
     private fun setUpOnClickListeners() {
         binding.buttonUserLoad.setOnClickListener {
             userSettingsFragmentViewModel.loadUserFromServer()
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
         }
 
         binding.buttonRfid.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
-            isRegister = true
+            (activity as MainActivity?)?.restartTimer()
+            val sheet = MBUserWaitSheet.newInstance(paramMap["id"], paramMap["editor"], false)
+            sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
         }
         binding.buttonFingerprint.setOnClickListener {
-
+            (activity as MainActivity?)?.restartTimer()
+            val sheet = MBUserWaitSheet.newInstance(paramMap["id"], paramMap["editor"], true)
+            sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
         }
         binding.buttonPin.setOnClickListener {
+            (activity as MainActivity?)?.restartTimer()
 
+            val textLayout = TextInputLayout(requireContext())
+            textLayout.hint = "Pin Code"
+            textLayout.endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
+
+            val passCodeEditText = TextInputEditText(textLayout.context)
+            passCodeEditText.inputType =
+                InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            passCodeEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 40F)
+            val layoutParams = LinearLayout.LayoutParams(600,100)
+            passCodeEditText.layoutParams = layoutParams
+
+            textLayout.addView(passCodeEditText)
+
+            val dlgAlert: AlertDialog.Builder =
+                AlertDialog.Builder(requireContext(), R.style.MyDialog)
+            dlgAlert.setMessage(languageService.getText("#NewPIN"))
+            dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+            dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
+                val code = passCodeEditText.text
+                paramMap["pin"] = code.toString()
+                userSettingsFragmentViewModel.updatePin(paramMap, this)
+            }
+            val dialog = dlgAlert.create()
+            passCodeEditText.doOnTextChanged { _, _, _, _ ->
+                (activity as MainActivity?)?.restartTimer()
+                true
+            }
+            dialog.setView(textLayout, 20, 0, 20, 0)
+            dialog.setOnShowListener {
+                val textView = dialog.findViewById<TextView>(android.R.id.message)
+                textView?.textSize = 40f
+            }
+            dialog.show()
         }
 
         binding.fragmentUserSettingsRootLayout.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
         }
         binding.fragmentUserSettingsNestedScrollView.setOnScrollChangeListener { _, _, _, _, _ ->
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
         }
     }
 
@@ -158,7 +211,7 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
         width: Int,
         height: Int
     ) {
-        TODO("Not yet implemented")
+//        TODO("Not yet implemented")
     }
 
     override fun onRfidRead(rfidInfo: String) {
@@ -169,30 +222,9 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
                 oct = "0$oct"
             }
             oct = oct.reversed()
-            (requireActivity() as MainActivity).restartTimer()
-            if (isRegister) {
-                paramMap["card"] = oct
-                userSettingsFragmentViewModel.updateUser(paramMap, this)
-            } else {
-                binding.searchView.show()
-                binding.searchView.setText(oct)
-            }
-        }
-    }
-
-    fun afterUpdate(success: Boolean, message: String) {
-        if (success) {
-            paramMap.clear()
-            isRegister = false
-            requireActivity().runOnUiThread {
-                binding.buttonRfid.isEnabled = false
-                binding.buttonPin.isEnabled = false
-                binding.buttonFingerprint.isEnabled = false
-            }
-        } else {
-            requireActivity().runOnUiThread {
-                Utils.showMessage(parentFragmentManager ,message)
-            }
+            (activity as MainActivity?)?.restartTimer()
+            binding.searchView.show()
+            binding.searchView.setText(oct)
         }
     }
 

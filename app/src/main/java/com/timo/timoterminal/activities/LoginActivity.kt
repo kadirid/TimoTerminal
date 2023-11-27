@@ -2,24 +2,17 @@ package com.timo.timoterminal.activities
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
-import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityLoginBinding
 import com.timo.timoterminal.fragmentViews.LoginFragment
-import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.service.PropertyService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import mcv.facepass.BuildConfig
-import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.net.URL
 
@@ -32,7 +25,6 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private val loginActivityViewModel: LoginActivityViewModel by viewModel()
-    private val languageService: LanguageService by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +57,7 @@ class LoginActivity : AppCompatActivity() {
 
     //load permission from server and open main activity
     private fun openMainView() {
-        var goToMainActivity = Intent(this, MainActivity::class.java)
+        val goToMainActivity = Intent(this, MainActivity::class.java)
         goToMainActivity.flags =
             Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(goToMainActivity.addCategory(Intent.CATEGORY_LAUNCHER))

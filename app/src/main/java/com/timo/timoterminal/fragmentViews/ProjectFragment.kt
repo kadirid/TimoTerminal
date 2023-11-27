@@ -41,7 +41,7 @@ class ProjectFragment : Fragment() {
         binding = FragmentProjectBinding.inflate(inflater, container, false)
 
         binding.fragmentProjectRootLayout.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
         }
 
         return binding.root

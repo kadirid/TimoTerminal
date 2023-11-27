@@ -10,7 +10,6 @@ import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class LoginActivityViewModel(
@@ -32,7 +31,7 @@ class LoginActivityViewModel(
         viewModelScope.launch {
             val saved: Boolean = checkIfCredsAreLocallySaved()
             if (saved) {
-                Log.d(LoginActivity.TAG, "onResume: $saved")
+                Log.d(LoginActivity.TAG, "onResume: true")
                 languageService.requestLanguageFromServer(viewModelScope, context)
                 if (Utils.isOnline(context)) {
                     settingsService.loadTimezone(context)

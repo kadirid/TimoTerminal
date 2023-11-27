@@ -140,27 +140,8 @@
             app:iconPadding="0dp"
             app:iconSize="48dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/button_kommen"
-            app:layout_constraintEnd_toStartOf="@id/button_pause_ende"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
-
-        <Button
-            android:id="@+id/button_pause_ende"
-            android:layout_width="115dp"
-            android:layout_height="115dp"
-            android:background="@drawable/square_button_background"
-            android:gravity="center"
-            app:backgroundTint="#FF7A00"
-            app:icon="@drawable/not_coffee_32"
-            app:iconGravity="textStart"
-            app:iconPadding="0dp"
-            app:iconSize="48dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/button_pause_anfang"
-            app:layout_constraintEnd_toStartOf="@id/button_gehen"
-            app:layout_constraintTop_toTopOf="parent" />
-
 
         <Button
             android:id="@+id/button_gehen"
@@ -172,9 +153,10 @@
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="48dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/button_kommen"
+            app:layout_constraintEnd_toStartOf="@id/button_pause_anfang"
             app:rippleColor="#fff" />
 
 

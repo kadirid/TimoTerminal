@@ -31,6 +31,7 @@
             android:focusableInTouchMode="false"
             android:inputType="text"
             android:textSize="40sp"
+            android:imeOptions="actionNext"
             tools:text="Login name" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -52,6 +53,7 @@
             android:focusableInTouchMode="false"
             android:inputType="numberPassword"
             android:textSize="40sp"
+            android:imeOptions="actionDone"
             tools:text="1234" />
 
     </com.google.android.material.textfield.TextInputLayout>

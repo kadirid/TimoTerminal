@@ -1,17 +1,19 @@
 package com.timo.timoterminal.viewModel
 
 import android.annotation.SuppressLint
+import android.os.Bundle
 import android.os.CountDownTimer
-import androidx.core.view.isVisible
 import androidx.fragment.app.commit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
-import com.timo.timoterminal.databinding.FragmentInfoBinding
+import com.timo.timoterminal.activities.MainActivity
+import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.fragmentViews.InfoFragment
+import com.timo.timoterminal.modalBottomSheets.MBFragmentInfoSheet
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
@@ -31,8 +33,9 @@ class InfoFragmentViewModel(
     private val languageService: LanguageService
 ) : ViewModel() {
 
+    private lateinit var sheet: MBFragmentInfoSheet
     private lateinit var fragment: InfoFragment
-    private val timer = object : CountDownTimer(5000, 900) {
+    private val timer = object : CountDownTimer(10000, 900) {
         override fun onTick(millisUntilFinished: Long) {
             showSeconds(millisUntilFinished)
         }
@@ -79,6 +82,8 @@ class InfoFragmentViewModel(
             val user = getUserEntityByCard(card)
             if (user != null) {
                 loadUserInformation(user, fragment)
+            } else {
+                fragment.showCard(card)
             }
         }
     }
@@ -93,13 +98,8 @@ class InfoFragmentViewModel(
     }
 
     private suspend fun loadUserInformation(user: UserEntity, fragment: InfoFragment) {
-        val binding = fragment.getBinding()
         fragment.unregister()
         fragment.setVerifying(false)
-        fragment.activity?.runOnUiThread {
-            binding.linearValidationContainer.isVisible = false
-            binding.linearLoadContainer.isVisible = true
-        }
         val url = getURl()
         val company = getCompany()
         val terminalId = getTerminalID()
@@ -112,16 +112,23 @@ class InfoFragmentViewModel(
                         Pair("firma", company),
                         Pair("terminalId", terminalId.toString())
                     ),
-                    fragment.requireContext(),
+                    null,
                     { obj, _, _ ->
                         if (obj != null) {
                             if (obj.getBoolean("success")) {
                                 this@InfoFragmentViewModel.fragment = fragment
                                 fragment.activity?.runOnUiThread {
-                                    val res = JSONObject(obj.getString("message"))
-                                    setText(res, binding)
-                                    binding.linearLoadContainer.isVisible = false
-                                    binding.linearTextContainer.isVisible = true
+                                    val res = obj.getString("message")
+                                    val bundle = Bundle()
+                                    bundle.putString("res", res)
+                                    bundle.putString("card", user.card)
+                                    sheet = MBFragmentInfoSheet()
+                                    sheet.arguments = bundle
+                                    sheet.viewModel = this@InfoFragmentViewModel
+                                    sheet.show(
+                                        fragment.parentFragmentManager,
+                                        MBFragmentInfoSheet.TAG
+                                    )
                                     timer.start()
                                 }
                             } else {
@@ -140,61 +147,29 @@ class InfoFragmentViewModel(
     }
 
     private fun showSeconds(millisUntilFinished: Long) {
-        val binding = fragment.getBinding()
+        val binding = sheet.getBinding()
         fragment.activity?.runOnUiThread {
             binding.textviewSecondClose.text = (millisUntilFinished / 900).toString()
         }
     }
 
     private fun hideUserInformation() {
+        sheet.dismiss()
+        (fragment.activity as MainActivity?)?.cancelTimer()
         fragment.activity?.runOnUiThread {
             fragment.parentFragmentManager.commit {
                 replace(
                     R.id.fragment_container_view,
-                    AttendanceFragment.newInstance("", ""),
+                    AttendanceFragment(),
                     AttendanceFragment.TAG
                 )
             }
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun setText(res: JSONObject, binding: FragmentInfoBinding) {
-        var ist = res.getDouble("ist")
-        if (res.optInt("zeitTyp", 0) in listOf(1, 4, 6) && !res.optString("zeitLB", "")
-                .isNullOrBlank()
-        ) {
-            val gcDate = GregorianCalendar()
-            val greg = Utils.parseDateTime(res.getString("zeitLB"))
-            var diff = gcDate.timeInMillis - greg.timeInMillis
-            diff /= 1000
-            diff /= 60
-            ist += diff
-        }
-        binding.textviewTimeTarget.text = "${getText("#Target")}: ${res.getString("soll")}"
-        binding.textviewTimeActual.text = "${getText("ALLGEMEIN#Ist")}: ${Utils.convertTime(ist)}"
-        binding.textviewTimeStartOfWork.text =
-            "${getText("#CheckIn")}: ${res.getString("kommen")}"
-        binding.textviewTimeBreakTotal.text =
-            "${getText("ALLGEMEIN#Pause")}: ${res.getString("pause")}"
-        binding.textviewTimeEndOfWork.text =
-            "${getText("#CheckOut")}: ${res.getString("gehen")}"
-        binding.textviewTimeOvertime.text =
-            "${getText("PDFSOLLIST#spalteGzGleitzeit")}: ${res.getString("overtime")}"
-        binding.textviewVacationEntitlement.text =
-            "${getText("ALLGEMEIN#Anspruch")}: ${res.getString("vacation")}"
-        binding.textviewVacationTaken.text =
-            "${getText("ALLGEMEIN#Genommen")}: ${res.getString("gVacation")}"
-        binding.textviewVacationRequested.text =
-            "${getText("ALLGEMEIN#Beantragt")}: ${res.getString("bVacation")}"
-        binding.textviewVacationRemaining.text =
-            "${getText("#Remaining")}: ${res.getString("rVacation")}"
-    }
-
     fun restartTimer() {
         timer.cancel()
         timer.start()
+        (fragment.activity as MainActivity?)?.restartTimer()
     }
-
-    private fun getText(key: String) = languageService.getText(key)
 }

@@ -214,6 +214,25 @@ class Utils {
             return sign + (if (hrs < 10) "0$hrs" else "$hrs") + ":" + (if (min < 10) "0$min" else "$min")
         }
 
+        fun getOffset(offsetInMilliSec : Int) :String{
+            val sec = offsetInMilliSec / 1000
+            val min = sec / 60
+            var minOff = min % 60
+            var hrs = (min - minOff) / 60
+
+            var sign = "+"
+            if (hrs < 0) {
+                hrs *= -1
+                sign = "-"
+            }
+            if (minOff < 0) {
+                minOff *= -1
+                sign = "-"
+            }
+
+            return sign + (if (hrs < 10) "0$hrs" else "$hrs") + ":" + (if (minOff < 10) "0$minOff" else "$minOff")
+        }
+
         fun showMessage(fragMan: FragmentManager, message: String): MBMessageSheet {
             val sheet = MBMessageSheet()
             val bundle = Bundle()

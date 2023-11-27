@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Dialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.LayoutInflater
@@ -35,8 +36,9 @@ import org.koin.android.ext.android.inject
 import java.util.GregorianCalendar
 
 
-class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
-    FingerprintListener {
+class MBSheetFingerprintCardReader(
+    private val callback: () -> Unit?
+) : BottomSheetDialogFragment(), RfidListener, FingerprintListener {
     private val userRepository: UserRepository by inject()
     private val sharedPrefService: SharedPrefService by inject()
     private val httpService: HttpService by inject()
@@ -48,6 +50,7 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
 
     //    lateinit var textView: TextView
     private var status: Int = -1
+    private var ranCancel: Boolean = false
     private val timer = object : CountDownTimer(10000, 5000) {
         override fun onTick(millisUntilFinished: Long) {
         }
@@ -93,16 +96,21 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         binding.identificationText.text = languageService.getText("#WaitIdentification")
     }
 
-    private fun setUpOnClickListeners() {
-        binding.fingerprintImage.setOnClickListener {
-            binding.timeTextContainer.text = Utils.getTimeFromGC(GregorianCalendar())
-            animateSuccess()
-        }
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
 
-        //for test cases, has to be removed later
-        binding.cardImage.setOnClickListener {
-            viewModel.sendBookingByCard("505650110", this)
-        }
+        ranCancel = true
+        RfidService.unregister()
+        FingerprintService.unregister()
+        callback()
+    }
+
+    private fun setUpOnClickListeners() {
+        // Can it be removed?
+//        binding.fingerprintImage.setOnClickListener {
+//            binding.timeTextContainer.text = Utils.getTimeFromGC(GregorianCalendar())
+//            animateSuccess()
+//        }
 
         binding.keyboardImage.setOnClickListener {
             showVerificationAlert()
@@ -131,8 +139,11 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
 
     // remove listener on pause
     override fun onPause() {
-        RfidService.unregister()
-        FingerprintService.unregister()
+        if(!ranCancel) {
+            RfidService.unregister()
+            FingerprintService.unregister()
+            ranCancel = false
+        }
         timer.cancel()
 
         super.onPause()
@@ -247,8 +258,8 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         width: Int,
         height: Int
     ) {
-        timer.cancel()
-        TODO("Not yet implemented")
+//        timer.cancel()
+//        TODO("Not yet implemented")
     }
 
     private fun showVerificationAlert() {
@@ -267,7 +278,7 @@ class MBSheetFingerprintCardReader : BottomSheetDialogFragment(), RfidListener,
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
 
         val dialog = dlgAlert.create()
-        val alertTimer = object : CountDownTimer(5000, 500) {
+        val alertTimer = object : CountDownTimer(10000, 500) {
             override fun onTick(millisUntilFinished: Long) {}
 
             override fun onFinish() {

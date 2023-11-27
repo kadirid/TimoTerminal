@@ -20,8 +20,10 @@ import com.timo.timoterminal.service.PropertyService
 import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.CodesArrayAdapter
+import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import org.koin.android.ext.android.inject
+import java.util.Date
 import java.util.TimeZone
 
 
@@ -90,9 +92,15 @@ class LoginFragment : Fragment() {
 
     private fun initTimezoneDropdown() {
         val ids = TimeZone.getAvailableIDs().toMutableList()
-        val adapter =
-            CodesArrayAdapter(requireContext(), R.layout.dropdown, ids)
+        val timeZones = mutableListOf<CodesArrayAdapter.TimeZoneListEntry>()
+        for (id in ids){
+            val timeZone = TimeZone.getTimeZone(id)
+            val offset = Utils.getOffset(timeZone.getOffset(Date().time))
+            timeZones.add(CodesArrayAdapter.TimeZoneListEntry(id, timeZone.displayName, offset))
+        }
+        val adapter = CodesArrayAdapter(requireContext(), R.layout.double_dropdown, timeZones)
         binding.dropdownMenuTimezone.setAdapter(adapter)
+        binding.dropdownMenuTimezone.setText(TimeZone.getDefault().id.trim())
     }
 
     private fun showLogin() {

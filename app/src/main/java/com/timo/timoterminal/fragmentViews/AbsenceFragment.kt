@@ -40,7 +40,7 @@ class AbsenceFragment : Fragment() {
         binding = FragmentAbsenceBinding.inflate(inflater, container, false)
 
         binding.fragmentAbsenceRootLayout.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
         }
 
         return binding.root

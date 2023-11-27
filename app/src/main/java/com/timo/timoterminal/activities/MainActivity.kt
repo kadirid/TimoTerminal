@@ -25,6 +25,7 @@ import com.timo.timoterminal.enums.NetworkType
 import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     private val mainActivityViewModel: MainActivityViewModel by viewModel()
     private val languageService: LanguageService by inject()
+    private val userService: UserService by inject()
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var batteryReceiver: BatteryReceiver
@@ -59,7 +61,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             supportFragmentManager.commit {
                 replace(
                     R.id.fragment_container_view,
-                    AttendanceFragment.newInstance("", ""),
+                    AttendanceFragment(),
                     AttendanceFragment.TAG
                 )
             }
@@ -82,6 +84,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
         if (isNewTerminal) {
             showDialog()
+            userService.loadUserFromServer(mainActivityViewModel.viewModelScope)
         }
 
         setContentView(binding.root)
@@ -183,7 +186,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
             it.isChecked = false
             val fragment: Fragment? = when (it.itemId) {
-                R.id.attendance -> AttendanceFragment.newInstance("", "")
+                R.id.attendance -> AttendanceFragment()
                 R.id.absence -> AbsenceFragment.newInstance("", "")
                 R.id.project -> ProjectFragment.newInstance("", "")
                 R.id.info -> InfoFragment()
@@ -214,7 +217,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             supportFragmentManager.commit {
                 replace(
                     R.id.fragment_container_view,
-                    AttendanceFragment.newInstance("", ""),
+                    AttendanceFragment(),
                     AttendanceFragment.TAG
                 )
             }
@@ -268,7 +271,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
 
         dialog = dlgAlert.create()
-        val alertTimer = object : CountDownTimer(5000, 500) {
+        val alertTimer = object : CountDownTimer(10000, 500) {
             override fun onTick(millisUntilFinished: Long) {}
 
             override fun onFinish() {
@@ -279,12 +282,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
-            true
         }
         dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
-            true
         }
         dialogBinding.textViewDialogVerificationMessage.text =
             languageService.getText("#FingerprintCardCredentials")
@@ -348,7 +349,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         width: Int,
         height: Int
     ) {
-        TODO("Not yet implemented")
+//        TODO("Not yet implemented")
     }
 
     override fun onRfidRead(rfidInfo: String) {
@@ -376,5 +377,9 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         } else {
             Utils.showMessage(supportFragmentManager, "Verification failed")
         }
+    }
+
+    fun cancelTimer(){
+        timer.cancel()
     }
 }

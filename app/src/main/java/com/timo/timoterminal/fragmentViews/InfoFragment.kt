@@ -13,10 +13,12 @@ import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.FragmentInfoBinding
+import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
@@ -30,6 +32,7 @@ import org.koin.android.ext.android.inject
 class InfoFragment : Fragment(), RfidListener, FingerprintListener {
 
     private lateinit var binding: FragmentInfoBinding
+    private lateinit var itemBinding: FragmentInfoMessageSheetItemBinding
     private var verifying = true
     private val userRepository: UserRepository by inject()
     private val sharedPrefService: SharedPrefService by inject()
@@ -43,6 +46,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentInfoBinding.inflate(inflater, container, false)
+        itemBinding = FragmentInfoMessageSheetItemBinding.inflate(inflater, container, false)
 
         setUpOnClickListeners()
         setText()
@@ -51,8 +55,6 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     }
 
     private fun setText() {
-        binding.textViewCurrentDay.text = languageService.getText("ALLGEMEIN#Aktueller Tag")
-        binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
         binding.cardImage.contentDescription = languageService.getText("#RFID")
         binding.keyboardImage.contentDescription = languageService.getText("#RFID")
     }
@@ -65,7 +67,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         }
     }
 
-    fun register() {
+    private fun register() {
         RfidService.setListener(this)
         RfidService.register()
         FingerprintService.setListener(this)
@@ -84,23 +86,19 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     }
 
     private fun setUpOnClickListeners() {
-        //for test cases, can be removed later
-        binding.cardImage.setOnClickListener {
-            viewModel.loadUserInfoByCard("505650110", this)
-        }
 
         binding.keyboardImage.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
             showVerificationAlert()
         }
 
-        binding.linearTextContainer.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+        itemBinding.linearTextContainer.setOnClickListener {
+            (activity as MainActivity?)?.restartTimer()
             viewModel.restartTimer()
         }
 
         binding.fragmentInfoRootLayout.setOnClickListener {
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
         }
     }
 
@@ -135,7 +133,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (login.isNotEmpty()) {
@@ -144,11 +142,11 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         }
 
         val dialog = dlgAlert.create()
-        val alertTimer = object : CountDownTimer(5000, 500) {
+        val alertTimer = object : CountDownTimer(10000, 500) {
             override fun onTick(millisUntilFinished: Long) {}
 
             override fun onFinish() {
-                dialog!!.dismiss()
+                dialog.dismiss()
             }
         }
 
@@ -157,13 +155,13 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
             true
         }
         dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
-            (requireActivity() as MainActivity).restartTimer()
+            (activity as MainActivity?)?.restartTimer()
             true
         }
         dialog.setOnShowListener {
@@ -185,5 +183,13 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
 
     fun getBinding(): FragmentInfoBinding {
         return binding
+    }
+
+    fun getItemBinding(): FragmentInfoMessageSheetItemBinding {
+        return itemBinding
+    }
+
+    fun showCard(card: String) {
+        Utils.showMessage(parentFragmentManager, "RFID: $card")
     }
 }

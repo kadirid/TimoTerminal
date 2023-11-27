@@ -3,7 +3,9 @@ package com.timo.timoterminal.service
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.fragmentViews.UserSettingsFragment
+import com.timo.timoterminal.modalBottomSheets.MBUserWaitSheet
 import com.timo.timoterminal.repositories.UserRepository
+import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,9 +61,9 @@ class UserService(
         }
     }
 
-    fun sendUpdateRequest(
+    fun sendUpdateRequestSheet(
         paramMap: HashMap<String, String>,
-        fragment: UserSettingsFragment,
+        sheet: MBUserWaitSheet,
         scope: CoroutineScope
     ) {
         scope.launch {
@@ -76,7 +78,7 @@ class UserService(
                 withContext(Dispatchers.IO) {
                     httpService.post("${url}services/rest/zktecoTerminal/updateUserCard",
                         paramMap,
-                        fragment.requireContext(),
+                        null,
                         { obj, _, _ ->
                             if (obj != null) {
                                 if (obj.getBoolean("success")) {
@@ -86,10 +88,51 @@ class UserService(
                                         userRepository.insertOne(userEntity)
                                     }
                                 }
-                                fragment.afterUpdate(
+                                sheet.afterUpdate(
                                     obj.getBoolean("success"),
                                     obj.optString("message", "")
                                 )
+                            }
+                            null
+                        })
+                }
+            }
+        }
+    }
+
+    fun sendUpdateRequestFragment(
+        paramMap: HashMap<String, String>,
+        fragment: UserSettingsFragment,
+        scope: CoroutineScope
+    ) {
+        scope.launch {
+            val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+            val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
+            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
+            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
+            if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
+                paramMap["company"] = company
+                paramMap["token"] = token
+                paramMap["terminalId"] = terminalId.toString()
+                withContext(Dispatchers.IO) {
+                    httpService.post("${url}services/rest/zktecoTerminal/updateUserPIN",
+                        paramMap,
+                        null,
+                        { obj, _, _ ->
+                            if (obj != null) {
+                                if (obj.getBoolean("success")) {
+                                    val userEntity: UserEntity =
+                                        UserEntity.parseJsonToUserEntity(obj)
+                                    scope.launch(Dispatchers.IO) {
+                                        userRepository.insertOne(userEntity)
+                                    }
+                                }
+                                fragment.activity?.runOnUiThread {
+                                    Utils.showMessage(
+                                        fragment.parentFragmentManager,
+                                        obj.optString("message", "")
+                                    )
+                                }
                             }
                             null
                         })
