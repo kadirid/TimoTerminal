@@ -35,7 +35,7 @@ class InfoFragmentViewModel(
 
     private lateinit var sheet: MBFragmentInfoSheet
     private lateinit var fragment: InfoFragment
-    private val timer = object : CountDownTimer(10000, 900) {
+    private val timer = object : CountDownTimer(10000, 950) {
         override fun onTick(millisUntilFinished: Long) {
             showSeconds(millisUntilFinished)
         }
@@ -55,6 +55,10 @@ class InfoFragmentViewModel(
 
     private fun getTerminalID(): Int {
         return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+    }
+
+    private fun getToken(): String {
+        return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
     }
 
     private suspend fun getUserForLogin(login: String): UserEntity? {
@@ -103,14 +107,16 @@ class InfoFragmentViewModel(
         val url = getURl()
         val company = getCompany()
         val terminalId = getTerminalID()
-        if (!company.isNullOrEmpty() && terminalId > 0) {
+        val token = getToken()
+        if (!company.isNullOrEmpty() && terminalId > 0 && !token.isNullOrEmpty()) {
             withContext(Dispatchers.IO) {
                 httpService.get(
                     "${url}services/rest/zktecoTerminal/info",
                     mapOf(
                         Pair("card", user.card),
                         Pair("firma", company),
-                        Pair("terminalId", terminalId.toString())
+                        Pair("terminalId", terminalId.toString()),
+                        Pair("token", token)
                     ),
                     null,
                     { obj, _, _ ->

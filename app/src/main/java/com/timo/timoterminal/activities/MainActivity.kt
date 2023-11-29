@@ -243,6 +243,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     // verify user if present before opening settings page
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
+        RfidService.unregister()
         RfidService.setListener(this)
         RfidService.register()
 
