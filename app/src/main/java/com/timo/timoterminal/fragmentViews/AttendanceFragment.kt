@@ -1,5 +1,9 @@
 package com.timo.timoterminal.fragmentViews
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
@@ -32,6 +36,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     private val sharedPrefService: SharedPrefService by inject()
     private val userRepository: UserRepository by inject()
+    private var _broadcastReceiver: BroadcastReceiver? = null
     private var lastClick: Long = 0
     private lateinit var binding: FragmentAttendanceBinding
     private val httpService: HttpService = HttpService()
@@ -58,6 +63,25 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         val gc = GregorianCalendar()
         binding.textViewDateTimeViewContainer.text = Utils.getDateWithNameFromGC(gc)
         binding.textViewTimeTimeViewContainer.text = Utils.getTimeFromGC(gc)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        _broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent) {
+                if (intent.action!!.compareTo(Intent.ACTION_TIME_TICK) == 0){
+                    val gc = GregorianCalendar()
+                    binding.textViewDateTimeViewContainer.text = Utils.getDateWithNameFromGC(gc)
+                    binding.textViewTimeTimeViewContainer.text = Utils.getTimeFromGC(gc)
+                }
+            }
+        }
+        requireContext().registerReceiver(_broadcastReceiver, IntentFilter(Intent.ACTION_TIME_TICK))
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (_broadcastReceiver != null) requireContext().unregisterReceiver(_broadcastReceiver)
     }
 
     override fun onResume() {

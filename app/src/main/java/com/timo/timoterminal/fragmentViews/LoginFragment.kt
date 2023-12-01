@@ -100,7 +100,7 @@ class LoginFragment : Fragment() {
         }
         val adapter = CodesArrayAdapter(requireContext(), R.layout.double_dropdown, timeZones)
         binding.dropdownMenuTimezone.setAdapter(adapter)
-        binding.dropdownMenuTimezone.setText(TimeZone.getDefault().id.trim())
+        binding.dropdownMenuTimezone.setText("Europe/Berlin")
     }
 
     private fun showLogin() {

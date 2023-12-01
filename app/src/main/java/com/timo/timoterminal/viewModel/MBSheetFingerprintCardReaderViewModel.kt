@@ -37,6 +37,10 @@ class MBSheetFingerprintCardReaderViewModel(
         return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
     }
 
+    private fun getToken(): String {
+        return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
+    }
+
     private suspend fun getUserEntity(id: Long): UserEntity? {
         return withContext(ioDispatcher) {
             val users = userRepository.getEntity(id)
@@ -123,7 +127,8 @@ class MBSheetFingerprintCardReaderViewModel(
         val url = getURl()
         val company = getCompany()
         val terminalId = getTerminalID()
-        if (!company.isNullOrEmpty() && terminalId > 0 && sheet.getStatus() > 0) {
+        val token = getToken()
+        if (!company.isNullOrEmpty() && terminalId > 0 && sheet.getStatus() > 0 && !token.isNullOrEmpty()) {
             withContext(ioDispatcher) {
                 httpService.post(
                     "${url}services/rest/zktecoTerminal/booking",
@@ -133,7 +138,8 @@ class MBSheetFingerprintCardReaderViewModel(
                         Pair("date", date),
                         Pair("funcCode", "${sheet.getStatus()}"),
                         Pair("inputCode", "$inputCode"),
-                        Pair("terminalId", terminalId.toString())
+                        Pair("terminalId", terminalId.toString()),
+                        Pair("token", token)
                     ),
                     sheet.requireContext(),
                     { obj, _, _ ->

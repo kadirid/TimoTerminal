@@ -1,19 +1,20 @@
 package com.timo.timoterminal.service
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
+import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.timo.timoterminal.R
+import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.serviceUtils.ProgressListener
 import com.timo.timoterminal.service.serviceUtils.ProgressResponseBody
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.ResponseToJSON
-import com.timo.timoterminal.worker.HeartbeatWorker
 import mcv.facepass.BuildConfig
 import okhttp3.Call
 import okhttp3.Callback
@@ -28,16 +29,36 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.IOException
+import java.util.GregorianCalendar
 import java.util.concurrent.TimeUnit
 
 
 class HttpService() : KoinComponent {
 
+    private val sharedPrefService : SharedPrefService by inject()
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
+
+    private fun getCompany(): String? {
+        return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
+    }
+
+    private fun getURl(): String? {
+        return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+    }
+
+    private fun getTerminalID(): Int {
+        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+    }
+
+    private fun getToken(): String {
+        return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
+    }
+
 
     companion object {
         var mediaType = "application/json; charset=utf-8".toMediaType()
@@ -74,7 +95,12 @@ class HttpService() : KoinComponent {
             return formBodyBuilder.build()
         }
 
-        fun handleGenericRequestError(e: Exception?, response: Response?, context: Context?, output : ResponseToJSON?) {
+        fun handleGenericRequestError(
+            e: Exception?,
+            response: Response?,
+            context: Context?,
+            output: ResponseToJSON?
+        ) {
             //If the context is null, we cannot show a dialogue
             if (context != null && response != null) {
                 Handler(Looper.getMainLooper()).post {
@@ -82,7 +108,8 @@ class HttpService() : KoinComponent {
                     dialog.setTitle(context.getString(R.string.error))
                     dialog.setIcon(context.getDrawable(R.drawable.baseline_error_24))
                     //If you are running the app on debug mode, the url will appear next to the error message
-                    val debugAttachString = if (BuildConfig.DEBUG) "\n${response.request.url}" else ""
+                    val debugAttachString =
+                        if (BuildConfig.DEBUG) "\n${response.request.url}" else ""
                     if (output != null) {
                         if (output.obj != null) {
                             val message = output.obj.getString("message")
@@ -90,16 +117,16 @@ class HttpService() : KoinComponent {
                         } else if (output.array != null) {
                             dialog.setMessage(output.array.toString())
                         } else {
-                            dialog.setMessage("${response.code}: ${output.string}" +  debugAttachString)
+                            dialog.setMessage("${response.code}: ${output.string}" + debugAttachString)
                         }
                     } else {
                         if (e != null) {
                             dialog.setMessage(e.message)
                         } else {
-                            dialog.setMessage(context.getString(R.string.unknown_error)+ debugAttachString)
+                            dialog.setMessage(context.getString(R.string.unknown_error) + debugAttachString)
                         }
                     }
-                    dialog.setPositiveButton("OK") {dia, _ ->
+                    dialog.setPositiveButton("OK") { dia, _ ->
                         dia.dismiss()
                     }
                     dialog.show()
@@ -108,14 +135,57 @@ class HttpService() : KoinComponent {
         }
     }
 
-    fun initHearbeatWorker(application: Application, lifecycleOwner: LifecycleOwner) {
+    fun initHeartbeatWorker(application: Application, lifecycleOwner: LifecycleOwner) {
         val workerService: WorkerService = WorkerService.getInstance(application)
         //Alle 15 Minuten wird jetzt der Code ausgeführt, der da definiert ist
-        workerService.addPeriodicRequest(HeartbeatWorker::class.java, 15, TimeUnit.MINUTES, {} ,lifecycleOwner = lifecycleOwner)
+//        workerService.addPeriodicRequest(
+//            HeartbeatWorker::class.java,
+//            15L,
+//            TimeUnit.MINUTES,
+//            {},
+//            lifecycleOwner = lifecycleOwner
+//        )
 
+        val handlerThread = HandlerThread("backgroundThread")
+        if (!handlerThread.isAlive) handlerThread.start()
+        val handler = Handler(handlerThread.looper)
+        var runnable : Runnable? = null
+
+        runnable = Runnable {
+            handler.postDelayed(runnable!!, 30000L)
+            val url = getURl()
+            val company = getCompany()
+            val terminalId = getTerminalID()
+            val token = getToken()
+            val date = Utils.getDateTimeFromGC(GregorianCalendar())
+            if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
+                post(
+                    "${url}services/rest/zktecoTerminal/heartbeat",
+                    mapOf(
+                        Pair("firma", company),
+                        Pair("date", date),
+                        Pair("terminalId", terminalId.toString()),
+                        Pair("token", token)
+                    ),
+                    null,
+                    { obj, arr, msg ->
+                        if (obj != null) {
+                            Log.d("WORKER", "doWork: HI Handler OBJ")
+                        }
+                        if (arr != null) {
+                            Log.d("WORKER", "doWork: HI Handler ARR")
+                        }
+                        if (msg != null) {
+                            Log.d("WORKER", "doWork: HI Handler MSG")
+                        }
+                    }
+                )
+            }
+        }
+        handler.postDelayed(runnable, 30000L)
     }
 
-    fun killHeartBeatWorkers(application : Application){
+    fun killHeartBeatWorkers(application: Application) {
         println("killklkhljkklkljukjh")
         val workerService: WorkerService = WorkerService.getInstance(application)
         workerService.killAllWorkers()
@@ -125,8 +195,15 @@ class HttpService() : KoinComponent {
         url: String,
         parameters: Map<String, String>?,
         context: Context?,
-        successCallback: (objResponse: JSONObject?, arrResponse : JSONArray?, strResponse : String?) -> Unit?,
-        errorCallback:  ((e: Exception?, response: Response?, context: Context?, output : ResponseToJSON?) -> Unit?) = { e, res, context, output -> handleGenericRequestError(e, res, context, output) }
+        successCallback: (objResponse: JSONObject?, arrResponse: JSONArray?, strResponse: String?) -> Unit?,
+        errorCallback: ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit?) = { e, res, context, output ->
+            handleGenericRequestError(
+                e,
+                res,
+                context,
+                output
+            )
+        }
     ) {
         val route = appendParametersToUrl(url, parameters)
         val request = Request.Builder().url(route).build()
@@ -134,10 +211,10 @@ class HttpService() : KoinComponent {
             override fun onResponse(call: Call, response: Response) {
                 var responseString = response.body!!.string()
 
-                if(responseString.isNullOrEmpty()) {
+                if (responseString.isEmpty()) {
                     responseString = response.message
                 }
-                val output : ResponseToJSON = Utils.parseResponseToJSON(responseString)
+                val output: ResponseToJSON = Utils.parseResponseToJSON(responseString)
 
                 if (response.isSuccessful || response.code == 200) {
                     successCallback(output.obj, output.array, output.string)
@@ -158,8 +235,15 @@ class HttpService() : KoinComponent {
         url: String,
         parameters: Map<String, String>,
         context: Context?,
-        successCallback: (objResponse: JSONObject?, arrResponse : JSONArray?, strResponse : String?) -> Unit?,
-        errorCallback:  ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit) = { e, response, context, output -> handleGenericRequestError(e, response, context, output) }
+        successCallback: (objResponse: JSONObject?, arrResponse: JSONArray?, strResponse: String?) -> Unit?,
+        errorCallback: ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit) = { e, response, context, output ->
+            handleGenericRequestError(
+                e,
+                response,
+                context,
+                output
+            )
+        }
     ) {
         val formBody: RequestBody = createRequestBody(parameters)
         val request = Request.Builder()
@@ -170,14 +254,14 @@ class HttpService() : KoinComponent {
             override fun onResponse(call: Call, response: Response) {
                 var responseString = response.body!!.string()
 
-                if(responseString.isNullOrEmpty()) {
+                if (responseString.isEmpty()) {
                     responseString = response.message
                 }
-                val output : ResponseToJSON = Utils.parseResponseToJSON(responseString)
+                val output: ResponseToJSON = Utils.parseResponseToJSON(responseString)
                 if (response.code == 200 || response.isSuccessful) {
                     successCallback(output.obj, output.array, output.string)
                 } else {
-                    errorCallback(null,response, context, output)
+                    errorCallback(null, response, context, output)
                 }
             }
 

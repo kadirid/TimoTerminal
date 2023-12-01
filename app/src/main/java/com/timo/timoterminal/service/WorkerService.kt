@@ -3,6 +3,7 @@ package com.timo.timoterminal.service
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ListenableWorker
 import androidx.work.OneTimeWorkRequest
 import androidx.work.PeriodicWorkRequest
@@ -14,7 +15,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class WorkerService(application: Application) {
-    private val workManager : WorkManager = WorkManager.getInstance(application.applicationContext)
+    private val workManager: WorkManager = WorkManager.getInstance(application.applicationContext)
     private val requests: HashMap<UUID, WorkRequest> = HashMap()
 
     companion object {
@@ -45,12 +46,17 @@ class WorkerService(application: Application) {
         observeCallback: (workInfo: WorkInfo) -> Unit,
         lifecycleOwner: LifecycleOwner
     ): UUID {
-        val workerRequest: WorkRequest =
+        val workerRequest: PeriodicWorkRequest =
             PeriodicWorkRequest.Builder(workerClass, repeatInterval, timeUnit).build()
         Log.d("WORKER MANAGER", "addPeriodicTimeRequest: added ${workerRequest.id} to hashmap")
-        workManager.enqueue(workerRequest)
+        workManager.enqueueUniquePeriodicWork(
+            "heartBeatWorker",
+            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+            workerRequest
+        )
         requests[workerRequest.id] = workerRequest
-        workManager.getWorkInfoByIdLiveData(workerRequest.id).observe(lifecycleOwner, observeCallback)
+        workManager.getWorkInfoByIdLiveData(workerRequest.id)
+            .observe(lifecycleOwner, observeCallback)
 
         return workerRequest.id
     }
@@ -82,7 +88,7 @@ class WorkerService(application: Application) {
         return workerRequest.id
     }
 
-    fun killAllWorkers(){
+    fun killAllWorkers() {
         requests.clear()
         workManager.cancelAllWork()
     }
