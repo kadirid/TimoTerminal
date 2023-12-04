@@ -25,8 +25,8 @@ class MainActivityViewModel(
     val demoEntities: Flow<List<DemoEntity>> = demoRepository.getAllEntities
     val userEntities: Flow<List<UserEntity>> = userRepository.getAllEntities
 
-    fun initHeartbeatService(application: Application, lifecycleOwner: LifecycleOwner) {
-        httpService.initHeartbeatWorker(application, lifecycleOwner)
+    fun initHeartbeatService(application: Application, activity: MainActivity) {
+        httpService.initHeartbeatWorker(application, activity)
     }
 
     fun killHeartBeatWorkers(application: Application) {

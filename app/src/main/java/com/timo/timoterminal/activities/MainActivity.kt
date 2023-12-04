@@ -383,4 +383,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     fun cancelTimer(){
         timer.cancel()
     }
+
+    fun getViewModel(): MainActivityViewModel {
+        return mainActivityViewModel
+    }
 }

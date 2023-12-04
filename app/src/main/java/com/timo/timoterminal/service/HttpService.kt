@@ -7,9 +7,10 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
-import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.viewModelScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.timo.timoterminal.R
+import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.serviceUtils.ProgressListener
 import com.timo.timoterminal.service.serviceUtils.ProgressResponseBody
@@ -37,7 +38,11 @@ import java.util.concurrent.TimeUnit
 
 class HttpService() : KoinComponent {
 
-    private val sharedPrefService : SharedPrefService by inject()
+    private val sharedPrefService: SharedPrefService by inject()
+    private val settingsService: SettingsService by inject()
+    private val userService: UserService by inject()
+    private val languageService: LanguageService by inject()
+    private val loginService: LoginService by inject()
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
@@ -135,7 +140,7 @@ class HttpService() : KoinComponent {
         }
     }
 
-    fun initHeartbeatWorker(application: Application, lifecycleOwner: LifecycleOwner) {
+    fun initHeartbeatWorker(application: Application, activity: MainActivity) {
         val workerService: WorkerService = WorkerService.getInstance(application)
         //Alle 15 Minuten wird jetzt der Code ausgeführt, der da definiert ist
 //        workerService.addPeriodicRequest(
@@ -149,7 +154,7 @@ class HttpService() : KoinComponent {
         val handlerThread = HandlerThread("backgroundThread")
         if (!handlerThread.isAlive) handlerThread.start()
         val handler = Handler(handlerThread.looper)
-        var runnable : Runnable? = null
+        var runnable: Runnable? = null
 
         runnable = Runnable {
             handler.postDelayed(runnable!!, 30000L)
@@ -170,6 +175,7 @@ class HttpService() : KoinComponent {
                     null,
                     { obj, arr, msg ->
                         if (obj != null) {
+                            handelHeartBeatResponse(obj, activity)
                             Log.d("WORKER", "doWork: HI Handler OBJ")
                         }
                         if (arr != null) {
@@ -302,5 +308,27 @@ class HttpService() : KoinComponent {
             override fun onFailure(call: Call, e: IOException) {
             }
         })
+    }
+
+    private fun handelHeartBeatResponse(obj: JSONObject, activity: MainActivity) {
+        val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
+        if (obj.has("timezone") && !timezone.equals(obj.getString("timezone"))) {
+            settingsService.setTimeZone(activity, obj.getString("timezone")) {}
+        }
+        if (obj.has("loadUsers") && obj.getBoolean("loadUsers")) {
+            userService.loadUserFromServer(activity.getViewModel().viewModelScope)
+        }
+        if (obj.has("loadPermissions") && obj.getBoolean("loadPermissions")) {
+            loginService.loadPermissions(
+                activity.getViewModel().viewModelScope,
+                activity
+            ) { _, -> }
+        }
+        if (obj.has("loadLanguage") && obj.getBoolean("loadLanguage")) {
+            languageService.requestLanguageFromServer(
+                activity.getViewModel().viewModelScope,
+                activity
+            )
+        }
     }
 }
