@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
-import androidx.core.widget.addTextChangedListener
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -62,34 +61,42 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupOnClickListeners() {
+        binding.fragmentSettingRootLayout.setOnClickListener {
+            (activity as MainActivity?)?.restartTimer()
+        }
         binding.buttonUserSetting.setOnClickListener {
             (activity as MainActivity?)?.restartTimer()
             parentFragmentManager.commit {
                 replace(R.id.fragment_container_view, UserSettingsFragment.newInstance(userId))
             }
         }
-        binding.fragmentSettingRootLayout.setOnClickListener {
-            (activity as MainActivity?)?.restartTimer()
+        binding.buttonReboot.setOnClickListener {
+            requireActivity().sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
         }
-        binding.buttonDevOps.setOnClickListener {
-            val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
-            startActivity(intent)
+        binding.buttonLogout.setOnClickListener {
+            viewModel.logout(requireContext())
         }
-        binding.buttonEthernet.setOnClickListener {
-            hardwareSource.openAndroidEthernetSettings()
-        }
-        binding.buttonMobileNetwork.setOnClickListener {
-            val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
-            startActivity(intent)
-        }
+        binding.buttonWifi.visibility = if(userId<0) View.VISIBLE else View.GONE
         binding.buttonWifi.setOnClickListener {
             val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
             startActivity(intent)
         }
-        binding.buttonReboot.setOnClickListener {
-            requireActivity().sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
+        binding.buttonMobileNetwork.visibility = if(userId<0) View.VISIBLE else View.GONE
+        binding.buttonMobileNetwork.setOnClickListener {
+            val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
+            startActivity(intent)
+        }
+        binding.buttonEthernet.visibility = if(userId<0) View.VISIBLE else View.GONE
+        binding.buttonEthernet.setOnClickListener {
+            hardwareSource.openAndroidEthernetSettings()
+        }
+        binding.buttonDevOps.visibility = if(userId==-2L) View.VISIBLE else View.GONE
+        binding.buttonDevOps.setOnClickListener {
+            val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+            startActivity(intent)
         }
         //to get to launcher settings you need to enter TimoTimo1 as password
+        binding.buttonLauncher.visibility = if(userId==-2L) View.VISIBLE else View.GONE
         binding.buttonLauncher.setOnClickListener {
             (activity as MainActivity?)?.restartTimer()
             val passCodeEditText = EditText(requireContext())
@@ -109,7 +116,6 @@ class SettingsFragment : Fragment() {
             val dialog = dlgAlert.create()
             passCodeEditText.doOnTextChanged {  _, _, _, _ ->
                 (activity as MainActivity?)?.restartTimer()
-                true
             }
             dialog.setView(passCodeEditText, 20, 0, 20, 0)
             dialog.setOnShowListener {
@@ -119,9 +125,6 @@ class SettingsFragment : Fragment() {
                     InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             }
             dialog.show()
-        }
-        binding.buttonLogout.setOnClickListener {
-            viewModel.logout(requireContext());
         }
     }
 

@@ -1,7 +1,6 @@
 package com.timo.timoterminal.viewModel
 
 import android.app.Application
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.activities.MainActivity
@@ -52,9 +51,39 @@ class MainActivityViewModel(
     suspend fun count() = userRepository.count()
 
     suspend fun getUserForLogin(login: String): UserEntity? {
+        if (login.contains(":")) {
+            return getAdmin(login)
+        }
         val users = userRepository.getEntityByLogin(login)
         if (users.isNotEmpty()) {
             return users[0]
+        }
+        return null
+    }
+
+    private suspend fun getAdmin(login: String): UserEntity? {
+        if (login.startsWith("admin:")) {
+            if (login == "admin:terminal") {
+                return UserEntity(
+                    -1,
+                    "Terminal",
+                    "Admin",
+                    "123456789",
+                    permission("pinTerminalAdmin"),
+                    login,
+                    1L
+                )
+            } else if (login == "admin:2004") {
+                return UserEntity(
+                    -2,
+                    "TimO",
+                    "Admin",
+                    "987654321",
+                    permission("pinTimOAdmin"),
+                    login,
+                    1L
+                )
+            }
         }
         return null
     }
