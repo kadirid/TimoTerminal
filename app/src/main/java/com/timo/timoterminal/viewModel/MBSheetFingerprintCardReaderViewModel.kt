@@ -3,10 +3,13 @@ package com.timo.timoterminal.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
+import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
+import com.timo.timoterminal.repositories.BookingRepository
 import com.timo.timoterminal.repositories.UserRepository
+import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
@@ -20,7 +23,8 @@ import java.util.GregorianCalendar
 class MBSheetFingerprintCardReaderViewModel(
     private val userRepository: UserRepository,
     private val sharedPrefService: SharedPrefService,
-    private val httpService: HttpService
+    private val httpService: HttpService,
+    private val bookingService: BookingService
 ) : ViewModel() {
 
     private val ioDispatcher = Dispatchers.IO
@@ -41,15 +45,16 @@ class MBSheetFingerprintCardReaderViewModel(
         return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
     }
 
-    private suspend fun getUserEntity(id: Long): UserEntity? {
-        return withContext(ioDispatcher) {
-            val users = userRepository.getEntity(id)
-            if (users.isNotEmpty()) {
-                return@withContext users[0]
-            }
-            null
-        }
-    }
+    // maybe useful for fingerprint
+//    private suspend fun getUserEntity(id: Long): UserEntity? {
+//        return withContext(ioDispatcher) {
+//            val users = userRepository.getEntity(id)
+//            if (users.isNotEmpty()) {
+//                return@withContext users[0]
+//            }
+//            null
+//        }
+//    }
 
     private suspend fun getUserEntityByCard(card: String): UserEntity? {
         return withContext(ioDispatcher) {
@@ -124,47 +129,61 @@ class MBSheetFingerprintCardReaderViewModel(
         date: String,
         sheet: MBSheetFingerprintCardReader
     ) {
-        val url = getURl()
-        val company = getCompany()
-        val terminalId = getTerminalID()
-        val token = getToken()
-        if (!company.isNullOrEmpty() && terminalId > 0 && sheet.getStatus() > 0 && !token.isNullOrEmpty()) {
-            withContext(ioDispatcher) {
-                httpService.post(
-                    "${url}services/rest/zktecoTerminal/booking",
-                    mapOf(
-                        Pair("card", card),
-                        Pair("firma", company),
-                        Pair("date", date),
-                        Pair("funcCode", "${sheet.getStatus()}"),
-                        Pair("inputCode", "$inputCode"),
-                        Pair("terminalId", terminalId.toString()),
-                        Pair("token", token)
-                    ),
-                    sheet.requireContext(),
-                    { obj, _, _ ->
-                        if (obj != null) {
-                            sheet.animateSuccess()
-                            RfidService.unregister()
-                            FingerprintService.unregister()
-                            sheet.activity?.runOnUiThread {
-                                sheet.getBinding().textViewBookingMessage.text =
-                                    obj.getString("message")
-                                if (!obj.getBoolean("success")) {
-                                    val color =
-                                        sheet.activity?.resources?.getColorStateList(
-                                            R.color.error_booking,
-                                            null
-                                        )
-                                    if (color != null)
-                                        sheet.getBinding().bookingInfoContainer.backgroundTintList =
-                                            color
+        if (Utils.isOnline(sheet.requireContext())) {
+            val url = getURl()
+            val company = getCompany()
+            val terminalId = getTerminalID()
+            val token = getToken()
+            if (!company.isNullOrEmpty() && terminalId > 0 && sheet.getStatus() > 0 && token.isNotEmpty()) {
+                withContext(ioDispatcher) {
+                    httpService.post(
+                        "${url}services/rest/zktecoTerminal/booking",
+                        mapOf(
+                            Pair("card", card),
+                            Pair("firma", company),
+                            Pair("date", date),
+                            Pair("funcCode", "${sheet.getStatus()}"),
+                            Pair("inputCode", "$inputCode"),
+                            Pair("terminalId", terminalId.toString()),
+                            Pair("token", token),
+                            Pair("validate", "true")
+                        ),
+                        sheet.requireContext(),
+                        { obj, _, _ ->
+                            if (obj != null) {
+                                sheet.animateSuccess()
+                                RfidService.unregister()
+                                FingerprintService.unregister()
+                                sheet.activity?.runOnUiThread {
+                                    sheet.getBinding().textViewBookingMessage.text =
+                                        obj.getString("message")
+                                    if (!obj.getBoolean("success")) {
+                                        val color =
+                                            sheet.activity?.resources?.getColorStateList(
+                                                R.color.error_booking,
+                                                null
+                                            )
+                                        if (color != null)
+                                            sheet.getBinding().bookingInfoContainer.backgroundTintList =
+                                                color
+                                    }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
+            }
+        }else{
+            viewModelScope.launch {
+                bookingService.insertBooking(card, inputCode, date, sheet.getStatus())
+                sheet.activity?.runOnUiThread {
+                    sheet.getBinding().textViewBookingMessage.text = "Zwischenspeicher"
+                    sheet.animateSuccess()
+                    RfidService.unregister()
+                    FingerprintService.unregister()
+                }
             }
         }
     }
+
 }

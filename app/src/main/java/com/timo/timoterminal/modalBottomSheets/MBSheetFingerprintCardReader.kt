@@ -11,8 +11,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
-import android.widget.FrameLayout
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.animation.doOnEnd
 import androidx.core.widget.doOnTextChanged
@@ -21,19 +19,19 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
+import com.timo.timoterminal.repositories.BookingRepository
 import com.timo.timoterminal.repositories.UserRepository
+import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.ProgressBarAnimation
-import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import org.koin.android.ext.android.inject
-import java.util.GregorianCalendar
 
 
 class MBSheetFingerprintCardReader(
@@ -43,10 +41,16 @@ class MBSheetFingerprintCardReader(
     private val sharedPrefService: SharedPrefService by inject()
     private val httpService: HttpService by inject()
     private val languageService: LanguageService by inject()
+    private val bookingService: BookingService by inject()
 
     private lateinit var binding: MbSheetFingerprintCardReaderBinding
     private var viewModel: MBSheetFingerprintCardReaderViewModel =
-        MBSheetFingerprintCardReaderViewModel(userRepository, sharedPrefService, httpService)
+        MBSheetFingerprintCardReaderViewModel(
+            userRepository,
+            sharedPrefService,
+            httpService,
+            bookingService
+        )
 
     //    lateinit var textView: TextView
     private var status: Int = -1
@@ -139,7 +143,7 @@ class MBSheetFingerprintCardReader(
 
     // remove listener on pause
     override fun onPause() {
-        if(!ranCancel) {
+        if (!ranCancel) {
             RfidService.unregister()
             FingerprintService.unregister()
             ranCancel = false
@@ -147,12 +151,6 @@ class MBSheetFingerprintCardReader(
         timer.cancel()
 
         super.onPause()
-    }
-
-    fun addTextView(string: String) {
-        val tv = TextView(requireContext())
-        tv.text = string
-        view?.findViewById<FrameLayout>(R.id.scan_bottom_sheet)?.addView(tv)
     }
 
     fun animateSuccess() {
@@ -282,19 +280,17 @@ class MBSheetFingerprintCardReader(
             override fun onTick(millisUntilFinished: Long) {}
 
             override fun onFinish() {
-                dialog!!.dismiss()
+                dialog.dismiss()
             }
         }
 
         dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
-            true
         }
         dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
-            true
         }
         dialogBinding.textViewDialogVerificationMessage.text =
             languageService.getText("#EnterCredentials")

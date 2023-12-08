@@ -26,8 +26,12 @@ class AttendanceFragmentViewModel(
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
     }
 
-    fun getTerminalID(): Int? {
+    fun getTerminalID(): Int {
         return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+    }
+
+    fun getToken(): String {
+        return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
     }
 
     private suspend fun getUserEntityByCard(card: String): UserEntity? {
@@ -48,10 +52,10 @@ class AttendanceFragmentViewModel(
         message: String
     ) {
         viewModelScope.launch {
-            var user = getUserEntityByCard(card)
+            val user = getUserEntityByCard(card)
             if (user != null) {
                 fragment.activity?.runOnUiThread {
-                    var bookingMessage = MBBookingMessageSheet()
+                    val bookingMessage = MBBookingMessageSheet()
                     val bundle = Bundle()
                     bundle.putInt("funcCode", funcCode)
                     bundle.putString("name", user.name())

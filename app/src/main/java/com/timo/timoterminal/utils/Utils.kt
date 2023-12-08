@@ -32,6 +32,11 @@ import java.util.Locale
 class Utils {
 
     companion object {
+        private val dayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        private val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        private val dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+        private val dateNameFormatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
+        private val databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
 
         fun isOnline(context: Context): Boolean {
             val connectivityManager =
@@ -130,8 +135,8 @@ class Utils {
             if (dialog != null) {
                 dialog.window?.decorView?.systemUiVisibility =
                     (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN)
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN)
                 dialog.actionBar?.hide()
                 //Clear the not focusable flag from the window
                 dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
@@ -164,32 +169,35 @@ class Utils {
         }
 
         fun getTimeFromGC(gc: Calendar): String {
-            val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-            return formatter.format(gc.time)
+            return timeFormatter.format(gc.time)
         }
 
         fun getDateTimeFromGC(gc: Calendar): String {
-            val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-            return formatter.format(gc.time)
+            return dateTimeFormatter.format(gc.time)
         }
 
         fun getDateWithNameFromGC(gc: Calendar): String {
-            val formatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
-            return formatter.format(gc.time)
+            return dateNameFormatter.format(gc.time)
+        }
+
+        fun parseToDBDate(date: String) :String{
+            return databaseFormatter.format(dateTimeFormatter.parse(date) ?: Date())
+        }
+
+        fun parseFromDBDate(date: String) :String{
+            return dateTimeFormatter.format(databaseFormatter.parse(date) ?: Date())
         }
 
         fun parseDateTime(date: String): GregorianCalendar {
             val greg = GregorianCalendar()
-            val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-            val pDate = formatter.parse(date)
+            val pDate = dateTimeFormatter.parse(date)
             if (pDate != null)
                 greg.time = pDate
             return greg
         }
 
         fun getDateFromTimestamp(date: Long): String {
-            val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-            return formatter.format(Date(date))
+            return dayFormatter.format(Date(date))
         }
 
         fun convertTime(zeit: Double): String {
@@ -214,7 +222,7 @@ class Utils {
             return sign + (if (hrs < 10) "0$hrs" else "$hrs") + ":" + (if (min < 10) "0$min" else "$min")
         }
 
-        fun getOffset(offsetInMilliSec : Int) :String{
+        fun getOffset(offsetInMilliSec: Int): String {
             val sec = offsetInMilliSec / 1000
             val min = sec / 60
             var minOff = min % 60

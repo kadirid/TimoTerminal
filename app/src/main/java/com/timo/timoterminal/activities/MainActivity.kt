@@ -309,7 +309,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         usbCharge: Boolean,
         plugCharge: Boolean
     ) {
-        binding.batteryPercent.text = "$batteryPercentage%"
+        val batteryText = "$batteryPercentage%"
+        binding.batteryPercent.text = batteryText
 
         if (usbCharge || plugCharge) {
             binding.batteryIcon.setImageResource(R.drawable.baseline_battery_charging_full_32)

@@ -1,14 +1,19 @@
 package com.timo.timoterminal
 
 import androidx.room.Room
+import com.timo.timoterminal.database.BookingBUDatabase
+import com.timo.timoterminal.database.BookingDatabase
 import com.timo.timoterminal.database.ConfigDatabase
 import com.timo.timoterminal.database.DemoDatabase
 import com.timo.timoterminal.database.LanguageDatabase
 import com.timo.timoterminal.database.UserDatabase
+import com.timo.timoterminal.repositories.BookingBURepository
+import com.timo.timoterminal.repositories.BookingRepository
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.LanguageRepository
 import com.timo.timoterminal.repositories.UserRepository
+import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
@@ -65,15 +70,35 @@ var appModule = module {
         ).build()
     }
 
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            BookingDatabase::class.java,
+            "booking_entity"
+        ).build()
+    }
+
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            BookingBUDatabase::class.java,
+            "booking_bu_entity"
+        ).build()
+    }
+
     single { get<DemoDatabase>().demoDao() }
     single { get<UserDatabase>().userDao() }
     single { get<ConfigDatabase>().configDao() }
     single { get<LanguageDatabase>().languageDao() }
+    single { get<BookingDatabase>().bookingDao() }
+    single { get<BookingBUDatabase>().bookingBUDao() }
 
     single { DemoRepository(get()) }
     single { UserRepository(get()) }
     single { ConfigRepository(get()) }
     single { LanguageRepository(get()) }
+    single { BookingRepository(get()) }
+    single { BookingBURepository(get()) }
 
     single { HttpService() }
     single { WebSocketService() }
@@ -84,6 +109,7 @@ var appModule = module {
     single { SettingsService(get(), get()) }
     single { PropertyService(androidContext()) }
     single { LanguageService(get(), get(), get())}
+    single { BookingService(get(), get(), get(), get()) }
 
     viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get()) }

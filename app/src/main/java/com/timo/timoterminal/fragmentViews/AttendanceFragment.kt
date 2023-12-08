@@ -43,7 +43,6 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     private val viewModel = AttendanceFragmentViewModel(sharedPrefService, userRepository)
     private var funcCode = -1
     private val mbSheetFingerprintCardReader = MBSheetFingerprintCardReader {
-        ->
         this.setListener()
     }
 
@@ -143,40 +142,46 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     // send all necessary information to timo to create a booking
     private fun sendBooking(card: String, inputCode: Int) {
-        val dateFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-        viewModel.viewModelScope.launch {
-            val url = viewModel.getURl()
-            val company = viewModel.getCompany()
-            val terminalId = viewModel.getTerminalID()
-            if (!company.isNullOrEmpty() && terminalId != null && terminalId > -1) {
-                httpService.post(
-                    "${url}services/rest/zktecoTerminal/bookingWithoutType",
-                    mapOf(
-                        Pair("card", card),
-                        Pair("firma", company),
-                        Pair("date", dateFormatter.format(Date())),
-                        Pair("inputCode", "$inputCode"),
-                        Pair("terminalId", "$terminalId")
-                    ),
-                    requireContext(),
-                    { obj, _, msg ->
-                        if (obj != null) {
-                            viewModel.showMessage(
-                                this@AttendanceFragment,
-                                card,
-                                obj.getInt("funcCode"),
-                                obj.getBoolean("success"),
-                                obj.getString("message")
-                            )
-                        }
-                        if (!msg.isNullOrEmpty()) {
-                            activity?.runOnUiThread {
-                                Utils.showMessage(parentFragmentManager, msg)
+        if(Utils.isOnline(requireContext())) {
+            val dateFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+            viewModel.viewModelScope.launch {
+                val url = viewModel.getURl()
+                val company = viewModel.getCompany()
+                val terminalId = viewModel.getTerminalID()
+                val token = viewModel.getToken()
+                if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
+                    httpService.post(
+                        "${url}services/rest/zktecoTerminal/bookingWithoutType",
+                        mapOf(
+                            Pair("card", card),
+                            Pair("firma", company),
+                            Pair("date", dateFormatter.format(Date())),
+                            Pair("inputCode", "$inputCode"),
+                            Pair("terminalId", "$terminalId"),
+                            Pair("token", token)
+                        ),
+                        requireContext(),
+                        { obj, _, msg ->
+                            if (obj != null) {
+                                viewModel.showMessage(
+                                    this@AttendanceFragment,
+                                    card,
+                                    obj.getInt("funcCode"),
+                                    obj.getBoolean("success"),
+                                    obj.getString("message")
+                                )
+                            }
+                            if (!msg.isNullOrEmpty()) {
+                                activity?.runOnUiThread {
+                                    Utils.showMessage(parentFragmentManager, msg)
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
+        }else{
+            Utils.showMessage(parentFragmentManager, "Internet required")
         }
     }
 
@@ -194,7 +199,6 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
             }
             oct = oct.reversed()
             sendBooking(oct, 2)
-            //binding.textViewAttendanceState.text = "Keine Anwesenheit ausgewählt"
         }
     }
 

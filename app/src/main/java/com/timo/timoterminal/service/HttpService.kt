@@ -16,6 +16,7 @@ import com.timo.timoterminal.service.serviceUtils.ProgressListener
 import com.timo.timoterminal.service.serviceUtils.ProgressResponseBody
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.ResponseToJSON
+import kotlinx.coroutines.launch
 import mcv.facepass.BuildConfig
 import okhttp3.Call
 import okhttp3.Callback
@@ -43,6 +44,7 @@ class HttpService() : KoinComponent {
     private val userService: UserService by inject()
     private val languageService: LanguageService by inject()
     private val loginService: LoginService by inject()
+    private val bookingService: BookingService by inject()
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
@@ -141,14 +143,14 @@ class HttpService() : KoinComponent {
     }
 
     fun initHeartbeatWorker(application: Application, activity: MainActivity) {
-        val workerService: WorkerService = WorkerService.getInstance(application)
+//        val workerService: WorkerService = WorkerService.getInstance(application)
         //Alle 15 Minuten wird jetzt der Code ausgeführt, der da definiert ist
 //        workerService.addPeriodicRequest(
 //            HeartbeatWorker::class.java,
 //            15L,
 //            TimeUnit.MINUTES,
 //            {},
-//            lifecycleOwner = lifecycleOwner
+//            lifecycleOwner = activity
 //        )
 
         val handlerThread = HandlerThread("backgroundThread")
@@ -287,13 +289,11 @@ class HttpService() : KoinComponent {
             .url(url)
             .build()
 
-        val dlClient = client.newBuilder().addNetworkInterceptor(object : Interceptor {
-            override fun intercept(chain: Interceptor.Chain): Response {
-                val originalResponse = chain.proceed(chain.request())
-                return originalResponse.newBuilder()
-                    .body(ProgressResponseBody(originalResponse.body!!, progressListener))
-                    .build()
-            }
+        val dlClient = client.newBuilder().addNetworkInterceptor(Interceptor { chain ->
+            val originalResponse = chain.proceed(chain.request())
+            originalResponse.newBuilder()
+                .body(ProgressResponseBody(originalResponse.body!!, progressListener))
+                .build()
         }).build()
 
 
@@ -312,23 +312,26 @@ class HttpService() : KoinComponent {
 
     private fun handelHeartBeatResponse(obj: JSONObject, activity: MainActivity) {
         val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
-        if (obj.has("timezone") && !timezone.equals(obj.getString("timezone"))) {
+        if (!obj.isNull("timezone") && !timezone.equals(obj.getString("timezone"))) {
             settingsService.setTimeZone(activity, obj.getString("timezone")) {}
         }
-        if (obj.has("loadUsers") && obj.getBoolean("loadUsers")) {
+        if (!obj.isNull("loadUsers") && obj.getBoolean("loadUsers")) {
             userService.loadUserFromServer(activity.getViewModel().viewModelScope)
         }
-        if (obj.has("loadPermissions") && obj.getBoolean("loadPermissions")) {
+        if (!obj.isNull("loadPermissions") && obj.getBoolean("loadPermissions")) {
             loginService.loadPermissions(
                 activity.getViewModel().viewModelScope,
                 activity
-            ) { _, -> }
+            ) {}
         }
-        if (obj.has("loadLanguage") && obj.getBoolean("loadLanguage")) {
+        if (!obj.isNull("loadLanguage") && obj.getBoolean("loadLanguage")) {
             languageService.requestLanguageFromServer(
                 activity.getViewModel().viewModelScope,
                 activity
             )
+        }
+        activity.getViewModel().viewModelScope.launch {
+            bookingService.sendSavedBooking(activity.getViewModel().viewModelScope)
         }
     }
 }
