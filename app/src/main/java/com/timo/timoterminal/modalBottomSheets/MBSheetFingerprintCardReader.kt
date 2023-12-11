@@ -19,7 +19,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
-import com.timo.timoterminal.repositories.BookingRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
@@ -269,7 +268,7 @@ class MBSheetFingerprintCardReader(
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (login.isNotEmpty()) {
+            if (login.isNotEmpty() && pin.isNotEmpty()) {
                 viewModel.sendBookingById(login, pin, this)
             }
         }

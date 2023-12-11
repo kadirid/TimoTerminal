@@ -15,17 +15,17 @@ import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.entityClasses.UserEntity
+import com.timo.timoterminal.enums.NetworkType
 import com.timo.timoterminal.fragmentViews.AbsenceFragment
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
+import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.fragmentViews.ProjectFragment
 import com.timo.timoterminal.fragmentViews.SettingsFragment
-import com.timo.timoterminal.utils.BatteryReceiver
-import com.timo.timoterminal.utils.NetworkChangeReceiver
-import com.timo.timoterminal.enums.NetworkType
-import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.UserService
+import com.timo.timoterminal.utils.BatteryReceiver
+import com.timo.timoterminal.utils.NetworkChangeReceiver
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (login.isNotEmpty()) {
+            if (login.isNotEmpty() && pin.isNotEmpty()) {
                 mainActivityViewModel.viewModelScope.launch {
                     val user = mainActivityViewModel.getUserForLogin(login)
                     if (user != null && user.pin == pin) {
@@ -381,7 +381,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
     }
 
-    fun cancelTimer(){
+    fun cancelTimer() {
         timer.cancel()
     }
 

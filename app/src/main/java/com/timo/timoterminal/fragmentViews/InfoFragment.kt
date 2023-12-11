@@ -3,12 +3,12 @@ package com.timo.timoterminal.fragmentViews
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.doOnTextChanged
+import androidx.fragment.app.Fragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.DialogVerificationBinding
@@ -136,7 +136,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
             (activity as MainActivity?)?.restartTimer()
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (login.isNotEmpty()) {
+            if (login.isNotEmpty() && pin.isNotEmpty()) {
                 viewModel.loadUserInfoByLoginAndPin(login, pin, this)
             }
         }
