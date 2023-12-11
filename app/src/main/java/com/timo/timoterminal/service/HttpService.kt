@@ -190,7 +190,7 @@ class HttpService() : KoinComponent {
                 )
             }
         }
-        handler.postDelayed(runnable, 30000L)
+        handler.postDelayed(runnable, 1000L)
     }
 
     fun killHeartBeatWorkers(application: Application) {
