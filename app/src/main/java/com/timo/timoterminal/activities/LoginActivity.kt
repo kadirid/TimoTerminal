@@ -28,7 +28,6 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Utils.hideStatusAndNavbar(this)
         binding = ActivityLoginBinding.inflate(layoutInflater)
 
         //init login fragment
@@ -38,6 +37,7 @@ class LoginActivity : AppCompatActivity() {
 
         val view = binding.root
         setContentView(view)
+        Utils.hideStatusAndNavbar(this)
     }
 
     //check if logged in then open main activity else check connection

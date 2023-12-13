@@ -79,15 +79,14 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         binding = ActivityMainBinding.inflate(layoutInflater)
         mbLoginWelcomeSheet = MBLoginWelcomeSheet()
 
-        Utils.hideStatusAndNavbar(this)
-
-
         if (isNewTerminal) {
             showDialog()
             userService.loadUserFromServer(mainActivityViewModel.viewModelScope)
         }
 
         setContentView(binding.root)
+
+        Utils.hideStatusAndNavbar(this)
 
         initNavbarListener()
         isInit = true
@@ -144,16 +143,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     private fun clickListeners() {
         binding.buttonSettings.setOnClickListener {
-            mainActivityViewModel.viewModelScope.launch {
-                if (mainActivityViewModel.count() == 0) {
-                    supportFragmentManager.commit {
-                        replace(R.id.fragment_container_view, SettingsFragment())
-                    }
-                    restartTimer()
-                } else {
-                    showVerificationAlert()
-                }
-            }
+            showVerificationAlert()
         }
         // to kill heart beat worker and clear some of the db data
         binding.imageViewLogo.setOnClickListener {
