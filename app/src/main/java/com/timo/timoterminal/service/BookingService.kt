@@ -40,24 +40,12 @@ class BookingService (
     ) {
         val entity = BookingEntity(card, inputCode, Utils.parseToDBDate(date), status)
         bookingRepository.insertBookingEntity(entity)
-        check()
+        insertBU()
     }
 
     private suspend fun insertBU(){
         val entities = bookingRepository.getAllAsList()
         bookingBURepository.insertBookingEntities(entities)
-    }
-
-    suspend fun check(){
-        insertBU()
-        val buEntities = bookingBURepository.getAllAsList()
-        for(entity in buEntities){
-            println(entity)
-        }
-        val entities = bookingRepository.getAllAsList()
-        for(entity in entities){
-            println(entity)
-        }
     }
 
     suspend fun sendSavedBooking(scope: CoroutineScope){

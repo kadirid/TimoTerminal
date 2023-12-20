@@ -68,7 +68,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         super.onStart()
         _broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent) {
-                if (intent.action!!.compareTo(Intent.ACTION_TIME_TICK) == 0){
+                if (intent.action!!.compareTo(Intent.ACTION_TIME_TICK) == 0) {
                     val gc = GregorianCalendar()
                     binding.textViewDateTimeViewContainer.text = Utils.getDateWithNameFromGC(gc)
                     binding.textViewTimeTimeViewContainer.text = Utils.getTimeFromGC(gc)
@@ -134,6 +134,8 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     // start listening to card reader
     private fun setListener() {
+        RfidService.unregister()
+        FingerprintService.unregister()
         RfidService.setListener(this)
         RfidService.register()
         FingerprintService.setListener(this)
@@ -142,7 +144,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     // send all necessary information to timo to create a booking
     private fun sendBooking(card: String, inputCode: Int) {
-        if(Utils.isOnline(requireContext())) {
+        if (Utils.isOnline(requireContext())) {
             val dateFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
             viewModel.viewModelScope.launch {
                 val url = viewModel.getURl()
@@ -180,7 +182,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                     )
                 }
             }
-        }else{
+        } else {
             Utils.showMessage(parentFragmentManager, "Internet required")
         }
     }
@@ -198,7 +200,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                 oct = "0$oct"
             }
             oct = oct.reversed()
-            sendBooking(oct, 2)
+            sendBooking(oct, 1)
         }
     }
 
@@ -209,7 +211,17 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         height: Int
     ) {
         Log.d("FP", fingerprint)
-//        FingerprintService.unregister()
+        // get Key associated to the fingerprint
+        FingerprintService.identify(template)?.run {
+            Log.d("FP Key", this)
+            val id = this.substring(0, this.length-2).toLong()
+            viewModel.viewModelScope.launch {
+                val user = viewModel.getUser(id)
+                if(user != null){
+                    sendBooking(user.card, 2)
+                }
+            }
+        }
     }
 
     private fun adaptLottieAnimationTime() {

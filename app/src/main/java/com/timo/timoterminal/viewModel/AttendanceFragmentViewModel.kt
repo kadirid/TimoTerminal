@@ -67,4 +67,12 @@ class AttendanceFragmentViewModel(
             }
         }
     }
+
+    suspend fun getUser(id:Long):UserEntity?{
+        val users = userRepository.getEntity(id)
+        if(users.isNotEmpty()){
+            return users[0]
+        }
+        return null
+    }
 }

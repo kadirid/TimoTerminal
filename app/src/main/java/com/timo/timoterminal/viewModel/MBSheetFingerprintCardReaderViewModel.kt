@@ -3,11 +3,9 @@ package com.timo.timoterminal.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
-import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
-import com.timo.timoterminal.repositories.BookingRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
@@ -46,15 +44,15 @@ class MBSheetFingerprintCardReaderViewModel(
     }
 
     // maybe useful for fingerprint
-//    private suspend fun getUserEntity(id: Long): UserEntity? {
-//        return withContext(ioDispatcher) {
-//            val users = userRepository.getEntity(id)
-//            if (users.isNotEmpty()) {
-//                return@withContext users[0]
-//            }
-//            null
-//        }
-//    }
+    private suspend fun getUserEntity(id: Long): UserEntity? {
+        return withContext(ioDispatcher) {
+            val users = userRepository.getEntity(id)
+            if (users.isNotEmpty()) {
+                return@withContext users[0]
+            }
+            null
+        }
+    }
 
     private suspend fun getUserEntityByCard(card: String): UserEntity? {
         return withContext(ioDispatcher) {
@@ -73,6 +71,29 @@ class MBSheetFingerprintCardReaderViewModel(
                 return@withContext users[0]
             }
             null
+        }
+    }
+
+    fun sendBookingById(id: Long, sheet: MBSheetFingerprintCardReader) {
+        viewModelScope.launch {
+            val user = getUserEntity(id)
+            if (user != null) {
+                val greg = GregorianCalendar()
+                val time = Utils.getTimeFromGC(greg)
+                sheet.activity?.runOnUiThread {
+                    sheet.getBinding().nameContainer.text = user.name()
+                    sheet.getBinding().timeTextContainer.text = time
+                }
+                sendBooking(user.card, 2, Utils.getDateTimeFromGC(greg), sheet)
+                sheet.setStatus(-1)
+            } else {
+                sheet.animateSuccess()
+                sheet.getBinding().textViewBookingMessage.text = "Verification failed"
+                val color =
+                    sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
+                if (color != null)
+                    sheet.getBinding().bookingInfoContainer.backgroundTintList = color
+            }
         }
     }
 
@@ -99,7 +120,7 @@ class MBSheetFingerprintCardReaderViewModel(
         }
     }
 
-    fun sendBookingById(login: String, pin: String, sheet: MBSheetFingerprintCardReader) {
+    fun sendBookingByLogin(login: String, pin: String, sheet: MBSheetFingerprintCardReader) {
         viewModelScope.launch {
             val user = getUserEntityByLogin(login)
             if (user != null && user.pin == pin) {

@@ -90,7 +90,7 @@ class SettingsService(
             parameterMap["company"] = company!!
             parameterMap["terminalId"] = terminalId.toString()
             parameterMap["token"] = token!!
-            parameterMap["timezone"] = timezone!!
+            parameterMap["timezone"] = timezone
 
             httpService.post("${url}services/rest/zktecoTerminal/saveTimezone", parameterMap, context, { _, _, _ ->})
         }
@@ -100,7 +100,7 @@ class SettingsService(
         val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
         val am : AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         try {
-            am.setTimeZone(timezone);
+            am.setTimeZone(timezone)
         } catch (e: Exception) {
             //If we set no correct timezone identifier, just set Europe/Berlin as standard
             sharedPrefService.getEditor().putString(SharedPreferenceKeys.TIMEZONE.name, "Europe/Berlin")

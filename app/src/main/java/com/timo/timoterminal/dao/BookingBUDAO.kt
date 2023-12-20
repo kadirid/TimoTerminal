@@ -6,9 +6,13 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.timo.timoterminal.entityClasses.BookingBUEntity
 import com.timo.timoterminal.entityClasses.BookingEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BookingBUDAO {
+
+    @Query("SELECT * FROM BookingBUEntity ORDER BY id")
+    fun getAll(): Flow<List<BookingBUEntity>>
 
     @Query("SELECT * FROM BookingBUEntity ORDER BY id")
     suspend fun getAllAsList(): List<BookingBUEntity>

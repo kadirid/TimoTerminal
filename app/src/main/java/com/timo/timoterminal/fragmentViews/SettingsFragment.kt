@@ -58,6 +58,7 @@ class SettingsFragment : Fragment() {
         binding.buttonWifi.text = languageService.getText("#WifiSettings")
         binding.buttonLauncher.text = languageService.getText("#Launcher")
         binding.buttonReboot.text = languageService.getText("#RebootTerminal")
+        binding.buttonTerminalBooking.text = languageService.getText("#Booking list")
     }
 
     private fun setupOnClickListeners() {
@@ -75,6 +76,13 @@ class SettingsFragment : Fragment() {
         }
         binding.buttonLogout.setOnClickListener {
             viewModel.logout(requireContext())
+        }
+        binding.buttonTerminalBooking.visibility = if(userId<0) View.VISIBLE else View.GONE
+        binding.buttonTerminalBooking.setOnClickListener {
+            (activity as MainActivity?)?.restartTimer()
+            parentFragmentManager.commit {
+                replace(R.id.fragment_container_view, BookingListFragment())
+            }
         }
         binding.buttonWifi.visibility = if(userId<0) View.VISIBLE else View.GONE
         binding.buttonWifi.setOnClickListener {

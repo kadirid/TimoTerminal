@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -30,6 +31,7 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
+import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -107,6 +109,7 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
     override fun onResume() {
         super.onResume()
 
+        RfidService.unregister()
         RfidService.setListener(this)
         RfidService.register()
     }
@@ -155,7 +158,7 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
             sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
         }
         binding.buttonFingerprint.setOnClickListener {
-            (activity as MainActivity?)?.restartTimer()
+            (activity as MainActivity?)?.cancelTimer()
             val sheet = MBUserWaitSheet.newInstance(paramMap["id"], paramMap["editor"], true)
             sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
         }
@@ -187,7 +190,6 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
             val dialog = dlgAlert.create()
             passCodeEditText.doOnTextChanged { _, _, _, _ ->
                 (activity as MainActivity?)?.restartTimer()
-                true
             }
             dialog.setView(textLayout, 20, 0, 20, 0)
             dialog.setOnShowListener {
@@ -211,7 +213,12 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
         width: Int,
         height: Int
     ) {
-//        TODO("Not yet implemented")
+        Log.d("FP", fingerprint)
+        // get Key associated to the fingerprint
+        FingerprintService.identify(template)?.run {
+            Log.d("FP Key", this)
+            // TODO("maybe use this (Key of Fingerprint) to get User to show")
+        }
     }
 
     override fun onRfidRead(rfidInfo: String) {

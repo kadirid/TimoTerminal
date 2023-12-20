@@ -69,7 +69,7 @@ class MainActivityViewModel(
                     "Terminal",
                     "Admin",
                     "123456789",
-                    permission("pinTerminalAdmin"),
+                    permission("terminal.zkteco.android.admin.pin"),
                     login,
                     1L
                 )
@@ -79,7 +79,7 @@ class MainActivityViewModel(
                     "TimO",
                     "Admin",
                     "987654321",
-                    permission("pinTimOAdmin"),
+                    permission("terminal.zkteco.android.support.admin.pin"),
                     login,
                     1L
                 )
@@ -95,6 +95,15 @@ class MainActivityViewModel(
     fun getUserForCard(card: String, mainActivity: MainActivity) {
         viewModelScope.launch {
             val users = userRepository.getEntityByCard(card)
+            if (users.isNotEmpty()) {
+                mainActivity.showSettings(users[0])
+            }
+        }
+    }
+
+    fun getUser(id: String, mainActivity: MainActivity) {
+        viewModelScope.launch {
+            val users = userRepository.getEntity(id.toLong())
             if (users.isNotEmpty()) {
                 mainActivity.showSettings(users[0])
             }

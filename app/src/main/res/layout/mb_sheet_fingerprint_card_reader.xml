@@ -12,7 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintEnd_toStartOf="@id/name_container"
-        app:layout_constraintStart_toStartOf="@id/name_container">
+        app:layout_constraintStart_toStartOf="@id/name_container"
+        tools:layout_height="600dp">
 
         <com.google.android.material.bottomsheet.BottomSheetDragHandleView
             android:id="@+id/drag_handle"
@@ -80,9 +81,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/drag_handle"
-            app:layout_constraintBottom_toBottomOf="parent"
-            tools:alpha="1"
-            tools:visibility="visible">
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <TextView
                 android:id="@+id/name_container"
@@ -169,7 +168,170 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/finger_select_container"
+            android:layout_width="800dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/drag_handle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:visibility="visible">
 
+            <ImageView
+                android:id="@+id/finger_select_hand_left"
+                android:layout_width="400dp"
+                android:layout_height="400dp"
+                android:rotationY="180"
+                app:layout_constraintEnd_toStartOf="@id/finger_select_hand_right"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:src="@drawable/baseline_back_hand" />
+
+            <ImageView
+                android:id="@+id/finger_select_hand_right"
+                android:layout_width="400dp"
+                android:layout_height="400dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/finger_select_hand_left"
+                app:layout_constraintTop_toTopOf="parent"
+                android:src="@drawable/baseline_back_hand"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_0"
+                android:layout_width="45dp"
+                android:layout_height="120dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="70dp"
+                android:layout_marginStart="48dp"
+                android:scaleType="center"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_1"
+                android:layout_width="45dp"
+                android:layout_height="160dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="30dp"
+                android:layout_marginStart="107dp"
+                android:scaleType="center"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_2"
+                android:layout_width="45dp"
+                android:layout_height="190dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="0dp"
+                android:layout_marginStart="164dp"
+                android:scaleType="center"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_3"
+                android:layout_width="45dp"
+                android:layout_height="160dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="30dp"
+                android:layout_marginStart="223dp"
+                android:scaleType="center"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_4"
+                android:layout_width="80dp"
+                android:layout_height="100dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="165dp"
+                android:layout_marginStart="280dp"
+                android:scaleType="center"
+                android:rotation="30"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_5"
+                android:layout_width="80dp"
+                android:layout_height="100dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="165dp"
+                android:layout_marginEnd="280dp"
+                android:scaleType="center"
+                android:rotation="330"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_6"
+                android:layout_width="45dp"
+                android:layout_height="160dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="224dp"
+                android:scaleType="center"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_7"
+                android:layout_width="45dp"
+                android:layout_height="190dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="165dp"
+                android:scaleType="center"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_8"
+                android:layout_width="45dp"
+                android:layout_height="160dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="107dp"
+                android:scaleType="center"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:alpha="1"/>
+
+            <ImageView
+                android:id="@+id/finger_select_arrow_9"
+                android:layout_width="45dp"
+                android:layout_height="120dp"
+                android:src="@drawable/baseline_arrow"
+                android:layout_marginTop="70dp"
+                android:layout_marginEnd="48dp"
+                android:scaleType="center"
+                android:alpha="0"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:alpha="1"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

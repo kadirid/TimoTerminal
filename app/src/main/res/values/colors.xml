@@ -74,6 +74,7 @@
     <color name="go">#B91A1A</color>
     <color name="go_pastell">#f6c2c2</color>
     <color name="error_booking">#FBEBBD</color>
+    <color name="green">#00FF00</color>
     <dimen name="navigationRailIconSize">32dp</dimen>
 
 </resources>

@@ -4,6 +4,7 @@ import androidx.annotation.WorkerThread
 import com.timo.timoterminal.dao.BookingBUDAO
 import com.timo.timoterminal.entityClasses.BookingBUEntity
 import com.timo.timoterminal.entityClasses.BookingEntity
+import kotlinx.coroutines.flow.Flow
 
 class BookingBURepository(private val bookingBUDAO: BookingBUDAO) {
 
@@ -11,6 +12,8 @@ class BookingBURepository(private val bookingBUDAO: BookingBUDAO) {
     suspend fun insertBookingEntities(entities: List<BookingEntity>){
         bookingBUDAO.insertAll(entities)
     }
+
+    fun getAllEntities(): Flow<List<BookingBUEntity>> = bookingBUDAO.getAll()
 
     suspend fun getAllAsList(): List<BookingBUEntity> = bookingBUDAO.getAllAsList()
 

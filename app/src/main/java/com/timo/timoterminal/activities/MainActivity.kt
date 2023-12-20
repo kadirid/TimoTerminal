@@ -5,6 +5,7 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
@@ -30,6 +31,7 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
+import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -236,6 +238,9 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         RfidService.unregister()
         RfidService.setListener(this)
         RfidService.register()
+        FingerprintService.unregister()
+        FingerprintService.setListener(this)
+        FingerprintService.register()
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MyDialog)
         dlgAlert.setView(dialogBinding.root)
@@ -289,7 +294,16 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
         dialog!!.setOnDismissListener {
             RfidService.unregister()
+            FingerprintService.unregister()
             alertTimer.cancel()
+            supportFragmentManager.commit {
+                replace(
+                    R.id.fragment_container_view,
+                    AttendanceFragment(),
+                    AttendanceFragment.TAG
+                )
+            }
+            timer.cancel()
         }
         dialog!!.show()
     }
@@ -341,7 +355,12 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         width: Int,
         height: Int
     ) {
-//        TODO("Not yet implemented")
+        Log.d("FP", fingerprint)
+        // get Key associated to the fingerprint
+        FingerprintService.identify(template)?.run {
+            Log.d("FP Key", this)
+            mainActivityViewModel.getUser(this.substring(0, this.length-2), this@MainActivity)
+        }
     }
 
     override fun onRfidRead(rfidInfo: String) {

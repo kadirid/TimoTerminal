@@ -8,7 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.timo.timoterminal.R
 import com.timo.timoterminal.entityClasses.UserEntity
 
-class UserEntityAdaptor(private val userEntities: List<UserEntity>, private val listener: OnItemClickListener) : RecyclerView.Adapter<UserEntityAdaptor.UserEntityViewHolder>() {
+class UserEntityAdaptor(
+    private val userEntities: List<UserEntity>,
+    private val listener: OnItemClickListener
+) : RecyclerView.Adapter<UserEntityAdaptor.UserEntityViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserEntityViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_user, parent, false)
@@ -25,13 +28,14 @@ class UserEntityAdaptor(private val userEntities: List<UserEntity>, private val 
 
     class UserEntityViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        private val idView : TextView = itemView.findViewById(R.id.text_view_user_id)
-        private val nameView : TextView = itemView.findViewById(R.id.text_view_user_name)
-        private val cardView : TextView = itemView.findViewById(R.id.text_view_user_card)
-        private val pinView : TextView = itemView.findViewById(R.id.text_view_user_pin)
+        private val idView: TextView = itemView.findViewById(R.id.text_view_user_id)
+        private val nameView: TextView = itemView.findViewById(R.id.text_view_user_name)
+        private val cardView: TextView = itemView.findViewById(R.id.text_view_user_card)
+        private val pinView: TextView = itemView.findViewById(R.id.text_view_user_pin)
 
-        fun bind(user: UserEntity, listener : OnItemClickListener) {
-            val name = if(user.firstName.isNullOrBlank()) user.lastName else "${user.firstName} ${user.lastName}"
+        fun bind(user: UserEntity, listener: OnItemClickListener) {
+            val name =
+                if (user.firstName.isBlank()) user.lastName else "${user.firstName} ${user.lastName}"
             idView.text = "${user.id}"
             nameView.text = name
             cardView.text = user.card
@@ -42,8 +46,8 @@ class UserEntityAdaptor(private val userEntities: List<UserEntity>, private val 
         }
     }
 
-    interface OnItemClickListener{
-        fun onItemClick(user:UserEntity)
+    interface OnItemClickListener {
+        fun onItemClick(user: UserEntity)
     }
 
 }

@@ -105,5 +105,9 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         return binding
     }
 
+    fun showSeconds(seconds:String){
+        binding.textviewSecondClose.text = seconds
+    }
+
     private fun getText(key: String) = languageService.getText(key)
 }

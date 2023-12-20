@@ -7,6 +7,7 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -115,6 +116,10 @@ class MBSheetFingerprintCardReader(
 //            animateSuccess()
 //        }
 
+//      binding.cardImage.setOnClickListener {
+//          viewModel.sendBookingByCard("505650110", this)
+//      }
+
         binding.keyboardImage.setOnClickListener {
             showVerificationAlert()
         }
@@ -133,6 +138,8 @@ class MBSheetFingerprintCardReader(
     override fun onResume() {
         super.onResume()
 
+        RfidService.unregister()
+        FingerprintService.unregister()
         RfidService.setListener(this)
         RfidService.register()
         FingerprintService.setListener(this)
@@ -255,8 +262,13 @@ class MBSheetFingerprintCardReader(
         width: Int,
         height: Int
     ) {
-//        timer.cancel()
-//        TODO("Not yet implemented")
+        // get Key associated to the fingerprint
+        FingerprintService.identify(template)?.run {
+            Log.d("FP Key", this)
+            val id = this.substring(0, this.length-2).toLong()
+            timer.cancel()
+            viewModel.sendBookingById(id, this@MBSheetFingerprintCardReader)
+        }
     }
 
     private fun showVerificationAlert() {
@@ -269,7 +281,7 @@ class MBSheetFingerprintCardReader(
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (login.isNotEmpty() && pin.isNotEmpty()) {
-                viewModel.sendBookingById(login, pin, this)
+                viewModel.sendBookingByLogin(login, pin, this)
             }
         }
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }

@@ -1,6 +1,5 @@
 package com.timo.timoterminal.viewModel
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.fragment.app.commit
@@ -8,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
-import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
@@ -16,21 +14,17 @@ import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.modalBottomSheets.MBFragmentInfoSheet
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
-import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.util.GregorianCalendar
 
 
 class InfoFragmentViewModel(
     private val userRepository: UserRepository,
     private val sharedPrefService: SharedPrefService,
-    private val httpService: HttpService,
-    private val languageService: LanguageService
+    private val httpService: HttpService
 ) : ViewModel() {
 
     private lateinit var sheet: MBFragmentInfoSheet
@@ -61,6 +55,16 @@ class InfoFragmentViewModel(
         return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
     }
 
+    private suspend fun getUserEntityById(id: Long): UserEntity? {
+        return withContext(Dispatchers.IO) {
+            val users = userRepository.getEntity(id)
+            if (users.isNotEmpty()) {
+                return@withContext users[0]
+            }
+            null
+        }
+    }
+
     private suspend fun getUserForLogin(login: String): UserEntity? {
         return withContext(Dispatchers.IO) {
             val users = userRepository.getEntityByLogin(login)
@@ -78,6 +82,15 @@ class InfoFragmentViewModel(
                 return@withContext users[0]
             }
             null
+        }
+    }
+
+    fun loadUserInfoById(id: String, fragment: InfoFragment) {
+        viewModelScope.launch {
+            val user = getUserEntityById(id.toLong())
+            if (user != null) {
+                loadUserInformation(user, fragment)
+            }
         }
     }
 
@@ -108,7 +121,7 @@ class InfoFragmentViewModel(
         val company = getCompany()
         val terminalId = getTerminalID()
         val token = getToken()
-        if (!company.isNullOrEmpty() && terminalId > 0 && !token.isNullOrEmpty()) {
+        if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
             withContext(Dispatchers.IO) {
                 httpService.get(
                     "${url}services/rest/zktecoTerminal/info",
@@ -153,10 +166,7 @@ class InfoFragmentViewModel(
     }
 
     private fun showSeconds(millisUntilFinished: Long) {
-        val binding = sheet.getBinding()
-        fragment.activity?.runOnUiThread {
-            binding.textviewSecondClose.text = (millisUntilFinished / 900).toString()
-        }
+        sheet.showSeconds((millisUntilFinished / 950).toString())
     }
 
     private fun hideUserInformation() {

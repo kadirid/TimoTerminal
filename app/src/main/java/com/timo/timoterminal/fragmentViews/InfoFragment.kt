@@ -24,9 +24,6 @@ import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
 class InfoFragment : Fragment(), RfidListener, FingerprintListener {
@@ -39,7 +36,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     private val httpService: HttpService by inject()
     private val languageService: LanguageService by inject()
     private var viewModel: InfoFragmentViewModel =
-        InfoFragmentViewModel(userRepository, sharedPrefService, httpService, languageService)
+        InfoFragmentViewModel(userRepository, sharedPrefService, httpService)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -68,6 +65,8 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     }
 
     private fun register() {
+        RfidService.unregister()
+        FingerprintService.unregister()
         RfidService.setListener(this)
         RfidService.register()
         FingerprintService.setListener(this)
@@ -108,9 +107,11 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         width: Int,
         height: Int
     ) {
-        CoroutineScope(Dispatchers.Default).launch {
-            Log.d("FP", fingerprint)
-//            viewModel.loadUserInformation(user, this@InfoFragment)
+        Log.d("FP", fingerprint)
+        // get Key associated to the fingerprint
+        FingerprintService.identify(template)?.run {
+            Log.d("FP Key", this)
+            viewModel.loadUserInfoById(this.substring(0, this.length-2), this@InfoFragment)
         }
     }
 
@@ -156,13 +157,11 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
             alertTimer.cancel()
             alertTimer.start()
             (activity as MainActivity?)?.restartTimer()
-            true
         }
         dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
             (activity as MainActivity?)?.restartTimer()
-            true
         }
         dialog.setOnShowListener {
             dialogBinding.textInputEditTextVerificationId.isFocusable = true
@@ -179,14 +178,6 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
 
     fun setVerifying(b: Boolean) {
         verifying = b
-    }
-
-    fun getBinding(): FragmentInfoBinding {
-        return binding
-    }
-
-    fun getItemBinding(): FragmentInfoMessageSheetItemBinding {
-        return itemBinding
     }
 
     fun showCard(card: String) {

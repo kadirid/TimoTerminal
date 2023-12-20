@@ -33,21 +33,19 @@
             tools:text="Reboot" />
 
         <Button
-            android:id="@+id/buttonLogout"
+            android:id="@+id/buttonTerminalBooking"
             style="@style/SettingsViewButtons"
             android:layout_marginTop="20dp"
-            android:backgroundTint="@color/black"
-            android:text="Logout"
+            tools:text="Terminal Bookings"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonReboot"
-            tools:ignore="HardcodedText" />
+            app:layout_constraintTop_toBottomOf="@id/buttonReboot"/>
 
         <Button
             android:id="@+id/buttonDevOps"
             style="@style/SettingsViewButtons"
             android:layout_marginTop="20dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonLogout"
+            app:layout_constraintTop_toBottomOf="@id/buttonTerminalBooking"
             tools:text="Developer Options" />
 
         <Button
@@ -61,23 +59,37 @@
         <Button
             android:id="@+id/buttonEthernet"
             style="@style/SettingsViewButtons"
-            app:layout_constraintStart_toStartOf="@id/buttonWifi"
+            android:layout_marginStart="20dp"
+            app:layout_constraintStart_toEndOf="@id/buttonReboot"
             app:layout_constraintTop_toTopOf="@id/buttonReboot"
             tools:text="Mobilfunknetzeinstellungen" />
 
         <Button
             android:id="@+id/buttonMobileNetwork"
             style="@style/SettingsViewButtons"
-            app:layout_constraintStart_toStartOf="@id/buttonWifi"
-            app:layout_constraintTop_toTopOf="@id/buttonLogout"
+            android:layout_marginStart="20dp"
+            app:layout_constraintStart_toEndOf="@id/buttonTerminalBooking"
+            app:layout_constraintTop_toTopOf="@id/buttonTerminalBooking"
             tools:text="Mobile Network Settings" />
 
         <Button
             android:id="@+id/buttonLauncher"
             style="@style/SettingsViewButtons"
-            app:layout_constraintStart_toStartOf="@id/buttonWifi"
+            android:layout_marginStart="20dp"
+            app:layout_constraintStart_toEndOf="@id/buttonDevOps"
             app:layout_constraintTop_toTopOf="@id/buttonDevOps"
             tools:text="Launcher" />
+
+        <Button
+            android:id="@+id/buttonLogout"
+            style="@style/SettingsViewButtons"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="@color/black"
+            android:text="Logout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonLauncher"
+            tools:ignore="HardcodedText" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
