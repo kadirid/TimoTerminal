@@ -296,14 +296,6 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             RfidService.unregister()
             FingerprintService.unregister()
             alertTimer.cancel()
-            supportFragmentManager.commit {
-                replace(
-                    R.id.fragment_container_view,
-                    AttendanceFragment(),
-                    AttendanceFragment.TAG
-                )
-            }
-            timer.cancel()
         }
         dialog!!.show()
     }
