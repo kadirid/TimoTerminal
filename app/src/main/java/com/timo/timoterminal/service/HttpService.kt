@@ -33,7 +33,6 @@ import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.IOException
-import java.util.GregorianCalendar
 import java.util.concurrent.TimeUnit
 
 
@@ -164,7 +163,7 @@ class HttpService() : KoinComponent {
             val company = getCompany()
             val terminalId = getTerminalID()
             val token = getToken()
-            val date = Utils.getDateTimeFromGC(GregorianCalendar())
+            val date = Utils.getDateTimeFromGC(Utils.getCal())
             if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
                 post(
                     "${url}services/rest/zktecoTerminal/heartbeat",
@@ -314,7 +313,11 @@ class HttpService() : KoinComponent {
         val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
         if (!obj.isNull("timezone") && !timezone.equals(obj.getString("timezone"))) {
             settingsService.setTimeZone(activity, obj.getString("timezone")) {}
+            Utils.updateLocale()
         }
+        val tTime = Utils.parseDBDateTime(obj.getString("time"))
+        Log.d("WORKER", tTime.time.toString())
+        Utils.setCal(tTime)
         if (!obj.isNull("loadUsers") && obj.getBoolean("loadUsers")) {
             userService.loadUserFromServer(activity.getViewModel().viewModelScope)
         }

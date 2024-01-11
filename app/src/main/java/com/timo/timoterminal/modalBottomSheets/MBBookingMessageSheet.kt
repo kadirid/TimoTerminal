@@ -18,7 +18,6 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.ProgressBarAnimation
 import com.timo.timoterminal.utils.Utils
 import org.koin.android.ext.android.inject
-import java.util.GregorianCalendar
 
 class MBBookingMessageSheet : BottomSheetDialogFragment() {
     private val languageService: LanguageService by inject()
@@ -68,7 +67,7 @@ class MBBookingMessageSheet : BottomSheetDialogFragment() {
         binding.cardImage.visibility = View.INVISIBLE
         binding.bookingTypeTextContainer.text = sStatus
         binding.nameContainer.text = name
-        binding.timeTextContainer.text = Utils.getTimeFromGC(GregorianCalendar())
+        binding.timeTextContainer.text = Utils.getTimeFromGC(Utils.getCal())
         binding.textViewBookingMessage.text = message
 
         if (!success) {

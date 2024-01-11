@@ -63,7 +63,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         if (res.optInt("zeitTyp", 0) in listOf(1, 4, 6) && !res.optString("zeitLB", "")
                 .isNullOrBlank()
         ) {
-            val gcDate = GregorianCalendar()
+            val gcDate = Utils.getCal()
             val greg = Utils.parseDateTime(res.getString("zeitLB"))
             var diff = gcDate.timeInMillis - greg.timeInMillis
             diff /= 1000

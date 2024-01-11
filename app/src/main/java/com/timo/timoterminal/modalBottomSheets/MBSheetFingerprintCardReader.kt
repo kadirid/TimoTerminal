@@ -112,7 +112,7 @@ class MBSheetFingerprintCardReader(
     private fun setUpOnClickListeners() {
         // Can it be removed?
 //        binding.fingerprintImage.setOnClickListener {
-//            binding.timeTextContainer.text = Utils.getTimeFromGC(GregorianCalendar())
+//            binding.timeTextContainer.text = Utils.getTimeFromGC(Utils.getCal())
 //            animateSuccess()
 //        }
 

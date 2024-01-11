@@ -28,7 +28,6 @@ import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import java.util.GregorianCalendar
 import java.util.Locale
 import kotlin.math.abs
 
@@ -59,7 +58,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     }
 
     private fun setText() {
-        val gc = GregorianCalendar()
+        val gc = Utils.getCal()
         binding.textViewDateTimeViewContainer.text = Utils.getDateWithNameFromGC(gc)
         binding.textViewTimeTimeViewContainer.text = Utils.getTimeFromGC(gc)
     }
@@ -69,7 +68,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         _broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent) {
                 if (intent.action!!.compareTo(Intent.ACTION_TIME_TICK) == 0) {
-                    val gc = GregorianCalendar()
+                    val gc = Utils.getCal()
                     binding.textViewDateTimeViewContainer.text = Utils.getDateWithNameFromGC(gc)
                     binding.textViewTimeTimeViewContainer.text = Utils.getTimeFromGC(gc)
                 }

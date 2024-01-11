@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TimoTerminal</string>
+    <string name="app_name">TimO</string>
     <string name="attendance">Attendance</string>
     <string name="absence">Absence</string>
     <string name="project">Project</string>

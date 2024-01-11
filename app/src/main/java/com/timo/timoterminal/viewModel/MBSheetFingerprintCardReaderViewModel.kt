@@ -16,7 +16,6 @@ import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.GregorianCalendar
 
 class MBSheetFingerprintCardReaderViewModel(
     private val userRepository: UserRepository,
@@ -78,7 +77,7 @@ class MBSheetFingerprintCardReaderViewModel(
         viewModelScope.launch {
             val user = getUserEntity(id)
             if (user != null) {
-                val greg = GregorianCalendar()
+                val greg = Utils.getCal()
                 val time = Utils.getTimeFromGC(greg)
                 sheet.activity?.runOnUiThread {
                     sheet.getBinding().nameContainer.text = user.name()
@@ -101,7 +100,7 @@ class MBSheetFingerprintCardReaderViewModel(
         viewModelScope.launch {
             val user = getUserEntityByCard(card)
             if (user != null) {
-                val greg = GregorianCalendar()
+                val greg = Utils.getCal()
                 val time = Utils.getTimeFromGC(greg)
                 sheet.activity?.runOnUiThread {
                     sheet.getBinding().nameContainer.text = user.name()
@@ -124,7 +123,7 @@ class MBSheetFingerprintCardReaderViewModel(
         viewModelScope.launch {
             val user = getUserEntityByLogin(login)
             if (user != null && user.pin == pin) {
-                val greg = GregorianCalendar()
+                val greg = Utils.getCal()
                 val time = Utils.getTimeFromGC(greg)
                 sheet.activity?.runOnUiThread {
                     sheet.getBinding().nameContainer.text = user.name()

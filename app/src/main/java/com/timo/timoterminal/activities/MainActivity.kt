@@ -12,6 +12,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
 import com.timo.timoterminal.databinding.DialogVerificationBinding
@@ -149,7 +150,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
         // to kill heart beat worker and clear some of the db data
         binding.imageViewLogo.setOnClickListener {
-            mainActivityViewModel.killHeartBeatWorkers(application)
+            if (BuildConfig.DEBUG)
+                mainActivityViewModel.killHeartBeatWorkers(application)
         }
     }
 
@@ -158,10 +160,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.viewModelScope.launch {
             val projectPermission = mainActivityViewModel.permission("projekt.use")
             binding.navigationRail.menu.findItem(R.id.project).isVisible =
-                projectPermission == "true"
+                projectPermission == "true" && false// currently no functionality
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
-            binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
+            binding.navigationRail.menu.findItem(R.id.attendance)
                 attendancePermission == "true"
         }
 
@@ -173,6 +175,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             languageService.getText("#Attendance")
         binding.navigationRail.menu.findItem(R.id.absence).title =
             languageService.getText("#Absence")
+        binding.navigationRail.menu.findItem(R.id.absence).isVisible = false// currently no functionality
 
         binding.navigationRail.setOnItemSelectedListener {
 

@@ -7,6 +7,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -32,11 +34,15 @@ import java.util.Locale
 class Utils {
 
     companion object {
-        private val dayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        private val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-        private val dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-        private val dateNameFormatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
-        private val databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+        private var dayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        private var timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        private var dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+        private var dateNameFormatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
+        private var databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+
+        private val handlerThread = HandlerThread("backgroundTimerThread")
+        private val calendar = object: GregorianCalendar(){}
+        private var handler: Handler? = null
 
         fun isOnline(context: Context): Boolean {
             val connectivityManager =
@@ -189,8 +195,16 @@ class Utils {
         }
 
         fun parseDateTime(date: String): GregorianCalendar {
-            val greg = GregorianCalendar()
+            val greg = getCal()
             val pDate = dateTimeFormatter.parse(date)
+            if (pDate != null)
+                greg.time = pDate
+            return greg
+        }
+
+        fun parseDBDateTime(date: String): GregorianCalendar {
+            val greg = getCal()
+            val pDate = databaseFormatter.parse(date)
             if (pDate != null)
                 greg.time = pDate
             return greg
@@ -205,40 +219,38 @@ class Utils {
                 return "00:00"
             }
 
-            var sign = ""
-            var min = zeit.toInt() % 60
-            var hrs = (zeit.toInt() - min) / 60
+            val sign = ""
+            val min = zeit.toInt() % 60
+            val hrs = (zeit.toInt() - min) / 60
 
+            return getTimeString(hrs, sign, min)
+        }
 
-            if (hrs < 0) {
-                hrs *= -1
-                sign = "-"
+        private fun getTimeString(hrs: Int, sign: String, min: Int): String {
+            var hrs1 = hrs
+            var sign1 = sign
+            var min1 = min
+            if (hrs1 < 0) {
+                hrs1 *= -1
+                sign1 = "-"
             }
-            if (min < 0) {
-                min *= -1
-                sign = "-"
+            if (min1 < 0) {
+                min1 *= -1
+                sign1 = "-"
             }
 
-            return sign + (if (hrs < 10) "0$hrs" else "$hrs") + ":" + (if (min < 10) "0$min" else "$min")
+            return sign1 + (if (hrs1 < 10) "0$hrs1" else "$hrs1") + ":" + (if (min1 < 10) "0$min1" else "$min1")
         }
 
         fun getOffset(offsetInMilliSec: Int): String {
             val sec = offsetInMilliSec / 1000
             val min = sec / 60
-            var minOff = min % 60
-            var hrs = (min - minOff) / 60
+            val minOff = min % 60
+            val hrs = (min - minOff) / 60
 
-            var sign = "+"
-            if (hrs < 0) {
-                hrs *= -1
-                sign = "-"
-            }
-            if (minOff < 0) {
-                minOff *= -1
-                sign = "-"
-            }
+            val sign = "+"
 
-            return sign + (if (hrs < 10) "0$hrs" else "$hrs") + ":" + (if (minOff < 10) "0$minOff" else "$minOff")
+            return getTimeString(hrs, sign, min)
         }
 
         fun showMessage(fragMan: FragmentManager, message: String): MBMessageSheet {
@@ -250,6 +262,36 @@ class Utils {
 
             return sheet
         }
+
+        fun updateLocale() {
+            dayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+            timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+            dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+            dateNameFormatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
+            databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+        }
+
+        private fun secTimer(){
+            if (!handlerThread.isAlive) handlerThread.start()
+            handler?.removeCallbacksAndMessages(null)
+            handler = Handler(handlerThread.looper)
+            var runnable: Runnable? = null
+
+            runnable = Runnable {
+                handler!!.postDelayed(runnable!!, 998L)
+                Log.d("Worker", calendar.time.toString())
+                calendar.add(Calendar.SECOND, 1)
+            }
+            handler!!.postDelayed(runnable, 998L)
+            calendar.add(Calendar.SECOND, 1)
+        }
+
+        fun setCal(cal: GregorianCalendar){
+            calendar.time = cal.time
+            secTimer()
+        }
+
+        fun getCal()= calendar
     }
 
 }
