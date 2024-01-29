@@ -31,6 +31,9 @@ interface ConfigDAO {
     @Update
     suspend fun updateEntity(entities: List<ConfigEntity>) : Int
 
+    @Query("DELETE FROM ConfigEntity")
+    suspend fun deleteAll()
+
     @Query("SELECT COUNT(id) FROM ConfigEntity")
     suspend fun getDataCount(): Int
 }

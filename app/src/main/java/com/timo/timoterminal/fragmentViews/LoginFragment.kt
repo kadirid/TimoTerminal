@@ -21,6 +21,7 @@ import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.CodesArrayAdapter
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import org.koin.android.ext.android.inject
 import java.util.Date
@@ -142,7 +143,7 @@ class LoginFragment : Fragment() {
     }
 
     private fun initButtonListener() {
-        binding.buttonSubmit.setOnClickListener {
+        binding.buttonSubmit.setSafeOnClickListener {
             val lang = binding.dropdownMenuLanguage.text.toString()
             val tz = binding.dropdownMenuTimezone.text.toString()
             //Set language and timezone locally and send it to backend
@@ -156,7 +157,7 @@ class LoginFragment : Fragment() {
             }
         }
 
-        binding.goToInetSettingsButton.setOnClickListener {
+        binding.goToInetSettingsButton.setSafeOnClickListener {
             val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
             startActivity(goToInetSettingsActivity)
         }

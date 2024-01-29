@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.DialogInterface
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -14,6 +15,7 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import androidx.appcompat.app.AlertDialog
 import androidx.core.animation.doOnEnd
+import androidx.core.view.updateMargins
 import androidx.core.widget.doOnTextChanged
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -26,6 +28,8 @@ import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.ProgressBarAnimation
+import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
@@ -49,7 +53,8 @@ class MBSheetFingerprintCardReader(
             userRepository,
             sharedPrefService,
             httpService,
-            bookingService
+            bookingService,
+            languageService
         )
 
     //    lateinit var textView: TextView
@@ -120,13 +125,19 @@ class MBSheetFingerprintCardReader(
 //          viewModel.sendBookingByCard("505650110", this)
 //      }
 
-        binding.keyboardImage.setOnClickListener {
+        binding.keyboardImage.setSafeOnClickListener {
             showVerificationAlert()
         }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = BottomSheetDialog(requireContext())
+        val dialog = BottomSheetDialog(requireContext(), R.style.ThemeOverlay_App_BottomSheetDialog)
+        Utils.hideNavInDialog(dialog)
+
+//        dialog.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+//                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//        dialog.actionBar?.hide()
+
         val contentView = View.inflate(context, R.layout.mb_sheet_fingerprint_card_reader, null)
         dialog.setContentView(contentView)
 
@@ -275,7 +286,7 @@ class MBSheetFingerprintCardReader(
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
         timer.cancel()
 
-        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext(), R.style.MyDialog)
+        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
@@ -306,16 +317,20 @@ class MBSheetFingerprintCardReader(
         dialogBinding.textViewDialogVerificationMessage.text =
             languageService.getText("#EnterCredentials")
         dialog.setOnShowListener {
+            Utils.hideNavInDialog(this.dialog)
             dialogBinding.textInputEditTextVerificationId.isFocusable = true
             dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
             dialogBinding.textInputEditTextVerificationId.transformationMethod = null
             dialogBinding.textInputEditTextVerificationPin.isFocusable = true
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
         }
+        Utils.hideNavInDialog(dialog)
         dialog.setOnDismissListener {
+            Utils.hideNavInDialog(this.dialog)
             alertTimer.cancel()
             timer.start()
         }
+        dialog.onDetachedFromWindow()
         dialog.show()
     }
 
@@ -327,4 +342,15 @@ class MBSheetFingerprintCardReader(
 
     fun getBinding(): MbSheetFingerprintCardReaderBinding = binding
 
+    fun showLoadMask(){
+        activity?.runOnUiThread {
+            binding.sheetLayoutLoadMaks.visibility = View.VISIBLE
+        }
+    }
+
+    fun hideLoadMask(){
+        activity?.runOnUiThread {
+            binding.sheetLayoutLoadMaks.visibility = View.GONE
+        }
+    }
 }

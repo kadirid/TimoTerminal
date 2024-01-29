@@ -175,59 +175,69 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:gravity="center"
-            android:orientation="horizontal"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_rfid"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/square_button_background"
+            android:enabled="false"
+            app:icon="@drawable/smart_card"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="0dp"
+            app:layout_constraintBottom_toTopOf="@id/button_user_load"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/user_info_container" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_fingerprint"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/square_button_background"
+            android:enabled="false"
+            app:icon="@drawable/baseline_fingerprint_24"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="60dp"
+            app:layout_constraintBottom_toTopOf="@id/button_user_load"
+            app:layout_constraintEnd_toStartOf="@id/button_delete_fingerprint"
+            app:layout_constraintStart_toEndOf="@id/button_rfid"
+            app:layout_constraintTop_toBottomOf="@id/user_info_container" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_delete_fingerprint"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/square_button_background"
+            android:enabled="false"
+            app:icon="@drawable/delete_fingerprint_24"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="60dp"
+            app:iconTint="#FF8080"
+            app:layout_constraintBottom_toTopOf="@id/button_user_load"
+            app:layout_constraintEnd_toStartOf="@id/button_pin"
+            app:layout_constraintStart_toEndOf="@id/button_fingerprint"
+            app:layout_constraintTop_toBottomOf="@id/user_info_container" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_pin"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/square_button_background"
+            android:enabled="false"
+            app:icon="@drawable/outline_keyboard_26"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="60dp"
             app:layout_constraintBottom_toTopOf="@id/button_user_load"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/user_info_container">
+            app:layout_constraintTop_toBottomOf="@id/user_info_container" />
 
-            <Button
-                android:id="@+id/button_rfid"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_marginHorizontal="25dp"
-                android:background="@drawable/square_button_background"
-                android:enabled="false"
-                app:icon="@drawable/smart_card"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="0dp" />
-
-            <Button
-                android:id="@+id/button_fingerprint"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_marginHorizontal="25dp"
-                android:background="@drawable/square_button_background"
-                android:enabled="false"
-                app:icon="@drawable/baseline_fingerprint_24"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="60dp" />
-
-            <Button
-                android:id="@+id/button_pin"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_marginHorizontal="25dp"
-                android:background="@drawable/square_button_background"
-                android:enabled="false"
-                app:icon="@drawable/outline_keyboard_26"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="60dp" />
-
-        </LinearLayout>
-
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_user_load"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
             android:text="Load User"
             app:layout_constraintBottom_toBottomOf="@id/layout_form"
             app:layout_constraintEnd_toEndOf="@id/layout_form"

@@ -14,14 +14,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.animation.doOnEnd
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBUserWaitSheetViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
@@ -32,6 +36,7 @@ import org.koin.android.ext.android.inject
 private const val ARG_ID = "id"
 private const val ARG_EDITOR = "editor"
 private const val ARG_IS_FP = "isFP"
+private const val ARG_IS_DELETE = "isDelete"
 
 class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintListener {
 
@@ -39,6 +44,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
     private val userService: UserService by inject()
     private val viewModel = MBUserWaitSheetViewModel(userService)
     private lateinit var binding: MbSheetFingerprintCardReaderBinding
+    private val languageService: LanguageService by inject()
 
     private val templates = mutableListOf<String>()
 
@@ -46,6 +52,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
     private var id: String? = null
     private var editor: String? = null
     private var isFP = false
+    private var isDelete = false
     private var finger = 6
     private var timer: CountDownTimer? = null
     private val timer2 = object : CountDownTimer(5000, 500) {
@@ -63,6 +70,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
             id = it.getString(ARG_ID)
             editor = it.getString(ARG_EDITOR)
             isFP = it.getBoolean(ARG_IS_FP)
+            isDelete = it.getBoolean(ARG_IS_DELETE)
         }
     }
 
@@ -75,91 +83,84 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
 
         setValues()
         setOnClickListeners()
-        if(isFP)
-            showFinger()
+        showFinger()
 
         return binding.root
     }
 
     private fun setOnClickListeners() {
-        if(isFP){
+        if (isFP) {
             image = binding.fingerSelectArrow6
-            binding.fingerSelectArrow0.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 0
+            binding.fingerSelectArrow0.setSafeOnClickListener {
+                processFingerClickListener(it, 0)
+            }
+            binding.fingerSelectArrow1.setSafeOnClickListener {
+                processFingerClickListener(it, 1)
+            }
+            binding.fingerSelectArrow2.setSafeOnClickListener {
+                processFingerClickListener(it, 2)
+            }
+            binding.fingerSelectArrow3.setSafeOnClickListener {
+                processFingerClickListener(it, 3)
+            }
+            binding.fingerSelectArrow4.setSafeOnClickListener {
+                processFingerClickListener(it, 4)
+            }
+            binding.fingerSelectArrow5.setSafeOnClickListener {
+                processFingerClickListener(it, 5)
+            }
+            binding.fingerSelectArrow6.setSafeOnClickListener {
+                processFingerClickListener(it, 6)
+            }
+            binding.fingerSelectArrow7.setSafeOnClickListener {
+                processFingerClickListener(it, 7)
+            }
+            binding.fingerSelectArrow8.setSafeOnClickListener {
+                processFingerClickListener(it, 8)
+            }
+            binding.fingerSelectArrow9.setSafeOnClickListener {
+                processFingerClickListener(it, 9)
+            }
+            if (!isDelete) {
+                animate()
+            }
+        }
+    }
+
+    private fun processFingerClickListener(it: View?, fingerNo: Int) {
+        restartTimer()
+        if ((it as ImageView).imageTintList == null) {
+            image = it
+            finger = fingerNo
+        }
+        if (isDelete) {
+            val dlgAlert: AlertDialog.Builder =
+                AlertDialog.Builder(requireContext(), R.style.MyDialog)
+            dlgAlert.setMessage(languageService.getText("#ReallyDeleteFP"))
+            dlgAlert.setTitle(languageService.getText("#Attention"))
+            dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+            dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
+                showLoadMask()
+                viewModel.delFP(id, fingerNo, this) {
+                    requireActivity().runOnUiThread {
+                        it.imageTintList = null
+                        it.alpha = 0F
+                    }
                 }
             }
-            binding.fingerSelectArrow1.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 1
-                }
+            val dialog = dlgAlert.create()
+            Utils.hideNavInDialog(dialog)
+            dialog.setOnShowListener {
+                val textView = dialog.findViewById<TextView>(android.R.id.message)
+                textView?.textSize = 40f
             }
-            binding.fingerSelectArrow2.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 2
-                }
-            }
-            binding.fingerSelectArrow3.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 3
-                }
-            }
-            binding.fingerSelectArrow4.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 4
-                }
-            }
-            binding.fingerSelectArrow5.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 5
-                }
-            }
-            binding.fingerSelectArrow6.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 6
-                }
-            }
-            binding.fingerSelectArrow7.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 7
-                }
-            }
-            binding.fingerSelectArrow8.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 8
-                }
-            }
-            binding.fingerSelectArrow9.setOnClickListener {
-                restartTimer()
-                if(it.tag == null) {
-                    image = it as ImageView
-                    finger = 9
-                }
-            }
-            animate()
+            dialog.show()
+            dialog.window?.setLayout(680, 324)
         }
     }
 
     private fun setValues() {
-        timer = object: CountDownTimer(if(isFP) 20000 else 10000, 5000) {
+        timer = object : CountDownTimer(if (isFP) 20000 else 10000, 5000) {
             override fun onTick(millisUntilFinished: Long) {
             }
 
@@ -178,12 +179,59 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
         if (isFP) {
             binding.cardImage.visibility = View.GONE
             binding.fingerSelectContainer.visibility = View.VISIBLE
+            checkForFP()
         } else {
             binding.fingerprintImage.visibility = View.GONE
         }
     }
 
-    private fun animate(){
+    private fun checkForFP() {
+        val color = activity?.resources?.getColorStateList(R.color.green, null)
+        if (color != null) {
+            FingerprintService.getTemplate("$id|0")?.let {
+                binding.fingerSelectArrow0.imageTintList = color
+                binding.fingerSelectArrow0.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|1")?.let {
+                binding.fingerSelectArrow1.imageTintList = color
+                binding.fingerSelectArrow1.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|2")?.let {
+                binding.fingerSelectArrow2.imageTintList = color
+                binding.fingerSelectArrow2.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|3")?.let {
+                binding.fingerSelectArrow3.imageTintList = color
+                binding.fingerSelectArrow3.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|4")?.let {
+                binding.fingerSelectArrow4.imageTintList = color
+                binding.fingerSelectArrow4.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|5")?.let {
+                binding.fingerSelectArrow5.imageTintList = color
+                binding.fingerSelectArrow5.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|6")?.let {
+                binding.fingerSelectArrow6.imageTintList = color
+                binding.fingerSelectArrow6.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|7")?.let {
+                binding.fingerSelectArrow7.imageTintList = color
+                binding.fingerSelectArrow7.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|8")?.let {
+                binding.fingerSelectArrow8.imageTintList = color
+                binding.fingerSelectArrow8.alpha = 1F
+            }
+            FingerprintService.getTemplate("$id|9")?.let {
+                binding.fingerSelectArrow9.imageTintList = color
+                binding.fingerSelectArrow9.alpha = 1F
+            }
+        }
+    }
+
+    private fun animate() {
         val old = image
         image.animate()
             .alpha(1F)
@@ -197,9 +245,10 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
                             override fun onAnimationEnd(animation: Animator) {
                                 super.onAnimationEnd(animation)
 
-                                if(old.tag == null) {
+
+                                if (old.imageTintList == null) {
                                     old.alpha = 0F
-                                }else{
+                                } else {
                                     old.alpha = 1F
                                 }
                                 animate()
@@ -231,6 +280,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = BottomSheetDialog(requireContext())
+        Utils.hideNavInDialog(dialog)
         val contentView = View.inflate(context, R.layout.mb_sheet_fingerprint_card_reader, null)
         dialog.setContentView(contentView)
 
@@ -246,10 +296,10 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
         width: Int,
         height: Int
     ) {
-        if (isFP) {
+        if (isFP && !isDelete) {
             restartTimer()
 
-            if(!id.isNullOrEmpty() && finger != -1) {
+            if (!id.isNullOrEmpty() && finger != -1) {
                 val enrollingKey = "$id|$finger"
 
                 processEnroll(enrollingKey, template)
@@ -294,27 +344,27 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
             // This function returns the merged template, which is the template saved by the FP algorithm.
             FingerprintService.enroll(enrollingKey, templates).run {
                 Log.d(javaClass.simpleName, "Enrolled template $this")
-                // ToDo("Save 'this' as template for fingerprint in db and server to be able to share it to different terminal")
-//                httpOKService.post("http://192.168.0.45/timo_prd/services/rest/iclock/testFP", mapOf(Pair("fp", this)),{},{})
+                showLoadMask()
+                viewModel.saveFP(id, finger, this, this@MBUserWaitSheet) {
+                    requireActivity().runOnUiThread {
+                        val color = activity?.resources?.getColorStateList(R.color.green, null)
+                        if (color != null)
+                            image.imageTintList = color
+                    }
+
+                    showMsg("A new fingerprint has been enrolled")
+                }
             }
 
             templates.clear()
             enrollCount = 0
             finger = -1
-
-            image.tag = "Done"
-            val color = activity?.resources?.getColorStateList(R.color.green, null)
-            if (color != null)
-                image.imageTintList = color
-
-            showMsg("A new fingerprint has been enrolled")
         }
     }
 
     override fun onRfidRead(rfidInfo: String) {
         if (!isFP) {
             timer?.cancel()
-            (activity as MainActivity?)?.restartTimer()
             val rfidCode = rfidInfo.toLongOrNull(16)
             if (rfidCode != null) {
                 var oct = rfidCode.toString(8)
@@ -326,6 +376,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
                 paramMap["id"] = id.toString()
                 paramMap["editor"] = editor.toString()
                 paramMap["card"] = oct
+                showLoadMask()
                 viewModel.updateUser(paramMap, this)
             }
         }
@@ -339,7 +390,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
             activity?.runOnUiThread {
                 val valueAnimator = ValueAnimator.ofInt(
                     binding.scanBottomSheet.measuredHeight,
-                    binding.scanBottomSheet.measuredHeight + 300
+                    binding.scanBottomSheet.measuredHeight + if (isFP) 300 else 30
                 )
                 valueAnimator.duration = 500L
                 valueAnimator.addUpdateListener {
@@ -357,8 +408,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
         super.onDismiss(dialog)
         RfidService.unregister()
         FingerprintService.unregister()
-        if(isFP)
-            (activity as MainActivity?)?.restartTimer()
+        (activity as MainActivity?)?.restartTimer()
     }
 
     fun afterUpdate(success: Boolean, message: String) {
@@ -392,18 +442,35 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
 
     companion object {
         const val TAG = "MBUserWaitSheet"
-        fun newInstance(id: String?, editor: String?, isFP: Boolean) =
+        fun newInstance(id: String?, editor: String?, isFP: Boolean, isDelete: Boolean = false) =
             MBUserWaitSheet().apply {
                 arguments = Bundle().apply {
                     putString(ARG_ID, id)
                     putString(ARG_EDITOR, editor)
                     putBoolean(ARG_IS_FP, isFP)
+                    putBoolean(ARG_IS_DELETE, isDelete)
                 }
             }
 
     }
 
-    private fun showMsg(text:String){
-        Utils.showMessage(parentFragmentManager, text)
+    private fun showMsg(text: String) {
+        requireActivity().runOnUiThread {
+            Utils.showMessage(parentFragmentManager, text)
+        }
+    }
+
+    private fun showLoadMask() {
+        timer?.cancel()
+        activity?.runOnUiThread {
+            binding.sheetLayoutLoadMaks.visibility = View.VISIBLE
+        }
+    }
+
+    fun hideLoadMask() {
+        activity?.runOnUiThread {
+            binding.sheetLayoutLoadMaks.visibility = View.GONE
+        }
+        timer?.start()
     }
 }

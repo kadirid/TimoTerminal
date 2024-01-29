@@ -75,6 +75,8 @@
     <color name="go_pastell">#f6c2c2</color>
     <color name="error_booking">#FBEBBD</color>
     <color name="green">#00FF00</color>
+    <color name="red">#FF0000</color>
+    <color name="greyed_out_background">#636564</color>
     <dimen name="navigationRailIconSize">32dp</dimen>
 
 </resources>

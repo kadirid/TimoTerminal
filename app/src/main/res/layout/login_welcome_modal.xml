@@ -37,7 +37,7 @@
             android:layout_marginTop="40dp"
             android:text="@string/wilkommen_bei_timo" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/iconButton"
             style="?attr/materialIconButtonFilledStyle"
             app:layout_constraintEnd_toEndOf="parent"

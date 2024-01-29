@@ -1,11 +1,14 @@
 package com.timo.timoterminal.activities
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
@@ -29,6 +32,7 @@ import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
@@ -144,12 +148,13 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         unregisterReceiver(networkChangeReceiver)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun clickListeners() {
-        binding.buttonSettings.setOnClickListener {
+        binding.buttonSettings.setSafeOnClickListener {
             showVerificationAlert()
         }
         // to kill heart beat worker and clear some of the db data
-        binding.imageViewLogo.setOnClickListener {
+        binding.imageViewLogo.setSafeOnClickListener {
             if (BuildConfig.DEBUG)
                 mainActivityViewModel.killHeartBeatWorkers(application)
         }
@@ -163,7 +168,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                 projectPermission == "true" && false// currently no functionality
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
-            binding.navigationRail.menu.findItem(R.id.attendance)
+            binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
                 attendancePermission == "true"
         }
 
@@ -245,7 +250,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         FingerprintService.setListener(this)
         FingerprintService.register()
 
-        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MyDialog)
+        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
@@ -254,7 +259,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             if (login.isNotEmpty() && pin.isNotEmpty()) {
                 mainActivityViewModel.viewModelScope.launch {
                     val user = mainActivityViewModel.getUserForLogin(login)
-                    if (user != null && user.pin == pin) {
+                    if (user != null && user.pin == pin && user.seeMenu) {
                         supportFragmentManager.commit {
                             replace(
                                 R.id.fragment_container_view,
@@ -263,13 +268,14 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                         }
                         restartTimer()
                     } else {
-                        Utils.showMessage(supportFragmentManager, "Verification failed")
+                        Utils.showMessage(supportFragmentManager, languageService.getText("#VerificationFailed"))
                     }
                 }
             }
         }
 
         dialog = dlgAlert.create()
+        Utils.hideNavInDialog(dialog)
         val alertTimer = object : CountDownTimer(10000, 500) {
             override fun onTick(millisUntilFinished: Long) {}
 
@@ -372,7 +378,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     fun showSettings(user: UserEntity?) {
         dialog?.dismiss()
-        if (user != null) {
+        if (user != null && user.seeMenu) {
             supportFragmentManager.commit {
                 replace(
                     R.id.fragment_container_view,
@@ -381,7 +387,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             }
             restartTimer()
         } else {
-            Utils.showMessage(supportFragmentManager, "Verification failed")
+            Utils.showMessage(supportFragmentManager, languageService.getText("#VerificationFailed"))
         }
     }
 
@@ -391,5 +397,19 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     fun getViewModel(): MainActivityViewModel {
         return mainActivityViewModel
+    }
+
+    fun showLoadMask(){
+        cancelTimer()
+        runOnUiThread {
+            binding.layoutLoadMaks.visibility = View.VISIBLE
+        }
+    }
+
+    fun hideLoadMask(){
+        restartTimer()
+        runOnUiThread {
+            binding.layoutLoadMaks.visibility = View.GONE
+        }
     }
 }

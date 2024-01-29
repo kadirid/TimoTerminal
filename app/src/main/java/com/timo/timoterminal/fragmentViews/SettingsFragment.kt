@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -16,6 +17,8 @@ import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentSettingsBinding
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.SettingsFragmentViewModel
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import org.koin.android.ext.android.inject
@@ -51,61 +54,102 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setText() {
-        binding.buttonUserSetting.text = languageService.getText("ALLGEMEIN#UserSettings")
-        binding.buttonDevOps.text = languageService.getText("#DevOps")
+        binding.buttonUserSetting.text = languageService.getText("TERMINAL#UserSettings")
+        binding.buttonActualizeTerminal.text = languageService.getText("#Mark terminal for update")
+        binding.buttonResetTerminal.text = languageService.getText("#ResetTerminal")
         binding.buttonEthernet.text = languageService.getText("#EthernetSettings")
         binding.buttonMobileNetwork.text = languageService.getText("#MobileNetworkSettings")
         binding.buttonWifi.text = languageService.getText("#WifiSettings")
         binding.buttonLauncher.text = languageService.getText("#Launcher")
         binding.buttonReboot.text = languageService.getText("#RebootTerminal")
-        binding.buttonTerminalBooking.text = languageService.getText("#Booking list")
+        binding.buttonTerminalBooking.text = languageService.getText("TERMINAL#Booking list")
+        binding.buttonLogout.text = languageService.getText("#RenewLogin")
     }
 
     private fun setupOnClickListeners() {
         binding.fragmentSettingRootLayout.setOnClickListener {
             (activity as MainActivity?)?.restartTimer()
         }
-        binding.buttonUserSetting.setOnClickListener {
+        binding.buttonUserSetting.setSafeOnClickListener {
             (activity as MainActivity?)?.restartTimer()
             parentFragmentManager.commit {
                 replace(R.id.fragment_container_view, UserSettingsFragment.newInstance(userId))
             }
         }
-        binding.buttonReboot.setOnClickListener {
+        binding.buttonReboot.setSafeOnClickListener {
             requireActivity().sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
         }
-        binding.buttonLogout.setOnClickListener {
-            viewModel.logout(requireContext())
+        binding.buttonLogout.visibility = if (userId < 0) View.VISIBLE else View.GONE
+        if (userId == -2L) {
+            val param = binding.buttonLogout.layoutParams as ViewGroup.MarginLayoutParams
+            param.setMargins(20, 20, 0, 0)
+            binding.buttonLogout.layoutParams = param
         }
-        binding.buttonTerminalBooking.visibility = if(userId<0) View.VISIBLE else View.GONE
-        binding.buttonTerminalBooking.setOnClickListener {
+        binding.buttonLogout.setSafeOnClickListener {
+            (activity as MainActivity?)?.restartTimer()
+            val dlgAlert: AlertDialog.Builder =
+                AlertDialog.Builder(requireContext(), R.style.MyDialog)
+            dlgAlert.setMessage(languageService.getText("#LogoutOfTimOSystem"))
+            dlgAlert.setTitle(languageService.getText("#Attention"))
+            dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+            dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
+                viewModel.logout(requireContext())
+            }
+            val dialog = dlgAlert.create()
+            Utils.hideNavInDialog(dialog)
+            dialog.setOnShowListener {
+                val textView = dialog.findViewById<TextView>(android.R.id.message)
+                textView?.textSize = 40f
+            }
+            dialog.show()
+            dialog.window?.setLayout(680,324)
+        }
+        binding.buttonTerminalBooking.setSafeOnClickListener {
             (activity as MainActivity?)?.restartTimer()
             parentFragmentManager.commit {
                 replace(R.id.fragment_container_view, BookingListFragment())
             }
         }
-        binding.buttonWifi.visibility = if(userId<0) View.VISIBLE else View.GONE
-        binding.buttonWifi.setOnClickListener {
+        binding.buttonWifi.visibility = if (userId < 0) View.VISIBLE else View.GONE
+        binding.buttonWifi.setSafeOnClickListener {
             val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
             startActivity(intent)
         }
-        binding.buttonMobileNetwork.visibility = if(userId<0) View.VISIBLE else View.GONE
-        binding.buttonMobileNetwork.setOnClickListener {
+        binding.buttonMobileNetwork.visibility = if (userId < 0) View.VISIBLE else View.GONE
+        binding.buttonMobileNetwork.setSafeOnClickListener {
             val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
             startActivity(intent)
         }
-        binding.buttonEthernet.visibility = if(userId<0) View.VISIBLE else View.GONE
-        binding.buttonEthernet.setOnClickListener {
+        binding.buttonEthernet.visibility = if (userId < 0) View.VISIBLE else View.GONE
+        binding.buttonEthernet.setSafeOnClickListener {
             hardwareSource.openAndroidEthernetSettings()
         }
-        binding.buttonDevOps.visibility = if(userId==-2L) View.VISIBLE else View.GONE
-        binding.buttonDevOps.setOnClickListener {
-            val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
-            startActivity(intent)
+        binding.buttonActualizeTerminal.setSafeOnClickListener {
+            viewModel.actualizeTerminal(requireContext())
+        }
+        binding.buttonResetTerminal.visibility = if (userId < 0) View.VISIBLE else View.GONE
+        binding.buttonResetTerminal.setSafeOnClickListener {
+            (activity as MainActivity?)?.restartTimer()
+            val dlgAlert: AlertDialog.Builder =
+                AlertDialog.Builder(requireContext(), R.style.MyDialog)
+            dlgAlert.setMessage(languageService.getText("#DeleteDataResetTerminal"))
+            dlgAlert.setTitle(languageService.getText("#Attention"))
+            dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+            dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
+                viewModel.resetTerminal(requireContext())
+            }
+            val dialog = dlgAlert.create()
+            Utils.hideNavInDialog(dialog)
+            dialog.setOnShowListener {
+                val textView = dialog.findViewById<TextView>(android.R.id.message)
+                textView?.textSize = 40f
+            }
+            dialog.show()
+            dialog.window?.setLayout(680,417)
         }
         //to get to launcher settings you need to enter TimoTimo1 as password
-        binding.buttonLauncher.visibility = if(userId==-2L) View.VISIBLE else View.GONE
-        binding.buttonLauncher.setOnClickListener {
+        binding.buttonLauncher.visibility = if (userId == -2L) View.VISIBLE else View.GONE
+        binding.buttonLauncher.setSafeOnClickListener {
             (activity as MainActivity?)?.restartTimer()
             val passCodeEditText = EditText(requireContext())
             passCodeEditText.isFocusableInTouchMode = false
@@ -122,7 +166,8 @@ class SettingsFragment : Fragment() {
                 }
             }
             val dialog = dlgAlert.create()
-            passCodeEditText.doOnTextChanged {  _, _, _, _ ->
+            Utils.hideNavInDialog(dialog)
+            passCodeEditText.doOnTextChanged { _, _, _, _ ->
                 (activity as MainActivity?)?.restartTimer()
             }
             dialog.setView(passCodeEditText, 20, 0, 20, 0)

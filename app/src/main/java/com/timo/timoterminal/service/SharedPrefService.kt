@@ -16,7 +16,7 @@ import java.util.UUID
 // DO NOT USE context.sharedPreferences, this way we it is difficult to detect what keys are used or not
 class SharedPrefService(context: Context) : KoinComponent {
 
-    public var sharedPreferences: SharedPreferences =
+    private var sharedPreferences: SharedPreferences =
         context.getSharedPreferences(Constants.SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE)
 
     fun getEditor(): SharedPreferences.Editor {
@@ -66,8 +66,7 @@ class SharedPrefService(context: Context) : KoinComponent {
         url: String,
         company: String,
         username: String,
-        password: String,
-        language: String
+        password: String
     ) {
         val editor = getEditor()
         editor.putString(SharedPreferenceKeys.DEVICE_UUID.name, terminalUUID);
@@ -77,7 +76,6 @@ class SharedPrefService(context: Context) : KoinComponent {
         editor.putString(SharedPreferenceKeys.SERVER_URL.name, url)
         editor.putString(SharedPreferenceKeys.USER.name, String(Utils.sha256(username)))
         editor.putString(SharedPreferenceKeys.PASSWORD.name, String(Utils.sha256(password)))
-        editor.putString(SharedPreferenceKeys.LANGUAGE.name, language)
         editor.apply()
     }
 

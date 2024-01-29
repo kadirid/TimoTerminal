@@ -9,7 +9,7 @@
     <string name="timo_logo">TimO Logo</string>
     <string name="fingerprint">Fingerabdruck</string>
     <string name="rfidcard">RFID-Karte</string>
-    <string name="wait_for_ident">Warte auf Identifizierung ...</string>
+    <string name="wait_for_ident">Warte auf Identifizierung …</string>
     <string name="choose_worker">Mitarbeiter auswählen</string>
     <string name="error">Fehler</string>
     <string name="unknown_error">Unbekannter Fehler</string>
@@ -28,5 +28,5 @@
     <string name="wifi_settings">WLAN Einstellungen</string>
     <string name="retry">Erneut versuchen</string>
     <string name="user_passcode">Benutzer Pin</string>
-    <string name="timo_login_name">TimO Loginname</string>
+    <string name="timo_login_name">Loginname</string>
 </resources>

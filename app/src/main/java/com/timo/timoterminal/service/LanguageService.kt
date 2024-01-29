@@ -85,4 +85,9 @@ class LanguageService(
         return ""
     }
 
+    fun deleteAll(scope: CoroutineScope){
+        scope.launch {
+            languageRepository.deleteAll()
+        }
+    }
 }

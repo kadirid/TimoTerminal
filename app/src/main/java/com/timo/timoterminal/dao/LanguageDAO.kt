@@ -27,6 +27,9 @@ interface LanguageDAO {
     @Delete
     suspend fun delete(entity: LanguageEntity)
 
+    @Query("DELETE FROM LanguageEntity")
+    suspend fun deleteAll()
+
     @Update
     suspend fun updateEntity(entities: List<LanguageEntity>) : Int
 }

@@ -21,4 +21,6 @@ class LanguageRepository(private val languageDAO: LanguageDAO) {
 
     suspend fun delete(entity: LanguageEntity) = languageDAO.delete(entity)
 
+    suspend fun deleteAll() = languageDAO.deleteAll()
+
 }

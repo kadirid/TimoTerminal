@@ -101,22 +101,22 @@ var appModule = module {
     single { BookingBURepository(get()) }
 
     single { HttpService() }
+    single { SharedPrefService(androidContext()) }
+    single { LanguageService(get(), get(), get()) }
     single { WebSocketService() }
     single { WorkerService(get()) }
-    single { LoginService(get(), get(), get(), get(), get(), get(), get()) }
-    single { UserService(get(), get(), get()) }
-    single { SharedPrefService(androidContext()) }
+    single { UserService(get(), get(), get(), get()) }
     single { SettingsService(get(), get()) }
     single { PropertyService(androidContext()) }
-    single { LanguageService(get(), get(), get())}
     single { BookingService(get(), get(), get(), get()) }
+    single { LoginService(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 
     viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
     viewModel { AttendanceFragmentViewModel(get(), get()) }
-    viewModel { SettingsFragmentViewModel(get()) }
+    viewModel { SettingsFragmentViewModel(get(), get()) }
 
     worker(named<HeartbeatWorker>()) {
         HeartbeatWorker(

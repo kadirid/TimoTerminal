@@ -9,6 +9,6 @@ import com.timo.timoterminal.entityClasses.DemoEntity
 abstract class DemoDatabase  : RoomDatabase (){
     abstract fun demoDao() : DemoDAO
 
-    //The database is initalized in the appModule.kt
+    //The database is initialized in the appModule.kt
 
 }

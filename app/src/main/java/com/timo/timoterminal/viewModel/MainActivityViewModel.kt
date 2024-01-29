@@ -71,7 +71,9 @@ class MainActivityViewModel(
                     "123456789",
                     permission("terminal.zkteco.android.admin.pin"),
                     login,
-                    1L
+                    1L,
+                    seeMenu = true,
+                    assignedToTerminal = true
                 )
             } else if (login == "admin:2004") {
                 return UserEntity(
@@ -81,7 +83,9 @@ class MainActivityViewModel(
                     "987654321",
                     permission("terminal.zkteco.android.support.admin.pin"),
                     login,
-                    1L
+                    1L,
+                    seeMenu = true,
+                    assignedToTerminal = true
                 )
             }
         }

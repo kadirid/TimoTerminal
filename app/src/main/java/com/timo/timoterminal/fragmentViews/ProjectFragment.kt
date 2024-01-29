@@ -1,11 +1,10 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.timo.timoterminal.R
+import androidx.fragment.app.Fragment
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentProjectBinding
 
@@ -37,7 +36,7 @@ class ProjectFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentProjectBinding.inflate(inflater, container, false)
 
         binding.fragmentProjectRootLayout.setOnClickListener {

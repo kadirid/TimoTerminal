@@ -4,9 +4,9 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
-import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityNoInternetNetworkSettingsBinding
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import org.koin.android.ext.android.inject
 
@@ -26,17 +26,17 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
     }
 
     private fun setupOnClickListeners() {
-        binding.buttonRetry.setOnClickListener {
+        binding.buttonRetry.setSafeOnClickListener {
             finish()
         }
-        binding.buttonEthernet.setOnClickListener {
+        binding.buttonEthernet.setSafeOnClickListener {
             hardwareSource.openAndroidEthernetSettings()
         }
-        binding.buttonMobileNetwork.setOnClickListener {
+        binding.buttonMobileNetwork.setSafeOnClickListener {
             val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
             startActivity(intent)
         }
-        binding.buttonWifi.setOnClickListener {
+        binding.buttonWifi.setSafeOnClickListener {
             val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
             startActivity(intent)
         }

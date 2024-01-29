@@ -10,6 +10,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.MbMessageSheetBinding
+import com.timo.timoterminal.utils.Utils
 
 class MBMessageSheet : BottomSheetDialogFragment() {
     private lateinit var binding: MbMessageSheetBinding
@@ -44,6 +45,7 @@ class MBMessageSheet : BottomSheetDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = BottomSheetDialog(requireContext())
+        Utils.hideNavInDialog(dialog)
         val contentView = View.inflate(context, R.layout.mb_message_sheet, null)
         dialog.setContentView(contentView)
 

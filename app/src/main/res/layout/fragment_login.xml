@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:layout_height="match_parent"
     tools:context=".fragmentViews.LoginFragment">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/go_to_inet_settings_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="20dp"
+        android:layout_marginBottom="60dp"
         android:src="@drawable/baseline_wifi_24"
-        android:layout_marginBottom="60dp"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_submit"
         android:layout_width="400dp"
         android:layout_height="100dp"
@@ -35,10 +34,12 @@
         android:layout_width="500dp"
         android:layout_height="48dp"
         android:hint="local Url"
-        tools:visibility="gone"
+        android:inputType="textUri"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Has to be removed later to use as url for local test" />
+        tools:text="Has to be removed later to use as url for local test"
+        tools:visibility="gone"
+        android:autofillHints="" />
 
     <LinearLayout
         android:id="@+id/linear_input_container"
@@ -66,7 +67,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:inputType="text"
-                android:textSize="40dp" />
+                android:textSize="40sp" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -85,7 +86,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:inputType="text"
-                android:textSize="40dp" />
+                android:textSize="40sp" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -105,7 +106,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:inputType="textPassword"
-                android:textSize="40dp" />
+                android:textSize="40sp" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -124,8 +125,8 @@
                 android:id="@+id/dropdown_menu_language"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:inputType="none"
                 android:imeOptions="actionDone"
+                android:inputType="none"
 
                 android:textSize="40sp" />
 
@@ -146,8 +147,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:dropDownWidth="800dp"
-                android:inputType="text"
                 android:imeOptions="actionDone"
+                android:inputType="text"
                 android:textSize="40sp" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -161,10 +162,10 @@
         android:layout_marginTop="15dp"
         android:orientation="vertical"
         android:visibility="gone"
-        tools:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible">
 
         <TextView
             android:layout_width="wrap_content"

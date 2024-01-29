@@ -85,4 +85,11 @@ class BookingService (
             }
         }
     }
+
+    fun deleteAll(scope: CoroutineScope){
+        scope.launch {
+            bookingRepository.deleteAll()
+            bookingBURepository.deleteAll()
+        }
+    }
 }

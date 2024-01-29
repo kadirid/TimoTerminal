@@ -52,4 +52,6 @@ class ConfigRepository(private val configDao: ConfigDAO){
     suspend fun getItemCount() : Int {
         return configDao.getDataCount()
     }
+
+    suspend fun deleteAll() = configDao.deleteAll()
 }

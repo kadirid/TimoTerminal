@@ -92,6 +92,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = BottomSheetDialog(requireContext())
+        Utils.hideNavInDialog(dialog)
         val contentView = View.inflate(context, R.layout.fragment_info_message_sheet_item, null)
         dialog.setContentView(contentView)
 

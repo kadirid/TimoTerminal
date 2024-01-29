@@ -19,6 +19,7 @@ import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
@@ -36,7 +37,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     private val httpService: HttpService by inject()
     private val languageService: LanguageService by inject()
     private var viewModel: InfoFragmentViewModel =
-        InfoFragmentViewModel(userRepository, sharedPrefService, httpService)
+        InfoFragmentViewModel(userRepository, sharedPrefService, httpService, languageService)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -86,7 +87,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
 
     private fun setUpOnClickListeners() {
 
-        binding.keyboardImage.setOnClickListener {
+        binding.keyboardImage.setSafeOnClickListener {
             (activity as MainActivity?)?.restartTimer()
             showVerificationAlert()
         }
@@ -111,6 +112,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)
+            (activity as MainActivity?)?.showLoadMask()
             viewModel.loadUserInfoById(this.substring(0, this.length-2), this@InfoFragment)
         }
     }
@@ -123,6 +125,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
                 oct = "0$oct"
             }
             oct = oct.reversed()
+            (activity as MainActivity?)?.showLoadMask()
             viewModel.loadUserInfoByCard(oct, this)
         }
     }
@@ -130,7 +133,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
 
-        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext(), R.style.MyDialog)
+        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
@@ -138,11 +141,13 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (login.isNotEmpty() && pin.isNotEmpty()) {
+                (activity as MainActivity?)?.showLoadMask()
                 viewModel.loadUserInfoByLoginAndPin(login, pin, this)
             }
         }
 
         val dialog = dlgAlert.create()
+        Utils.hideNavInDialog(dialog)
         val alertTimer = object : CountDownTimer(10000, 500) {
             override fun onTick(millisUntilFinished: Long) {}
 

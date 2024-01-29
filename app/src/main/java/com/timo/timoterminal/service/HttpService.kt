@@ -2,11 +2,13 @@ package com.timo.timoterminal.service
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import android.util.Log
+import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.timo.timoterminal.R
@@ -47,6 +49,7 @@ class HttpService() : KoinComponent {
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(false)
         .build()
 
     private fun getCompany(): String? {
@@ -106,17 +109,30 @@ class HttpService() : KoinComponent {
             response: Response?,
             context: Context?,
             output: ResponseToJSON?
+        ) = handleGenericRequestError(e, response, context, output, null)
+
+        fun handleGenericRequestError(
+            e: Exception?,
+            response: Response?,
+            context: Context?,
+            output: ResponseToJSON?,
+            msg: String?
         ) {
             //If the context is null, we cannot show a dialogue
-            if (context != null && response != null) {
+            if (context != null) {
                 Handler(Looper.getMainLooper()).post {
-                    val dialog = MaterialAlertDialogBuilder(context)
+                    val dialog = MaterialAlertDialogBuilder(context, R.style.MyDialog)
                     dialog.setTitle(context.getString(R.string.error))
-                    dialog.setIcon(context.getDrawable(R.drawable.baseline_error_24))
+                    dialog.setIcon(
+                        AppCompatResources.getDrawable(
+                            context,
+                            R.drawable.baseline_error_24
+                        )
+                    )
                     //If you are running the app on debug mode, the url will appear next to the error message
                     val debugAttachString =
-                        if (BuildConfig.DEBUG) "\n${response.request.url}" else ""
-                    if (output != null) {
+                        if (BuildConfig.DEBUG && response != null) "\n${response.request.url}" else ""
+                    if (output != null && response != null) {
                         if (output.obj != null) {
                             val message = output.obj.getString("message")
                             dialog.setMessage(message + debugAttachString)
@@ -126,7 +142,9 @@ class HttpService() : KoinComponent {
                             dialog.setMessage("${response.code}: ${output.string}" + debugAttachString)
                         }
                     } else {
-                        if (e != null) {
+                        if (msg != null) {
+                            dialog.setMessage(msg)
+                        } else if (e != null) {
                             dialog.setMessage(e.message)
                         } else {
                             dialog.setMessage(context.getString(R.string.unknown_error) + debugAttachString)
@@ -135,7 +153,13 @@ class HttpService() : KoinComponent {
                     dialog.setPositiveButton("OK") { dia, _ ->
                         dia.dismiss()
                     }
-                    dialog.show()
+                    val dia = dialog.create()
+                    Utils.hideNavInDialog(dia)
+                    dia.setOnShowListener {
+                        val textView = dia.findViewById<TextView>(android.R.id.message)
+                        textView?.textSize = 40f
+                    }
+                    dia.show()
                 }
             }
         }
@@ -174,16 +198,9 @@ class HttpService() : KoinComponent {
                         Pair("token", token)
                     ),
                     null,
-                    { obj, arr, msg ->
+                    { obj, _, _ ->
                         if (obj != null) {
                             handelHeartBeatResponse(obj, activity)
-                            Log.d("WORKER", "doWork: HI Handler OBJ")
-                        }
-                        if (arr != null) {
-                            Log.d("WORKER", "doWork: HI Handler ARR")
-                        }
-                        if (msg != null) {
-                            Log.d("WORKER", "doWork: HI Handler MSG")
                         }
                     }
                 )
@@ -316,7 +333,6 @@ class HttpService() : KoinComponent {
             Utils.updateLocale()
         }
         val tTime = Utils.parseDBDateTime(obj.getString("time"))
-        Log.d("WORKER", tTime.time.toString())
         Utils.setCal(tTime)
         if (!obj.isNull("loadUsers") && obj.getBoolean("loadUsers")) {
             userService.loadUserFromServer(activity.getViewModel().viewModelScope)
@@ -332,6 +348,9 @@ class HttpService() : KoinComponent {
                 activity.getViewModel().viewModelScope,
                 activity
             )
+        }
+        if (!obj.isNull("rebootTerminal") && obj.getBoolean("rebootTerminal")) {
+            activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
         }
         activity.getViewModel().viewModelScope.launch {
             bookingService.sendSavedBooking(activity.getViewModel().viewModelScope)

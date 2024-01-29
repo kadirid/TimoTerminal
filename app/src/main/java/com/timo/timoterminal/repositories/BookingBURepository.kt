@@ -20,4 +20,6 @@ class BookingBURepository(private val bookingBUDAO: BookingBUDAO) {
     suspend fun setIsSend(id: Long) : Int = bookingBUDAO.setIsSend(id, true)
 
     suspend fun deleteOldBUBookings() = bookingBUDAO.deleteOldBUBookings()
+
+    suspend fun deleteAll() = bookingBUDAO.deleteAll()
 }

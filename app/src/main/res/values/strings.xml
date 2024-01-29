@@ -8,7 +8,7 @@
     <string name="timo_logo">TimO Logo</string>
     <string name="fingerprint">Fingerprint</string>
     <string name="rfidcard">RFID-Card</string>
-    <string name="wait_for_ident">Waiting for identification ...</string>
+    <string name="wait_for_ident">Waiting for identification …</string>
     <string name="choose_worker">Choose an employee</string>
     <string name="error">Error</string>
     <string name="unknown_error">Unknown Error</string>
@@ -28,5 +28,5 @@
     <string name="wifi_settings">Wifi Settings</string>
     <string name="retry">Retry</string>
     <string name="user_passcode">Pin Code</string>
-    <string name="timo_login_name">TimO Login Name</string>
+    <string name="timo_login_name">Login Name</string>
 </resources>

@@ -19,14 +19,24 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/text_view_rfid"
+        android:id="@+id/text_view_Information"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="25sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/info_drag_handle"
-        tools:text="RFID: 550650110" />
+        tools:text="Platzhalter Text" />
+
+    <TextView
+        android:id="@+id/text_view_rfid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_view_Information"
+        tools:text="RFID: 550650110 Herr Jonas Bördner" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_linear_time_information"
@@ -136,25 +146,29 @@
                 android:id="@+id/textview_vacation_entitlement"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="25sp" />
+                android:textSize="25sp"
+                tools:text="1" />
 
             <TextView
                 android:id="@+id/textview_vacation_taken"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="25sp" />
+                android:textSize="25sp"
+                tools:text="2"/>
 
             <TextView
                 android:id="@+id/textview_vacation_requested"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="25sp" />
+                android:textSize="25sp"
+                tools:text="3" />
 
             <TextView
                 android:id="@+id/textview_vacation_remaining"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="25sp" />
+                android:textSize="25sp"
+                tools:text="4" />
 
         </LinearLayout>
 

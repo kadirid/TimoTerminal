@@ -10,28 +10,28 @@
     tools:context=".fragmentViews.AttendanceFragment">
 
     <!--
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_test_kommen"
         android:layout_width="400dp"
         android:layout_height="48dp"
         android:text="Kommen"
         android:visibility="invisible"/>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_test_gehen"
         android:layout_width="400dp"
         android:layout_height="48dp"
         android:text="Gehen"
         android:visibility="invisible"/>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_test_pause_anfang"
         android:layout_width="400dp"
         android:layout_height="48dp"
         android:text="Pause Anfang"
         android:visibility="invisible"/>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_test_pause_ende"
         android:layout_width="400dp"
         android:layout_height="48dp"
@@ -114,7 +114,7 @@
         android:paddingVertical="15dp">
 
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_kommen"
             android:layout_width="115dp"
             android:layout_height="115dp"
@@ -129,7 +129,7 @@
             app:layout_constraintTop_toTopOf="parent"  />
 
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_pause_anfang"
             android:layout_width="115dp"
             android:layout_height="115dp"
@@ -143,7 +143,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_gehen"
             android:layout_width="115dp"
             android:layout_height="115dp"

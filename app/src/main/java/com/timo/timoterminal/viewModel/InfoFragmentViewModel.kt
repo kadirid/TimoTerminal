@@ -14,6 +14,7 @@ import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.modalBottomSheets.MBFragmentInfoSheet
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +25,8 @@ import kotlinx.coroutines.withContext
 class InfoFragmentViewModel(
     private val userRepository: UserRepository,
     private val sharedPrefService: SharedPrefService,
-    private val httpService: HttpService
+    private val httpService: HttpService,
+    private val languageService: LanguageService
 ) : ViewModel() {
 
     private lateinit var sheet: MBFragmentInfoSheet
@@ -101,6 +103,7 @@ class InfoFragmentViewModel(
                 loadUserInformation(user, fragment)
             } else {
                 fragment.showCard(card)
+                (fragment.activity as MainActivity?)?.hideLoadMask()
             }
         }
     }
@@ -131,7 +134,7 @@ class InfoFragmentViewModel(
                         Pair("terminalId", terminalId.toString()),
                         Pair("token", token)
                     ),
-                    null,
+                    fragment.requireContext(),
                     { obj, _, _ ->
                         if (obj != null) {
                             if (obj.getBoolean("success")) {
@@ -158,7 +161,17 @@ class InfoFragmentViewModel(
                                     )
                                 }
                             }
+                            (fragment.activity as MainActivity?)?.hideLoadMask()
                         }
+                    }, { e, res, context, output ->
+                        (fragment.activity as MainActivity?)?.hideLoadMask()
+                        HttpService.handleGenericRequestError(
+                            e,
+                            res,
+                            context,
+                            output,
+                            languageService.getText("#TimoServiceNotReachable")
+                        )
                     }
                 )
             }

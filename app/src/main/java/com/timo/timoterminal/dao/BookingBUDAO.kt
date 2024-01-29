@@ -25,4 +25,7 @@ interface BookingBUDAO {
 
     @Query("DELETE FROM BookingBUEntity WHERE isSend = :isSend AND DATETIME(createdTime) < DATETIME('now','start of day', '-1 month','-1 day')")
     suspend fun deleteOldBUBookings(isSend: Boolean = true)
+
+    @Query("DELETE FROM BookingBUEntity")
+    suspend fun deleteAll()
 }

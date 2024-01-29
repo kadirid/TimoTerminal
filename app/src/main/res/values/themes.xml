@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="AppTheme" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/md_theme_light_primary</item>
@@ -40,8 +40,14 @@
     </style>
 
     <style name="ThemeOverlay.App.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
-        <item name="android:navigationBarColor" tools:ignore="NewApi">@android:color/transparent</item>
-        <item name="paddingBottomSystemWindowInsets">true</item>
+        <item name="android:navigationBarColor">@color/greyed_out_background</item>
+        <item name="paddingBottomSystemWindowInsets">false</item>
+        <item name="bottomSheetStyle">@style/AppModalStyle</item>
+    </style>
+
+    <style name="AppModalStyle" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="paddingBottomSystemWindowInsets">false</item>
+        <item name="shapeAppearanceOverlay">@null</item>
     </style>
 
 </resources>

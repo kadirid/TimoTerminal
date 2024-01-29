@@ -12,12 +12,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentAttendanceBinding
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.interfaces.RfidListener
@@ -35,6 +38,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     private val sharedPrefService: SharedPrefService by inject()
     private val userRepository: UserRepository by inject()
+    private val languageService: LanguageService by inject()
     private var _broadcastReceiver: BroadcastReceiver? = null
     private var lastClick: Long = 0
     private lateinit var binding: FragmentAttendanceBinding
@@ -98,21 +102,21 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     // set booking code and start listening
     private fun setOnClickListeners() {
-        binding.buttonKommen.setOnClickListener {
+        binding.buttonKommen.setSafeOnClickListener {
             if (abs(lastClick - SystemClock.elapsedRealtime()) > 500) {
                 funcCode = 100
                 executeClick()
                 lastClick = SystemClock.elapsedRealtime()
             }
         }
-        binding.buttonPauseAnfang.setOnClickListener {
+        binding.buttonPauseAnfang.setSafeOnClickListener {
             if (abs(lastClick - SystemClock.elapsedRealtime()) > 500) {
                 funcCode = 110
                 executeClick()
                 lastClick = SystemClock.elapsedRealtime()
             }
         }
-        binding.buttonGehen.setOnClickListener {
+        binding.buttonGehen.setSafeOnClickListener {
             if (abs(lastClick - SystemClock.elapsedRealtime()) > 500) {
                 funcCode = 200
                 executeClick()
@@ -177,6 +181,16 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                                     Utils.showMessage(parentFragmentManager, msg)
                                 }
                             }
+                            (activity as MainActivity?)?.hideLoadMask()
+                        }, { e, res, context, output ->
+                            (activity as MainActivity?)?.hideLoadMask()
+                            HttpService.handleGenericRequestError(
+                                e,
+                                res,
+                                context,
+                                output,
+                                languageService.getText("#TimoServiceNotReachable")
+                            )
                         }
                     )
                 }
@@ -199,6 +213,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                 oct = "0$oct"
             }
             oct = oct.reversed()
+            (activity as MainActivity?)?.showLoadMask()
             sendBooking(oct, 1)
         }
     }
@@ -213,10 +228,11 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)
-            val id = this.substring(0, this.length-2).toLong()
+            val id = this.substring(0, this.length - 2).toLong()
             viewModel.viewModelScope.launch {
                 val user = viewModel.getUser(id)
-                if(user != null){
+                if (user != null) {
+                    (activity as MainActivity?)?.showLoadMask()
                     sendBooking(user.card, 2)
                 }
             }

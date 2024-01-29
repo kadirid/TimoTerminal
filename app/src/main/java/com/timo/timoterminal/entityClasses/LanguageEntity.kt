@@ -35,7 +35,7 @@ class LanguageEntity(
     }
 
     companion object {
-        public fun convertJSONObjectToLanguageEntity(obj: JSONObject): LanguageEntity {
+        fun convertJSONObjectToLanguageEntity(obj: JSONObject): LanguageEntity {
             return LanguageEntity(
                 obj.getString("keyname"),
                 obj.getString("language"),

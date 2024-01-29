@@ -12,15 +12,15 @@
         android:layout_width="600dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="25dp"
-        android:textSize="34sp"
+        android:layout_marginTop="5dp"
+        android:textSize="20sp"
         tools:text="Bitte verifizieren: Finger, RFID oder PIN" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="600dp"
-        android:layout_height="100dp"
+        android:layout_height="60dp"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:hint="@string/timo_login_name">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -30,7 +30,7 @@
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:inputType="text"
-            android:textSize="40sp"
+            android:textSize="20sp"
             android:imeOptions="actionNext"
             tools:text="Login name" />
 
@@ -38,10 +38,10 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="600dp"
-        android:layout_height="100dp"
+        android:layout_height="60dp"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
         android:hint="@string/user_passcode"
         app:passwordToggleEnabled="true">
 
@@ -52,7 +52,7 @@
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:inputType="numberPassword"
-            android:textSize="40sp"
+            android:textSize="20sp"
             android:imeOptions="actionDone"
             tools:text="1234" />
 

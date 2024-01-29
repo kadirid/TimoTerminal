@@ -30,6 +30,9 @@ interface BookingDAO {
     @Delete
     suspend fun delete(bookingEntity: BookingEntity)
 
+    @Query("DELETE FROM BookingEntity")
+    suspend fun deleteAll()
+
     @Update
     suspend fun updateEntity(bookingEntity: BookingEntity)
 }

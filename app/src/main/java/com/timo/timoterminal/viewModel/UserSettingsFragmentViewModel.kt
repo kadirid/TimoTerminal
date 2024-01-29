@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 class UserSettingsFragmentViewModel(
     private val userRepository: UserRepository,
     private val userService: UserService
-): ViewModel() {
+) : ViewModel() {
 
     suspend fun getAllAsList() = userRepository.getAllAsList()
     fun getAll() = userRepository.getAllEntities
@@ -33,13 +33,16 @@ class UserSettingsFragmentViewModel(
         userService.loadUserFromServer(viewModelScope)
     }
 
-    fun deleteEntity(user: UserEntity){
+    fun deleteEntity(user: UserEntity) {
         viewModelScope.launch {
             userRepository.delete(user)
         }
     }
 
-    fun updatePin(paramMap: HashMap<String,String>, fragment: UserSettingsFragment){
-        userService.sendUpdateRequestFragment(paramMap,fragment,viewModelScope)
+    fun updatePin(paramMap: HashMap<String, String>, fragment: UserSettingsFragment) {
+        userService.sendUpdateRequestFragment(paramMap, fragment, viewModelScope)
     }
+
+    fun assignUser(userId: String, callback: () -> Unit?) =
+        userService.assignUser(userId, callback, viewModelScope)
 }

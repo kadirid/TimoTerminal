@@ -9,6 +9,7 @@ import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
 import com.zkteco.android.core.sdk.service.FingerprintService
@@ -21,7 +22,8 @@ class MBSheetFingerprintCardReaderViewModel(
     private val userRepository: UserRepository,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService,
-    private val bookingService: BookingService
+    private val bookingService: BookingService,
+    private val languageService: LanguageService
 ) : ViewModel() {
 
     private val ioDispatcher = Dispatchers.IO
@@ -83,11 +85,13 @@ class MBSheetFingerprintCardReaderViewModel(
                     sheet.getBinding().nameContainer.text = user.name()
                     sheet.getBinding().timeTextContainer.text = time
                 }
+                sheet.showLoadMask()
                 sendBooking(user.card, 2, Utils.getDateTimeFromGC(greg), sheet)
                 sheet.setStatus(-1)
             } else {
                 sheet.animateSuccess()
-                sheet.getBinding().textViewBookingMessage.text = "Verification failed"
+                sheet.getBinding().textViewBookingMessage.text =
+                    languageService.getText("#VerificationFailed")
                 val color =
                     sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
                 if (color != null)
@@ -106,11 +110,13 @@ class MBSheetFingerprintCardReaderViewModel(
                     sheet.getBinding().nameContainer.text = user.name()
                     sheet.getBinding().timeTextContainer.text = time
                 }
+                sheet.showLoadMask()
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
                 sheet.setStatus(-1)
             } else {
                 sheet.animateSuccess()
-                sheet.getBinding().textViewBookingMessage.text = "Verification failed"
+                sheet.getBinding().textViewBookingMessage.text =
+                    languageService.getText("#VerificationFailed")
                 val color =
                     sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
                 if (color != null)
@@ -129,11 +135,13 @@ class MBSheetFingerprintCardReaderViewModel(
                     sheet.getBinding().nameContainer.text = user.name()
                     sheet.getBinding().timeTextContainer.text = time
                 }
+                sheet.showLoadMask()
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
                 sheet.setStatus(-1)
             } else {
                 sheet.animateSuccess()
-                sheet.getBinding().textViewBookingMessage.text = "Verification failed"
+                sheet.getBinding().textViewBookingMessage.text =
+                    languageService.getText("#VerificationFailed")
                 val color =
                     sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
                 if (color != null)
@@ -189,15 +197,35 @@ class MBSheetFingerprintCardReaderViewModel(
                                     }
                                 }
                             }
+                            sheet.hideLoadMask()
+                        }, { e, res, context, output ->
+                            sheet.hideLoadMask()
+                            viewModelScope.launch {
+                                bookingService.insertBooking(
+                                    card,
+                                    inputCode,
+                                    date,
+                                    sheet.getStatus()
+                                )
+                            }
+                            HttpService.handleGenericRequestError(
+                                e,
+                                res,
+                                context,
+                                output,
+                                languageService.getText("#TimoServiceNotReachable") + " " +
+                                        languageService.getText("#BookingTemporarilySaved")
+                            )
                         }
                     )
                 }
             }
-        }else{
+        } else {
             viewModelScope.launch {
                 bookingService.insertBooking(card, inputCode, date, sheet.getStatus())
                 sheet.activity?.runOnUiThread {
-                    sheet.getBinding().textViewBookingMessage.text = "Zwischenspeicher"
+                    sheet.getBinding().textViewBookingMessage.text =
+                        languageService.getText("#BookingTemporarilySaved")
                     sheet.animateSuccess()
                     RfidService.unregister()
                     FingerprintService.unregister()

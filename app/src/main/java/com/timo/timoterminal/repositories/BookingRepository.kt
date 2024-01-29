@@ -23,4 +23,6 @@ class BookingRepository(private val bookingDAO: BookingDAO) {
     suspend fun getAllAsList(): List<BookingEntity> = bookingDAO.getAllAsList()
 
     suspend fun delete(entity: BookingEntity) = bookingDAO.delete(entity)
+
+    suspend fun deleteAll() = bookingDAO.deleteAll()
 }

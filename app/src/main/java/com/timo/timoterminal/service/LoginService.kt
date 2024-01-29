@@ -6,10 +6,12 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings.*
 import com.timo.timoterminal.activities.LoginActivity
+import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.entityClasses.ConfigEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.utils.Utils
+import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -23,7 +25,9 @@ class LoginService(
     private val hardware: IHardwareSource,
     private val userService: UserService,
     private val workerService: WorkerService,
-    private val settingsService: SettingsService
+    private val settingsService: SettingsService,
+    private val languageService: LanguageService,
+    private val bookingService: BookingService
 ) : KoinComponent {
 
     companion object {
@@ -138,8 +142,6 @@ class LoginService(
                     val isNewTerminal = payload?.getBoolean("isNewTerminal")
                     val id = terminalObj?.getInt("id")
                     val token = terminalObj?.getString("token")
-                    var language = terminalObj?.getString("language")
-                    if (language.isNullOrEmpty()) language = "de"
 
                     if (id != null && !token.isNullOrEmpty()) {
                         //save credentials of terminal
@@ -150,12 +152,19 @@ class LoginService(
                             url,
                             company,
                             username,
-                            password,
-                            language
+                            password
                         )
                         settingsService.saveTimeZone(context)
                         callback(isNewTerminal!!)
                     }
+                }, { e, res, context, output ->
+                    HttpService.handleGenericRequestError(
+                        e,
+                        res,
+                        context,
+                        output,
+                        languageService.getText("#TimoServiceNotReachable")
+                    )
                 }
             )
 
@@ -273,5 +282,19 @@ class LoginService(
         logoutIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         userService.deleteAllUsers(coroutineScope)
         context.startActivity(logoutIntent)
+    }
+
+    fun resetTerminal(context: Context, coroutineScope: CoroutineScope) {
+        sharedPrefService.removeAllCreds()
+        val logoutIntent = Intent(context, LoginActivity::class.java)
+        logoutIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        userService.deleteAllUsers(coroutineScope)
+        languageService.deleteAll(coroutineScope)
+        coroutineScope.launch {
+            configRepository.deleteAll()
+        }
+        bookingService.deleteAll(coroutineScope)
+        context.startActivity(logoutIntent)
+        FingerprintService.clear()
     }
 }

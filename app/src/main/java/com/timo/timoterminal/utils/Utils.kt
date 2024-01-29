@@ -15,6 +15,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.fragment.app.FragmentManager
+import com.timo.timoterminal.R
 import com.timo.timoterminal.modalBottomSheets.MBMessageSheet
 import com.timo.timoterminal.utils.classes.ResponseToJSON
 import org.json.JSONArray
@@ -41,7 +42,7 @@ class Utils {
         private var databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
 
         private val handlerThread = HandlerThread("backgroundTimerThread")
-        private val calendar = object: GregorianCalendar(){}
+        private val calendar = object : GregorianCalendar() {}
         private var handler: Handler? = null
 
         fun isOnline(context: Context): Boolean {
@@ -150,6 +151,7 @@ class Utils {
         }
 
         fun hideStatusAndNavbar(activity: Activity) {
+            activity.window.navigationBarColor = activity.resources.getColor(R.color.white, null)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 activity.window.attributes.layoutInDisplayCutoutMode =
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -162,14 +164,17 @@ class Utils {
                     systemBarsBehavior =
                         WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 }
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            } else {
                 @Suppress("DEPRECATION")
-                activity.window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_IMMERSIVE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+                activity.window.decorView.systemUiVisibility = (
+                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                or View.SYSTEM_UI_FLAG_LOW_PROFILE
+                        )
             }
             activity.actionBar?.hide()
         }
@@ -186,11 +191,11 @@ class Utils {
             return dateNameFormatter.format(gc.time)
         }
 
-        fun parseToDBDate(date: String) :String{
+        fun parseToDBDate(date: String): String {
             return databaseFormatter.format(dateTimeFormatter.parse(date) ?: Date())
         }
 
-        fun parseFromDBDate(date: String) :String{
+        fun parseFromDBDate(date: String): String {
             return dateTimeFormatter.format(databaseFormatter.parse(date) ?: Date())
         }
 
@@ -271,7 +276,7 @@ class Utils {
             databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
         }
 
-        private fun secTimer(){
+        private fun secTimer() {
             if (!handlerThread.isAlive) handlerThread.start()
             handler?.removeCallbacksAndMessages(null)
             handler = Handler(handlerThread.looper)
@@ -279,19 +284,18 @@ class Utils {
 
             runnable = Runnable {
                 handler!!.postDelayed(runnable!!, 998L)
-                Log.d("Worker", calendar.time.toString())
                 calendar.add(Calendar.SECOND, 1)
             }
             handler!!.postDelayed(runnable, 998L)
             calendar.add(Calendar.SECOND, 1)
         }
 
-        fun setCal(cal: GregorianCalendar){
+        fun setCal(cal: GregorianCalendar) {
             calendar.time = cal.time
             secTimer()
         }
 
-        fun getCal()= calendar
+        fun getCal() = calendar
     }
 
 }

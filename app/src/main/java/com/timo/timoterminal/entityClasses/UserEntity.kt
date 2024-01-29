@@ -13,6 +13,8 @@ class UserEntity(
     @ColumnInfo("pin") var pin: String,
     @ColumnInfo("login") var login: String,
     @ColumnInfo("hireDate") var hireDate: Long,
+    @ColumnInfo("seeMenu") var seeMenu: Boolean,
+    @ColumnInfo("assignedToTerminal") var assignedToTerminal: Boolean,
     @PrimaryKey(autoGenerate = false) var id: Long
 ) {
 
@@ -25,7 +27,9 @@ class UserEntity(
             val pin = obj.getString("pin")
             val login = obj.getString("login")
             val hireDate = obj.getLong("einstellungsDatum")
-            return UserEntity(id, firstName, lastName, card, pin, login, hireDate)
+            val seeMenu = obj.getBoolean("seeMenu")
+            val assignedToTerminal = obj.getBoolean("assignedToTerminal")
+            return UserEntity(id, firstName, lastName, card, pin, login, hireDate, seeMenu, assignedToTerminal)
         }
     }
 
@@ -36,8 +40,10 @@ class UserEntity(
         card: String,
         pin: String,
         login: String,
-        hireDate: Long
-    ) : this(firstName, lastName, card, pin, login, hireDate, id)
+        hireDate: Long,
+        seeMenu: Boolean,
+        assignedToTerminal: Boolean
+    ) : this(firstName, lastName, card, pin, login, hireDate, seeMenu, assignedToTerminal, id)
 
     fun name(): String = "$firstName $lastName"
 
@@ -57,6 +63,7 @@ class UserEntity(
         return true
     }
 
+    // TODO("Rework with missing fields")
     override fun hashCode(): Int {
         var result = id.hashCode()
         result = 31 * result + lastName.hashCode()
