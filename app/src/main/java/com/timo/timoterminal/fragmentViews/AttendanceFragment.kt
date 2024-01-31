@@ -196,7 +196,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                 }
             }
         } else {
-            Utils.showMessage(parentFragmentManager, "Internet required")
+            Utils.showMessage(parentFragmentManager, languageService.getText("#InternetRequired"))
         }
     }
 

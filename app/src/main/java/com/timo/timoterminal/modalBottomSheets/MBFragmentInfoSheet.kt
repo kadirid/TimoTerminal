@@ -15,7 +15,6 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import org.json.JSONObject
 import org.koin.android.ext.android.inject
-import java.util.GregorianCalendar
 
 class MBFragmentInfoSheet : BottomSheetDialogFragment() {
     private val languageService:LanguageService by inject()
@@ -58,7 +57,8 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
         val res = JSONObject(res)
 
-        binding.textViewRfid.text = "RFID: $card"
+        binding.textViewInformation.text = getText("#ActualInformation") + " RFID: $card"
+        binding.textViewRfid.text = res.optString("user","")
         var ist = res.getDouble("ist")
         if (res.optInt("zeitTyp", 0) in listOf(1, 4, 6) && !res.optString("zeitLB", "")
                 .isNullOrBlank()
@@ -91,7 +91,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = BottomSheetDialog(requireContext())
+        val dialog = BottomSheetDialog(requireContext(), R.style.ThemeOverlay_App_BottomSheetDialog)
         Utils.hideNavInDialog(dialog)
         val contentView = View.inflate(context, R.layout.fragment_info_message_sheet_item, null)
         dialog.setContentView(contentView)
@@ -100,10 +100,6 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         behavior.peekHeight = 999999
         behavior.maxWidth = 900
         return dialog
-    }
-
-    fun getBinding(): FragmentInfoMessageSheetItemBinding {
-        return binding
     }
 
     fun showSeconds(seconds:String){

@@ -20,7 +20,7 @@ class BatteryReceiver(private val callback: BatteryStatusCallback) : BroadcastRe
         val acCharge : Boolean  = chargePlug == BatteryManager.BATTERY_PLUGGED_AC
         val batteryPercentage = (batteryLevel / batteryScale.toFloat() * 100).toInt()
 
-        callback?.onBatteryStatusChanged(batteryPercentage, usbCharge, acCharge)
+        callback.onBatteryStatusChanged(batteryPercentage, usbCharge, acCharge)
     }
 
 

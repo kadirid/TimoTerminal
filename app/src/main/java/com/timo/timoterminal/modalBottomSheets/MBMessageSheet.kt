@@ -44,7 +44,7 @@ class MBMessageSheet : BottomSheetDialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = BottomSheetDialog(requireContext())
+        val dialog = BottomSheetDialog(requireContext(), R.style.ThemeOverlay_App_BottomSheetDialog)
         Utils.hideNavInDialog(dialog)
         val contentView = View.inflate(context, R.layout.mb_message_sheet, null)
         dialog.setContentView(contentView)

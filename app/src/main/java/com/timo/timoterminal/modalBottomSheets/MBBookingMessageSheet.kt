@@ -78,7 +78,7 @@ class MBBookingMessageSheet : BottomSheetDialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = BottomSheetDialog(requireContext())
+        val dialog = BottomSheetDialog(requireContext(), R.style.ThemeOverlay_App_BottomSheetDialog)
         Utils.hideNavInDialog(dialog)
         val contentView = View.inflate(context, R.layout.mb_sheet_fingerprint_card_reader, null)
         dialog.setContentView(contentView)

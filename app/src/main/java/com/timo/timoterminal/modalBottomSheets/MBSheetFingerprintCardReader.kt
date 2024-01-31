@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.DialogInterface
-import android.graphics.Rect
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -133,10 +132,6 @@ class MBSheetFingerprintCardReader(
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = BottomSheetDialog(requireContext(), R.style.ThemeOverlay_App_BottomSheetDialog)
         Utils.hideNavInDialog(dialog)
-
-//        dialog.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-//                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-//        dialog.actionBar?.hide()
 
         val contentView = View.inflate(context, R.layout.mb_sheet_fingerprint_card_reader, null)
         dialog.setContentView(contentView)
@@ -330,7 +325,6 @@ class MBSheetFingerprintCardReader(
             alertTimer.cancel()
             timer.start()
         }
-        dialog.onDetachedFromWindow()
         dialog.show()
     }
 

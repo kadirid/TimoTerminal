@@ -22,12 +22,12 @@ class WebSocketService {
 
 
             clientListener = client.lifecycle().subscribe { lifecycleEvent ->
-                when (lifecycleEvent.getType()) {
+                when (lifecycleEvent.type) {
                     LifecycleEvent.Type.OPENED -> Log.d("WEBSOCKET", "Stomp connection opened")
                     LifecycleEvent.Type.ERROR -> Log.e(
                         "WEBSOCKET",
                         "Error",
-                        lifecycleEvent.getException()
+                        lifecycleEvent.exception
                     )
 
                     LifecycleEvent.Type.CLOSED -> Log.d("WEBSOCKET", "Stomp connection closed")

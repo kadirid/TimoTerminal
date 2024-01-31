@@ -102,7 +102,7 @@ class SettingsFragment : Fragment() {
                 textView?.textSize = 40f
             }
             dialog.show()
-            dialog.window?.setLayout(680,324)
+            dialog.window?.setLayout(680, 324)
         }
         binding.buttonTerminalBooking.setSafeOnClickListener {
             (activity as MainActivity?)?.restartTimer()
@@ -145,7 +145,7 @@ class SettingsFragment : Fragment() {
                 textView?.textSize = 40f
             }
             dialog.show()
-            dialog.window?.setLayout(680,417)
+            dialog.window?.setLayout(680, 417)
         }
         //to get to launcher settings you need to enter TimoTimo1 as password
         binding.buttonLauncher.visibility = if (userId == -2L) View.VISIBLE else View.GONE
@@ -154,7 +154,8 @@ class SettingsFragment : Fragment() {
             val passCodeEditText = EditText(requireContext())
             passCodeEditText.isFocusableInTouchMode = false
             passCodeEditText.isFocusable = false
-            val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext())
+            val dlgAlert: AlertDialog.Builder =
+                AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
             dlgAlert.setMessage(languageService.getText("#PleaseEnterCode"))
             dlgAlert.setTitle(languageService.getText("#Verification"))
             dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
@@ -178,6 +179,7 @@ class SettingsFragment : Fragment() {
                     InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             }
             dialog.show()
+            dialog.window?.setLayout(680, 244)
         }
     }
 

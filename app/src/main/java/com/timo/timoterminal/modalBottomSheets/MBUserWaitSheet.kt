@@ -314,31 +314,54 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
 
     private fun processEnroll(enrollingKey: String, template: String) {
         FingerprintService.getTemplate(enrollingKey)?.let {
-            showMsg("Id already in use")
+            val dlgAlert: AlertDialog.Builder =
+                AlertDialog.Builder(requireContext(), R.style.MyDialog)
+            dlgAlert.setMessage(languageService.getText("#FPExistsDeleteAndRecreate"))
+            dlgAlert.setTitle(languageService.getText("#Attention"))
+            dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+            dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
+                viewModel.delFP(id, finger, this) {
+                    activity?.runOnUiThread {
+                        processEnroll(enrollingKey, template)
+                    }
+                }
+            }
+            val dialog = dlgAlert.create()
+            Utils.hideNavInDialog(dialog)
+            dialog.setOnShowListener {
+                Utils.hideNavInDialog(this.dialog)
+                val textView = dialog.findViewById<TextView>(android.R.id.message)
+                textView?.textSize = 40f
+            }
+            dialog.setOnDismissListener {
+                Utils.hideNavInDialog(this.dialog)
+            }
+            dialog.show()
+            dialog.window?.setLayout(680,354)
             return
         }
 
         if (templates.isEmpty()) {
             FingerprintService.identify(template)?.run {
-                showMsg("Fingerprint already in use")
+                showMsg(languageService.getText("#FPAlreadyInUse"))
                 return
             }
         } else {
             if (!FingerprintService.verify(templates[0], template)) {
-                showMsg("Please use the same fingerprint")
+                showMsg(languageService.getText("#PleaseSameFinger"))
                 return
             }
         }
 
         templates.add(template)
-        enrollCount++
         when (enrollCount) {
-            0 -> showMsg("Enrolling first fingerprint")
+            0 -> showMsg(languageService.getText("#SaveFirstFP"))
 
-            1 -> showMsg("Enrolling second fingerprint")
+            1 -> showMsg(languageService.getText("#SaveSecondFP"))
 
-            2 -> showMsg("Enrolling third fingerprint")
+            2 -> showMsg(languageService.getText("#SaveThirdFP"))
         }
+        enrollCount++
 
         if (enrollCount == 3) {
             // This function returns the merged template, which is the template saved by the FP algorithm.
@@ -352,7 +375,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
                             image.imageTintList = color
                     }
 
-                    showMsg("A new fingerprint has been enrolled")
+                    showMsg(languageService.getText("#SavedNewFingerprint"))
                 }
             }
 

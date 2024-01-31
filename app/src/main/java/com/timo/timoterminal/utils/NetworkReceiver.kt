@@ -19,7 +19,7 @@ class NetworkChangeReceiver(private val callback : NetworkStatusCallback) : Broa
         fun onNetworkChanged(networkType: NetworkType)
     }
     override fun onReceive(p0: Context, intent: Intent) {
-        if (intent?.action == ConnectivityManager.CONNECTIVITY_ACTION) {
+        if (intent.action == ConnectivityManager.CONNECTIVITY_ACTION) {
             // Handle network connectivity change here.
             // You can check the network type using the method mentioned in the previous response.
             // Example: val networkType = getNetworkType(context)
@@ -28,12 +28,12 @@ class NetworkChangeReceiver(private val callback : NetworkStatusCallback) : Broa
             val networkType = getNetworkType(p0)
 
             // Call the callback method in your activity
-            callback?.onNetworkChanged(networkType)
+            callback.onNetworkChanged(networkType)
         }
 
     }
 
-    fun getNetworkType(context: Context): NetworkType {
+    private fun getNetworkType(context: Context): NetworkType {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         // Check for network connectivity
