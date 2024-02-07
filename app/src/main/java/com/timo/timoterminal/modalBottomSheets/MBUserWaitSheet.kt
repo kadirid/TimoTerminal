@@ -25,6 +25,7 @@ import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBUserWaitSheetViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -45,15 +46,16 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
     private val viewModel = MBUserWaitSheetViewModel(userService)
     private lateinit var binding: MbSheetFingerprintCardReaderBinding
     private val languageService: LanguageService by inject()
+    private val soundSource: SoundSource by inject()
 
     private val templates = mutableListOf<String>()
 
-    private lateinit var image: ImageView
+    private var image: ImageView? = null
     private var id: String? = null
     private var editor: String? = null
     private var isFP = false
     private var isDelete = false
-    private var finger = 6
+    private var finger = -1
     private var timer: CountDownTimer? = null
     private val timer2 = object : CountDownTimer(5000, 500) {
         override fun onTick(millisUntilFinished: Long) {
@@ -90,7 +92,6 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
 
     private fun setOnClickListeners() {
         if (isFP) {
-            image = binding.fingerSelectArrow6
             binding.fingerSelectArrow0.setSafeOnClickListener {
                 processFingerClickListener(it, 0)
             }
@@ -121,19 +122,22 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
             binding.fingerSelectArrow9.setSafeOnClickListener {
                 processFingerClickListener(it, 9)
             }
-            if (!isDelete) {
-                animate()
+            if(!isDelete){
+                binding.textViewFPExplanation.visibility = View.VISIBLE
+                binding.textViewFPExplanation.text = languageService.getText("#SelectFingerForRegister")
             }
         }
     }
 
     private fun processFingerClickListener(it: View?, fingerNo: Int) {
         restartTimer()
-        if ((it as ImageView).imageTintList == null) {
-            image = it
-            finger = fingerNo
+        image = (it as ImageView)
+        finger = fingerNo
+        if (!isDelete) {
+            animate()
+            binding.textViewFPExplanation.text = languageService.getText("#FingerOnReader")
         }
-        if (isDelete) {
+        if (isDelete && it.imageTintList != null) {
             val dlgAlert: AlertDialog.Builder =
                 AlertDialog.Builder(requireContext(), R.style.MyDialog)
             dlgAlert.setMessage(languageService.getText("#ReallyDeleteFP"))
@@ -233,21 +237,21 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
 
     private fun animate() {
         val old = image
-        image.animate()
-            .alpha(1F)
-            .setListener(object : AnimatorListenerAdapter() {
+        image?.animate()
+            ?.alpha(1F)
+            ?.setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     super.onAnimationEnd(animation)
 
-                    image.animate()
-                        .alpha(0.5F)
-                        .setListener(object : AnimatorListenerAdapter() {
+                    image?.animate()
+                        ?.alpha(0.5F)
+                        ?.setListener(object : AnimatorListenerAdapter() {
                             override fun onAnimationEnd(animation: Animator) {
                                 super.onAnimationEnd(animation)
 
 
-                                if (old.imageTintList == null) {
-                                    old.alpha = 0F
+                                if (old?.imageTintList == null) {
+                                    old?.alpha = 0F
                                 } else {
                                     old.alpha = 1F
                                 }
@@ -297,6 +301,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
         height: Int
     ) {
         if (isFP && !isDelete) {
+            soundSource.beep()
             restartTimer()
 
             if (!id.isNullOrEmpty() && finger != -1) {
@@ -372,7 +377,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
                     requireActivity().runOnUiThread {
                         val color = activity?.resources?.getColorStateList(R.color.green, null)
                         if (color != null)
-                            image.imageTintList = color
+                            image?.imageTintList = color
                     }
 
                     showMsg(languageService.getText("#SavedNewFingerprint"))
@@ -387,6 +392,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
 
     override fun onRfidRead(rfidInfo: String) {
         if (!isFP) {
+            soundSource.beep()
             timer?.cancel()
             val rfidCode = rfidInfo.toLongOrNull(16)
             if (rfidCode != null) {

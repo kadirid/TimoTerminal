@@ -28,6 +28,7 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.ProgressBarAnimation
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -45,6 +46,7 @@ class MBSheetFingerprintCardReader(
     private val httpService: HttpService by inject()
     private val languageService: LanguageService by inject()
     private val bookingService: BookingService by inject()
+    private val soundSource: SoundSource by inject()
 
     private lateinit var binding: MbSheetFingerprintCardReaderBinding
     private var viewModel: MBSheetFingerprintCardReaderViewModel =
@@ -248,6 +250,7 @@ class MBSheetFingerprintCardReader(
 
     // get code of scanned card
     override fun onRfidRead(rfidInfo: String) {
+        soundSource.beep()
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)
@@ -268,6 +271,7 @@ class MBSheetFingerprintCardReader(
         width: Int,
         height: Int
     ) {
+        soundSource.beep()
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)

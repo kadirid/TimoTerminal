@@ -20,6 +20,7 @@ import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -39,6 +40,8 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     private val sharedPrefService: SharedPrefService by inject()
     private val userRepository: UserRepository by inject()
     private val languageService: LanguageService by inject()
+    private val soundSource: SoundSource by inject()
+
     private var _broadcastReceiver: BroadcastReceiver? = null
     private var lastClick: Long = 0
     private lateinit var binding: FragmentAttendanceBinding
@@ -193,9 +196,13 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                             )
                         }
                     )
+                } else {
+                    (activity as MainActivity?)?.hideLoadMask()
+                    Utils.showMessage(parentFragmentManager, languageService.getText("#InternetRequired"))
                 }
             }
         } else {
+            (activity as MainActivity?)?.hideLoadMask()
             Utils.showMessage(parentFragmentManager, languageService.getText("#InternetRequired"))
         }
     }
@@ -206,6 +213,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     // get code of scanned card
     override fun onRfidRead(rfidInfo: String) {
+        soundSource.beep()
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)
@@ -225,6 +233,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         height: Int
     ) {
         Log.d("FP", fingerprint)
+        soundSource.beep()
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)

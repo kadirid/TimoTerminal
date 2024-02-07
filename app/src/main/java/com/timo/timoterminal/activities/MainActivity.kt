@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
-import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -32,6 +31,7 @@ import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -49,6 +49,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private val mainActivityViewModel: MainActivityViewModel by viewModel()
     private val languageService: LanguageService by inject()
     private val userService: UserService by inject()
+    private val soundSource: SoundSource by inject()
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var batteryReceiver: BatteryReceiver
@@ -88,7 +89,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
         if (isNewTerminal) {
             showDialog()
-            userService.loadUserFromServer(mainActivityViewModel.viewModelScope)
+            userService.loadUsersFromServer(mainActivityViewModel.viewModelScope)
         }
 
         setContentView(binding.root)
@@ -138,6 +139,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         if (!isInit && (frag == null || !frag.isVisible))
             timer.start()
         Utils.hideStatusAndNavbar(this)
+        mainActivityViewModel.hideSystemUI()
         isInit = false
         super.onResume()
     }
@@ -154,6 +156,12 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             showVerificationAlert()
         }
         // to kill heart beat worker and clear some of the db data
+        binding.batteryIcon.setSafeOnClickListener {
+            mainActivityViewModel.hideSystemUI()
+        }
+        binding.networkConnectionIcon.setSafeOnClickListener {
+            mainActivityViewModel.showSystemUI()
+        }
         binding.imageViewLogo.setSafeOnClickListener {
             if (BuildConfig.DEBUG)
                 mainActivityViewModel.killHeartBeatWorkers(application)
@@ -357,6 +365,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         height: Int
     ) {
         Log.d("FP", fingerprint)
+        soundSource.beep()
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)
@@ -365,6 +374,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     override fun onRfidRead(rfidInfo: String) {
+        soundSource.beep()
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)

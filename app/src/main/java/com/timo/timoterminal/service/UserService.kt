@@ -23,7 +23,7 @@ class UserService(
 ) : KoinComponent {
 
 
-    fun loadUserFromServer(scope: CoroutineScope) {
+    fun loadUsersFromServer(scope: CoroutineScope) {
         scope.launch {
             //Load from server
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
@@ -52,6 +52,7 @@ class UserService(
             val users = ArrayList<UserEntity>()
             if (arrResponse!!.length() > 0) {
                 userRepository.deleteAll()
+                FingerprintService.clear()
             }
             for (i in 0 until arrResponse.length()) {
                 val obj = arrResponse.getJSONObject(i)
@@ -65,6 +66,7 @@ class UserService(
     fun deleteAllUsers(coroutineScope: CoroutineScope) {
         coroutineScope.launch {
             userRepository.deleteAll()
+            FingerprintService.clear()
         }
     }
 
@@ -271,16 +273,8 @@ class UserService(
                                 val user = userRepository.getEntity(id.toLong())[0]
                                 user.assignedToTerminal = true
                                 userRepository.insertOne(user)
+                                getFPForUser(url, callback, id, company, terminalId, token)
                             }
-                            httpService.post(
-                                "${url}services/rest/zktecoTerminal/getFP",
-                                paramMap,
-                                null,
-                                { _, arr, _ ->
-                                    processFPArray(arr)
-                                    callback()
-                                }
-                            )
                         }
                     }, { e, res, context, output ->
                         HttpService.handleGenericRequestError(
@@ -295,6 +289,81 @@ class UserService(
                 )
             }
         }
+    }
+
+    private fun getFPForUser(
+        url: String?,
+        callback: () -> Unit?,
+        id: String,
+        company: String,
+        terminalId: Int,
+        token: String
+    ) {
+        val paramMap = mutableMapOf(Pair("company", company))
+        paramMap["user"] = id
+        paramMap["token"] = token
+        paramMap["terminalId"] = terminalId.toString()
+        httpService.get(
+            "${url}services/rest/zktecoTerminal/getFP",
+            paramMap,
+            null,
+            { _, arr, _ ->
+                processFPArray(arr)
+                callback()
+            }
+        )
+    }
+
+    fun loadUserFromServer(scope: CoroutineScope, userId: String) {
+        //Load from server
+        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
+        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
+        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
+        val params = HashMap<String, String>()
+        if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
+            params["company"] = company
+            params["token"] = token
+            params["terminalId"] = terminalId.toString()
+            params["userId"] = userId
+            httpService.get("${url}services/rest/zktecoTerminal/loadUser",
+                params,
+                null,
+                { obj, _, _ ->
+                    //Save it persistently offline
+                    if (obj != null) {
+                        val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
+                        scope.launch {
+                            userRepository.insertOne(userEntity)
+                            if (userEntity.assignedToTerminal) {
+                                getFPForUser(url, { }, userId, company, terminalId, token)
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    suspend fun deleteUser(userId: String) {
+        val list = userRepository.getEntity(userId.toLong())
+        if (list.isNotEmpty()) {
+            userRepository.delete(list[0])
+            deleteFPForUser(userId)
+        }
+    }
+
+    fun deleteFPForUser(userId: String) {
+        FingerprintService.delete("$userId|0")
+        FingerprintService.delete("$userId|1")
+        FingerprintService.delete("$userId|2")
+        FingerprintService.delete("$userId|3")
+        FingerprintService.delete("$userId|4")
+        FingerprintService.delete("$userId|5")
+        FingerprintService.delete("$userId|6")
+        FingerprintService.delete("$userId|7")
+        FingerprintService.delete("$userId|8")
+        FingerprintService.delete("$userId|9")
     }
 
     private fun processFPArray(arr: JSONArray?) {
@@ -360,7 +429,7 @@ class UserService(
                     { _, _, _ ->
                         sheet.hideLoadMask()
                         callback()
-                        FingerprintService.delete("$user|$finger")
+                        FingerprintService.delete("$id|$finger")
                     }, { e, response, context, output ->
                         sheet.hideLoadMask()
                         HttpService.handleGenericRequestError(
@@ -375,7 +444,6 @@ class UserService(
                 )
             }
         }
-
     }
 
 }

@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.viewModelScope
@@ -18,6 +19,7 @@ import com.timo.timoterminal.service.serviceUtils.ProgressListener
 import com.timo.timoterminal.service.serviceUtils.ProgressResponseBody
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.ResponseToJSON
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mcv.facepass.BuildConfig
 import okhttp3.Call
@@ -125,8 +127,7 @@ class HttpService() : KoinComponent {
                     dialog.setTitle(context.getString(R.string.error))
                     dialog.setIcon(
                         AppCompatResources.getDrawable(
-                            context,
-                            R.drawable.baseline_error_24
+                            context, R.drawable.baseline_error_24
                         )
                     )
                     //If you are running the app on debug mode, the url will appear next to the error message
@@ -142,13 +143,14 @@ class HttpService() : KoinComponent {
                             dialog.setMessage("${response.code}: ${output.string}" + debugAttachString)
                         }
                     } else {
-                        if (msg != null) {
-                            dialog.setMessage(msg)
-                        } else if (e != null) {
+                        if (e != null) {
                             dialog.setMessage(e.message)
                         } else {
                             dialog.setMessage(context.getString(R.string.unknown_error) + debugAttachString)
                         }
+                    }
+                    if (msg != null) {
+                        dialog.setMessage(msg)
                     }
                     dialog.setPositiveButton("OK") { dia, _ ->
                         dia.dismiss()
@@ -222,10 +224,7 @@ class HttpService() : KoinComponent {
         successCallback: (objResponse: JSONObject?, arrResponse: JSONArray?, strResponse: String?) -> Unit?,
         errorCallback: ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit?) = { e, res, context, output ->
             handleGenericRequestError(
-                e,
-                res,
-                context,
-                output
+                e, res, context, output
             )
         }
     ) {
@@ -262,10 +261,7 @@ class HttpService() : KoinComponent {
         successCallback: (objResponse: JSONObject?, arrResponse: JSONArray?, strResponse: String?) -> Unit?,
         errorCallback: ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit) = { e, response, context, output ->
             handleGenericRequestError(
-                e,
-                response,
-                context,
-                output
+                e, response, context, output
             )
         }
     ) {
@@ -334,26 +330,64 @@ class HttpService() : KoinComponent {
         }
         val tTime = Utils.parseDBDateTime(obj.getString("time"))
         Utils.setCal(tTime)
-        if (!obj.isNull("loadUsers") && obj.getBoolean("loadUsers")) {
-            userService.loadUserFromServer(activity.getViewModel().viewModelScope)
+        var updateAllUser = false
+        var loadPermissions = false
+        var loadLanguage = false
+        var rebootTerminal = false
+        val updateIds = arrayListOf<String>()
+        val deleteIds = arrayListOf<String>()
+        val deleteFP = arrayListOf<String>()
+        if (!obj.isNull("commands") && obj.getJSONArray("commands").length() > 0) {
+            val array = obj.getJSONArray("commands")
+            for (i in 0 until array.length()) {
+                val command = array.optString(i, "retrieval failed!")
+                Log.d("Commands", command)
+                if (command == "updateAllUser") {
+                    updateAllUser = true
+                } else if (command.startsWith("updateUser:")) {
+                    updateIds.add(command.substring(11, command.length))
+                } else if (command.startsWith("deleteUser:")) {
+                    deleteIds.add(command.substring(11, command.length))
+                } else if (command.startsWith("deleteFP:")) {
+                    deleteFP.add(command.substring(9, command.length))
+                } else if (command == "loadPermissions") {
+                    loadPermissions = true
+                } else if (command == "loadLanguage") {
+                    loadLanguage = true
+                } else if (command == "rebootTerminal") {
+                    rebootTerminal = true
+                }
+            }
         }
-        if (!obj.isNull("loadPermissions") && obj.getBoolean("loadPermissions")) {
-            loginService.loadPermissions(
-                activity.getViewModel().viewModelScope,
-                activity
-            ) {}
-        }
-        if (!obj.isNull("loadLanguage") && obj.getBoolean("loadLanguage")) {
-            languageService.requestLanguageFromServer(
-                activity.getViewModel().viewModelScope,
-                activity
-            )
-        }
-        if (!obj.isNull("rebootTerminal") && obj.getBoolean("rebootTerminal")) {
-            activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
-        }
-        activity.getViewModel().viewModelScope.launch {
-            bookingService.sendSavedBooking(activity.getViewModel().viewModelScope)
+        val scope = activity.getViewModel().viewModelScope
+        scope.launch {
+            if (updateAllUser) {
+                userService.loadUsersFromServer(scope)
+            } else {
+                for (no in updateIds) {
+                    userService.loadUserFromServer(scope, no)
+                }
+                for (no in deleteIds) {
+                    userService.deleteUser(no)
+                }
+                for (no in deleteFP) {
+                    userService.deleteFPForUser(no)
+                }
+            }
+            if (loadPermissions) {
+                loginService.loadPermissions(scope, activity) {}
+            }
+            if (loadLanguage) {
+                languageService.requestLanguageFromServer(scope, activity)
+            }
+            if (rebootTerminal) {
+                if (loadLanguage || loadPermissions || updateAllUser || updateIds.size > 0 || deleteIds.size > 0 || deleteFP.size > 0) {
+                    delay(10000L)
+                }
+                activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
+            } else {
+                bookingService.sendSavedBooking(scope)
+            }
         }
     }
 }

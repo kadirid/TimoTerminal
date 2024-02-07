@@ -87,7 +87,6 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
     ): View {
         binding = FragmentUserSettingsBinding.inflate(inflater, container, false)
         setUpOnClickListeners()
-        userSettingsFragmentViewModel.loadUserFromServer()
         setAdapter()
         initSearchFilter()
         setText()

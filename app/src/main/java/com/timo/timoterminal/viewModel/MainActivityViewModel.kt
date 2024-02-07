@@ -11,8 +11,13 @@ import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.classes.SoundSource
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.java.KoinJavaComponent
 
 class MainActivityViewModel(
     private val demoRepository: DemoRepository,
@@ -20,9 +25,11 @@ class MainActivityViewModel(
     private val configRepository: ConfigRepository,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService
-) : ViewModel() {
+) : ViewModel(), KoinComponent {
     val demoEntities: Flow<List<DemoEntity>> = demoRepository.getAllEntities
     val userEntities: Flow<List<UserEntity>> = userRepository.getAllEntities
+    private val hardware: IHardwareSource by inject()
+    private val soundSource: SoundSource by inject()
 
     fun initHeartbeatService(application: Application, activity: MainActivity) {
         httpService.initHeartbeatWorker(application, activity)
@@ -114,6 +121,13 @@ class MainActivityViewModel(
         }
     }
 
-
+    fun hideSystemUI() {
+        soundSource.beep()
+        hardware.hideSystemUI()
+    }
+    fun showSystemUI() {
+        soundSource.beep()
+        hardware.showSystemUI()
+    }
 }
 

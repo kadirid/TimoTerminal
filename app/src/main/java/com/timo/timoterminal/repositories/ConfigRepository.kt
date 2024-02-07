@@ -12,7 +12,7 @@ class ConfigRepository(private val configDao: ConfigDAO){
     private var url: String = ""
     private var company: String = ""
 
-    private suspend fun initMap() {
+    suspend fun initMap() {
         val list = configDao.getAllAsList()
         for (item in list){
             if (item.type == TYPE_PERMISSION) {
@@ -22,7 +22,10 @@ class ConfigRepository(private val configDao: ConfigDAO){
     }
 
     @WorkerThread
-    suspend fun insertConfigEntity(entity: ConfigEntity) = configDao.insertAll(entity)
+    suspend fun insertConfigEntity(entity: ConfigEntity) = configDao.insertOne(entity)
+
+    @WorkerThread
+    suspend fun insertAll(entities: List<ConfigEntity>) = configDao.insertAll(entities)
 
     suspend fun getCompany(): ConfigEntity? = configDao.getCompany()
 

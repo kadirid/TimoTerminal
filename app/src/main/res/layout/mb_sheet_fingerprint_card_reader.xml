@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scan_bottom_sheet"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    tools:layout_height="496dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         style="?attr/bottomSheetDialogTheme"
@@ -29,7 +30,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/drag_handle"
-            tools:text="@string/wait_for_ident"/>
+            tools:text="@string/wait_for_ident" />
 
         <LinearLayout
             android:id="@+id/linear_icon_container"
@@ -75,10 +76,10 @@
             android:background="@drawable/rounded_container_16dp"
             android:backgroundTint="?attr/colorPrimaryContainer"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/drag_handle"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/drag_handle">
 
             <TextView
                 android:id="@+id/name_container"
@@ -170,161 +171,173 @@
             android:layout_width="800dp"
             android:layout_height="0dp"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/drag_handle"
-            app:layout_constraintBottom_toBottomOf="parent">
+            tools:visibility="visible">
 
             <ImageView
                 android:id="@+id/finger_select_hand_left"
                 android:layout_width="400dp"
                 android:layout_height="400dp"
                 android:rotationY="180"
+                android:src="@drawable/baseline_back_hand"
                 app:layout_constraintEnd_toStartOf="@id/finger_select_hand_right"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:src="@drawable/baseline_back_hand" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/finger_select_hand_right"
                 android:layout_width="400dp"
                 android:layout_height="400dp"
+                android:src="@drawable/baseline_back_hand"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/finger_select_hand_left"
-                app:layout_constraintTop_toTopOf="parent"
-                android:src="@drawable/baseline_back_hand"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_0"
                 android:layout_width="45dp"
                 android:layout_height="120dp"
-                android:src="@drawable/baseline_arrow"
-                android:layout_marginTop="70dp"
                 android:layout_marginStart="48dp"
-                android:scaleType="center"
+                android:layout_marginTop="70dp"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintStart_toStartOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_1"
                 android:layout_width="45dp"
                 android:layout_height="160dp"
-                android:src="@drawable/baseline_arrow"
-                android:layout_marginTop="30dp"
                 android:layout_marginStart="107dp"
-                android:scaleType="center"
+                android:layout_marginTop="30dp"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintStart_toStartOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_2"
                 android:layout_width="45dp"
                 android:layout_height="190dp"
-                android:src="@drawable/baseline_arrow"
-                android:layout_marginTop="0dp"
                 android:layout_marginStart="164dp"
-                android:scaleType="center"
+                android:layout_marginTop="0dp"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintStart_toStartOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_3"
                 android:layout_width="45dp"
                 android:layout_height="160dp"
-                android:src="@drawable/baseline_arrow"
-                android:layout_marginTop="30dp"
                 android:layout_marginStart="223dp"
-                android:scaleType="center"
+                android:layout_marginTop="30dp"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintStart_toStartOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_4"
                 android:layout_width="80dp"
                 android:layout_height="100dp"
-                android:src="@drawable/baseline_arrow"
-                android:layout_marginTop="165dp"
                 android:layout_marginStart="280dp"
-                android:scaleType="center"
-                android:rotation="30"
+                android:layout_marginTop="165dp"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:rotation="30"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintStart_toStartOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_5"
                 android:layout_width="80dp"
                 android:layout_height="100dp"
-                android:src="@drawable/baseline_arrow"
                 android:layout_marginTop="165dp"
                 android:layout_marginEnd="280dp"
-                android:scaleType="center"
-                android:rotation="330"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:rotation="330"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_6"
                 android:layout_width="45dp"
                 android:layout_height="160dp"
-                android:src="@drawable/baseline_arrow"
                 android:layout_marginTop="30dp"
                 android:layout_marginEnd="224dp"
-                android:scaleType="center"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_7"
                 android:layout_width="45dp"
                 android:layout_height="190dp"
-                android:src="@drawable/baseline_arrow"
                 android:layout_marginTop="0dp"
                 android:layout_marginEnd="165dp"
-                android:scaleType="center"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_8"
                 android:layout_width="45dp"
                 android:layout_height="160dp"
-                android:src="@drawable/baseline_arrow"
                 android:layout_marginTop="30dp"
                 android:layout_marginEnd="107dp"
-                android:scaleType="center"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
 
             <ImageView
                 android:id="@+id/finger_select_arrow_9"
                 android:layout_width="45dp"
                 android:layout_height="120dp"
-                android:src="@drawable/baseline_arrow"
                 android:layout_marginTop="70dp"
                 android:layout_marginEnd="48dp"
-                android:scaleType="center"
                 android:alpha="0"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="center"
+                android:src="@drawable/baseline_arrow"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:alpha="1"/>
+                app:layout_constraintTop_toTopOf="parent"
+                tools:alpha="1" />
+
+            <TextView
+                android:id="@+id/textViewFPExplanation"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:textAlignment="center"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:text="Bitte den Finger auswählen." />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -336,14 +349,13 @@
         android:layout_height="match_parent"
         android:background="#66000000"
         android:gravity="center"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:visibility="gone">
 
         <ProgressBar
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:indeterminateTint="#FF4E616D"
-            android:indeterminate="true" />
+            android:indeterminate="true"
+            android:indeterminateTint="#FF4E616D" />
 
     </RelativeLayout>
 

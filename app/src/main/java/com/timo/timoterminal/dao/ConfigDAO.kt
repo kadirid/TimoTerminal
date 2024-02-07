@@ -23,7 +23,10 @@ interface ConfigDAO {
     suspend fun getCompany() : ConfigEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(vararg entities : ConfigEntity)
+    suspend fun insertAll(entities : List<ConfigEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOne(entity : ConfigEntity)
 
     @Delete
     suspend fun delete(entity: ConfigEntity)

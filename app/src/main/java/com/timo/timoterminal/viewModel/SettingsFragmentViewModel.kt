@@ -17,7 +17,7 @@ class SettingsFragmentViewModel(
 
     fun actualizeTerminal(context: Context){
         loginService.loadPermissions(viewModelScope, context) { _ -> }
-        userService.loadUserFromServer(viewModelScope)
+        userService.loadUsersFromServer(viewModelScope)
     }
 
     fun resetTerminal(context: Context){

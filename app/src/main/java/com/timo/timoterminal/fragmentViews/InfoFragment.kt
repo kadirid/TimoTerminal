@@ -19,6 +19,7 @@ import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -32,10 +33,13 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     private lateinit var binding: FragmentInfoBinding
     private lateinit var itemBinding: FragmentInfoMessageSheetItemBinding
     private var verifying = true
+
     private val userRepository: UserRepository by inject()
     private val sharedPrefService: SharedPrefService by inject()
     private val httpService: HttpService by inject()
     private val languageService: LanguageService by inject()
+    private val soundSource: SoundSource by inject()
+
     private var viewModel: InfoFragmentViewModel =
         InfoFragmentViewModel(userRepository, sharedPrefService, httpService, languageService)
 
@@ -108,6 +112,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         width: Int,
         height: Int
     ) {
+        soundSource.beep()
         Log.d("FP", fingerprint)
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
@@ -118,6 +123,7 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     }
 
     override fun onRfidRead(rfidInfo: String) {
+        soundSource.beep()
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)

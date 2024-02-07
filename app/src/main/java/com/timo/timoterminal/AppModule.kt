@@ -23,6 +23,7 @@ import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.service.WebSocketService
 import com.timo.timoterminal.service.WorkerService
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
@@ -110,6 +111,8 @@ var appModule = module {
     single { PropertyService(androidContext()) }
     single { BookingService(get(), get(), get(), get()) }
     single { LoginService(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+
+    single { SoundSource(get()) }
 
     viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get()) }

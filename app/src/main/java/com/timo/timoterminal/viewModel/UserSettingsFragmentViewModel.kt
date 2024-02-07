@@ -30,7 +30,7 @@ class UserSettingsFragmentViewModel(
 
     fun loadUserFromServer() {
         //Get User from Server
-        userService.loadUserFromServer(viewModelScope)
+        userService.loadUsersFromServer(viewModelScope)
     }
 
     fun deleteEntity(user: UserEntity) {

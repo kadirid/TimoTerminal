@@ -192,16 +192,20 @@ class LoginService(
                     context,
                     { _, array, _ ->
                         if (array != null && array.length() > 0) {
+                            val list = ArrayList<ConfigEntity>()
                             for (i in 0 until array.length()) {
                                 val obj = array.getJSONObject(i)
-                                addConfig(
-                                    coroutineScope,
+                                list.add(
                                     ConfigEntity(
                                         ConfigRepository.TYPE_PERMISSION,
                                         obj.getString("name"),
                                         obj.getString("value")
                                     )
                                 )
+                            }
+                            coroutineScope.launch {
+                                configRepository.insertAll(list)
+                                configRepository.initMap()
                             }
                             //callback should only be called if the array is really loaded!
                             callback(true)
