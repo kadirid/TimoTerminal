@@ -18,17 +18,17 @@ import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import org.koin.android.ext.android.inject
 
-class InfoFragment : Fragment(), RfidListener, FingerprintListener {
+class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
 
     private lateinit var binding: FragmentInfoBinding
     private lateinit var itemBinding: FragmentInfoMessageSheetItemBinding
@@ -112,7 +112,6 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
         width: Int,
         height: Int
     ) {
-        soundSource.beep()
         Log.d("FP", fingerprint)
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
@@ -123,7 +122,6 @@ class InfoFragment : Fragment(), RfidListener, FingerprintListener {
     }
 
     override fun onRfidRead(rfidInfo: String) {
-        soundSource.beep()
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)

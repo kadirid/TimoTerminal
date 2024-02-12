@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.os.SystemClock
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -19,12 +18,12 @@ import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
@@ -33,9 +32,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlin.math.abs
 
-class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
+class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
 
     private val sharedPrefService: SharedPrefService by inject()
     private val userRepository: UserRepository by inject()
@@ -43,7 +41,6 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     private val soundSource: SoundSource by inject()
 
     private var _broadcastReceiver: BroadcastReceiver? = null
-    private var lastClick: Long = 0
     private lateinit var binding: FragmentAttendanceBinding
     private val httpService: HttpService = HttpService()
     private val viewModel = AttendanceFragmentViewModel(sharedPrefService, userRepository)
@@ -61,6 +58,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         setOnClickListeners()
         adaptLottieAnimationTime()
         setText()
+        soundSource.loadForAttendance()
         return binding.root
     }
 
@@ -106,25 +104,16 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
     // set booking code and start listening
     private fun setOnClickListeners() {
         binding.buttonKommen.setSafeOnClickListener {
-            if (abs(lastClick - SystemClock.elapsedRealtime()) > 500) {
-                funcCode = 100
-                executeClick()
-                lastClick = SystemClock.elapsedRealtime()
-            }
+            funcCode = 100
+            executeClick()
         }
         binding.buttonPauseAnfang.setSafeOnClickListener {
-            if (abs(lastClick - SystemClock.elapsedRealtime()) > 500) {
-                funcCode = 110
-                executeClick()
-                lastClick = SystemClock.elapsedRealtime()
-            }
+            funcCode = 110
+            executeClick()
         }
         binding.buttonGehen.setSafeOnClickListener {
-            if (abs(lastClick - SystemClock.elapsedRealtime()) > 500) {
-                funcCode = 200
-                executeClick()
-                lastClick = SystemClock.elapsedRealtime()
-            }
+            funcCode = 200
+            executeClick()
         }
     }
 
@@ -180,6 +169,7 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                                 )
                             }
                             if (!msg.isNullOrEmpty()) {
+                                soundSource.playSound(SoundSource.failedSound)
                                 activity?.runOnUiThread {
                                     Utils.showMessage(parentFragmentManager, msg)
                                 }
@@ -198,7 +188,10 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                     )
                 } else {
                     (activity as MainActivity?)?.hideLoadMask()
-                    Utils.showMessage(parentFragmentManager, languageService.getText("#InternetRequired"))
+                    Utils.showMessage(
+                        parentFragmentManager,
+                        languageService.getText("#InternetRequired")
+                    )
                 }
             }
         } else {
@@ -213,7 +206,6 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
 
     // get code of scanned card
     override fun onRfidRead(rfidInfo: String) {
-        soundSource.beep()
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)
@@ -233,7 +225,6 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
         height: Int
     ) {
         Log.d("FP", fingerprint)
-        soundSource.beep()
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)
@@ -243,6 +234,8 @@ class AttendanceFragment : Fragment(), RfidListener, FingerprintListener {
                 if (user != null) {
                     (activity as MainActivity?)?.showLoadMask()
                     sendBooking(user.card, 2)
+                } else {
+                    soundSource.playSound(SoundSource.authenticationFailed)
                 }
             }
         }

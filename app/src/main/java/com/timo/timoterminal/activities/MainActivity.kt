@@ -30,12 +30,12 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
@@ -44,7 +44,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
-    NetworkChangeReceiver.NetworkStatusCallback, RfidListener, FingerprintListener {
+    NetworkChangeReceiver.NetworkStatusCallback, TimoRfidListener, FingerprintListener {
 
     private val mainActivityViewModel: MainActivityViewModel by viewModel()
     private val languageService: LanguageService by inject()
@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             showDialog()
             userService.loadUsersFromServer(mainActivityViewModel.viewModelScope)
         }
+        Log.d("Main", "Main onCreate")
 
         setContentView(binding.root)
 
@@ -188,7 +189,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             languageService.getText("#Attendance")
         binding.navigationRail.menu.findItem(R.id.absence).title =
             languageService.getText("#Absence")
-        binding.navigationRail.menu.findItem(R.id.absence).isVisible = false// currently no functionality
+        binding.navigationRail.menu.findItem(R.id.absence).isVisible =
+            false// currently no functionality
 
         binding.navigationRail.setOnItemSelectedListener {
 
@@ -276,7 +278,11 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                         }
                         restartTimer()
                     } else {
-                        Utils.showMessage(supportFragmentManager, languageService.getText("#VerificationFailed"))
+                        soundSource.playSound(SoundSource.authenticationFailed)
+                        Utils.showMessage(
+                            supportFragmentManager,
+                            languageService.getText("#VerificationFailed")
+                        )
                     }
                 }
             }
@@ -365,16 +371,14 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         height: Int
     ) {
         Log.d("FP", fingerprint)
-        soundSource.beep()
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)
-            mainActivityViewModel.getUser(this.substring(0, this.length-2), this@MainActivity)
+            mainActivityViewModel.getUser(this.substring(0, this.length - 2), this@MainActivity)
         }
     }
 
     override fun onRfidRead(rfidInfo: String) {
-        soundSource.beep()
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)
@@ -397,7 +401,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             }
             restartTimer()
         } else {
-            Utils.showMessage(supportFragmentManager, languageService.getText("#VerificationFailed"))
+            Utils.showMessage(
+                supportFragmentManager,
+                languageService.getText("#VerificationFailed")
+            )
         }
     }
 
@@ -409,14 +416,14 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         return mainActivityViewModel
     }
 
-    fun showLoadMask(){
+    fun showLoadMask() {
         cancelTimer()
         runOnUiThread {
             binding.layoutLoadMaks.visibility = View.VISIBLE
         }
     }
 
-    fun hideLoadMask(){
+    fun hideLoadMask() {
         restartTimer()
         runOnUiThread {
             binding.layoutLoadMaks.visibility = View.GONE

@@ -22,7 +22,6 @@ class UserService(
     private val languageService: LanguageService
 ) : KoinComponent {
 
-
     fun loadUsersFromServer(scope: CoroutineScope) {
         scope.launch {
             //Load from server

@@ -27,11 +27,12 @@ import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor.OnItemClickListener
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.modalBottomSheets.MBUserWaitSheet
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
@@ -41,7 +42,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 private const val ARG_USERID = "userId"
 
-class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
+class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
 
     private val userSettingsFragmentViewModel: UserSettingsFragmentViewModel by viewModel()
     private lateinit var binding: FragmentUserSettingsBinding
@@ -50,6 +51,7 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
     private val paramMap = HashMap<String, String>()
     private var userId: Long = -1
     private var assignedToTerminal = false
+    private val soundSource: SoundSource by inject()
 
     private val assignUser = fun(callback: () -> Unit?) {
         (activity as MainActivity?)?.restartTimer()
@@ -90,6 +92,7 @@ class UserSettingsFragment : Fragment(), RfidListener, FingerprintListener {
         setAdapter()
         initSearchFilter()
         setText()
+        soundSource.loadForFP()
         return binding.root
     }
 

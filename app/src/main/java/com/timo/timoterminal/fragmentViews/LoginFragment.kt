@@ -21,6 +21,7 @@ import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.CodesArrayAdapter
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import org.koin.android.ext.android.inject
@@ -34,6 +35,7 @@ class LoginFragment : Fragment() {
     private val settingsService: SettingsService by inject()
     private val sharedPrefService: SharedPrefService by inject()
     private val languageService: LanguageService by inject()
+    private val soundSource: SoundSource by inject()
     private val viewModel: LoginFragmentViewModel =
         LoginFragmentViewModel(loginService, settingsService, languageService, sharedPrefService)
     private lateinit var binding: FragmentLoginBinding
@@ -148,6 +150,7 @@ class LoginFragment : Fragment() {
             val tz = binding.dropdownMenuTimezone.text.toString()
             //Set language and timezone locally and send it to backend
             viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
+                soundSource.loadForLogin(lang)
                 if(isOnline) {
                     showLogin()
                 }else{
@@ -164,7 +167,7 @@ class LoginFragment : Fragment() {
     }
 
     private fun initLoginButton() {
-        binding.buttonSubmit.setOnClickListener {
+        binding.buttonSubmit.setSafeOnClickListener {
             val company = binding.textInputEditTextLoginCompany.text.toString()
             val user = binding.textInputEditTextLoginUser.text.toString()
             val password = binding.textInputEditTextLoginPassword.text.toString()

@@ -24,12 +24,12 @@ import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.UserService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBUserWaitSheetViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import org.koin.android.ext.android.inject
@@ -39,7 +39,7 @@ private const val ARG_EDITOR = "editor"
 private const val ARG_IS_FP = "isFP"
 private const val ARG_IS_DELETE = "isDelete"
 
-class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintListener {
+class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, FingerprintListener {
 
     private var enrollCount: Int = 0
     private val userService: UserService by inject()
@@ -122,9 +122,11 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
             binding.fingerSelectArrow9.setSafeOnClickListener {
                 processFingerClickListener(it, 9)
             }
-            if(!isDelete){
+            if (!isDelete) {
                 binding.textViewFPExplanation.visibility = View.VISIBLE
-                binding.textViewFPExplanation.text = languageService.getText("#SelectFingerForRegister")
+                binding.textViewFPExplanation.text =
+                    languageService.getText("#SelectFingerForRegister")
+                soundSource.playSound(SoundSource.selectFinger)
             }
         }
     }
@@ -136,6 +138,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
         if (!isDelete) {
             animate()
             binding.textViewFPExplanation.text = languageService.getText("#FingerOnReader")
+            soundSource.playSound(SoundSource.placeFingerBase + finger)
         }
         if (isDelete && it.imageTintList != null) {
             val dlgAlert: AlertDialog.Builder =
@@ -301,7 +304,6 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
         height: Int
     ) {
         if (isFP && !isDelete) {
-            soundSource.beep()
             restartTimer()
 
             if (!id.isNullOrEmpty() && finger != -1) {
@@ -342,7 +344,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
                 Utils.hideNavInDialog(this.dialog)
             }
             dialog.show()
-            dialog.window?.setLayout(680,354)
+            dialog.window?.setLayout(680, 354)
             return
         }
 
@@ -353,6 +355,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
             }
         } else {
             if (!FingerprintService.verify(templates[0], template)) {
+                soundSource.playSound(SoundSource.placeSameFingerAgain)
                 showMsg(languageService.getText("#PleaseSameFinger"))
                 return
             }
@@ -369,6 +372,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
         enrollCount++
 
         if (enrollCount == 3) {
+            soundSource.playSound(SoundSource.takeFingerAway)
             // This function returns the merged template, which is the template saved by the FP algorithm.
             FingerprintService.enroll(enrollingKey, templates).run {
                 Log.d(javaClass.simpleName, "Enrolled template $this")
@@ -381,18 +385,20 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), RfidListener, FingerprintLi
                     }
 
                     showMsg(languageService.getText("#SavedNewFingerprint"))
+                    soundSource.playSound(SoundSource.fingerSaved)
                 }
             }
 
             templates.clear()
             enrollCount = 0
             finger = -1
+        }else{
+            soundSource.playSound(SoundSource.takeFingerAwayAndPutItOnAgain)
         }
     }
 
     override fun onRfidRead(rfidInfo: String) {
         if (!isFP) {
-            soundSource.beep()
             timer?.cancel()
             val rfidCode = rfidInfo.toLongOrNull(16)
             if (rfidCode != null) {

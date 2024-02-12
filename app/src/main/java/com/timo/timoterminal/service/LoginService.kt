@@ -6,16 +6,17 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings.*
 import com.timo.timoterminal.activities.LoginActivity
-import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.entityClasses.ConfigEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 
 class LoginService(
@@ -29,6 +30,7 @@ class LoginService(
     private val languageService: LanguageService,
     private val bookingService: BookingService
 ) : KoinComponent {
+    private val soundSource: SoundSource by inject()
 
     companion object {
         private const val TAG = "LoginService"
@@ -156,8 +158,10 @@ class LoginService(
                         )
                         settingsService.saveTimeZone(context)
                         callback(isNewTerminal!!)
+                        soundSource.playSound(SoundSource.loginSuccessful)
                     }
                 }, { e, res, context, output ->
+                    soundSource.playSound(SoundSource.loginFailed)
                     HttpService.handleGenericRequestError(
                         e,
                         res,
@@ -183,12 +187,14 @@ class LoginService(
     ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
+        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
         if (Utils.isOnline(context)) {
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty()) {
                 httpService.get(
                     "${url}services/rest/zktecoTerminal/permission",
-                    mapOf(Pair("firma", company)),
+                    mapOf(Pair("firma", company),Pair("terminalId", "$terminalId"),Pair("token", token)),
                     context,
                     { _, array, _ ->
                         if (array != null && array.length() > 0) {

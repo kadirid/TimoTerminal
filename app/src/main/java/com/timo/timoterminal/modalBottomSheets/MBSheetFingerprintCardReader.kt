@@ -14,7 +14,6 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import androidx.appcompat.app.AlertDialog
 import androidx.core.animation.doOnEnd
-import androidx.core.view.updateMargins
 import androidx.core.widget.doOnTextChanged
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -27,12 +26,12 @@ import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.ProgressBarAnimation
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.interfaces.RfidListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import org.koin.android.ext.android.inject
@@ -40,7 +39,7 @@ import org.koin.android.ext.android.inject
 
 class MBSheetFingerprintCardReader(
     private val callback: () -> Unit?
-) : BottomSheetDialogFragment(), RfidListener, FingerprintListener {
+) : BottomSheetDialogFragment(), TimoRfidListener, FingerprintListener {
     private val userRepository: UserRepository by inject()
     private val sharedPrefService: SharedPrefService by inject()
     private val httpService: HttpService by inject()
@@ -55,7 +54,8 @@ class MBSheetFingerprintCardReader(
             sharedPrefService,
             httpService,
             bookingService,
-            languageService
+            languageService,
+            soundSource
         )
 
     //    lateinit var textView: TextView
@@ -250,7 +250,6 @@ class MBSheetFingerprintCardReader(
 
     // get code of scanned card
     override fun onRfidRead(rfidInfo: String) {
-        soundSource.beep()
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)
@@ -271,11 +270,10 @@ class MBSheetFingerprintCardReader(
         width: Int,
         height: Int
     ) {
-        soundSource.beep()
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)
-            val id = this.substring(0, this.length-2).toLong()
+            val id = this.substring(0, this.length - 2).toLong()
             timer.cancel()
             viewModel.sendBookingById(id, this@MBSheetFingerprintCardReader)
         }
@@ -285,7 +283,8 @@ class MBSheetFingerprintCardReader(
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
         timer.cancel()
 
-        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
+        val dlgAlert: AlertDialog.Builder =
+            AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
@@ -340,13 +339,13 @@ class MBSheetFingerprintCardReader(
 
     fun getBinding(): MbSheetFingerprintCardReaderBinding = binding
 
-    fun showLoadMask(){
+    fun showLoadMask() {
         activity?.runOnUiThread {
             binding.sheetLayoutLoadMaks.visibility = View.VISIBLE
         }
     }
 
-    fun hideLoadMask(){
+    fun hideLoadMask() {
         activity?.runOnUiThread {
             binding.sheetLayoutLoadMaks.visibility = View.GONE
         }

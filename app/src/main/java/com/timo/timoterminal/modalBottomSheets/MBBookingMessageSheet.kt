@@ -17,6 +17,7 @@ import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.ProgressBarAnimation
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import org.koin.android.ext.android.inject
 
 class MBBookingMessageSheet : BottomSheetDialogFragment() {
@@ -28,6 +29,7 @@ class MBBookingMessageSheet : BottomSheetDialogFragment() {
     private var name: String = ""
     private var message: String = ""
     private var success: Boolean = false
+    private val soundSource: SoundSource by inject()
 
     companion object {
         const val TAG = "MBBookingMessageSheet"
@@ -86,6 +88,15 @@ class MBBookingMessageSheet : BottomSheetDialogFragment() {
         val behavior = dialog.behavior
         behavior.peekHeight = 999999
         return dialog
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(success){
+            soundSource.playSound(SoundSource.successSound)
+        }else{
+            soundSource.playSound(SoundSource.failedSound)
+        }
     }
 
     private fun animateSuccess() {

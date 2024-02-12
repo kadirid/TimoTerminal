@@ -25,10 +25,12 @@ class LanguageService(
         if (!company.isNullOrEmpty()) {
             if (Utils.isOnline(context)) {
                 val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+                val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+                val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
                 coroutineScope.launch {
                     withContext(Dispatchers.IO) {
                         httpService.get("${url}services/rest/zktecoTerminal/language",
-                            mapOf(Pair("firma", company)),
+                            mapOf(Pair("firma", company),Pair("terminalId", "$terminalId"),Pair("token", token)),
                             context,
                             { obj, _, _ ->
                                 if (obj != null) {

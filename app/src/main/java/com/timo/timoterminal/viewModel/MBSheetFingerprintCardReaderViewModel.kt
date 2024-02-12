@@ -12,6 +12,7 @@ import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +24,8 @@ class MBSheetFingerprintCardReaderViewModel(
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService,
     private val bookingService: BookingService,
-    private val languageService: LanguageService
+    private val languageService: LanguageService,
+    private val soundSource: SoundSource
 ) : ViewModel() {
 
     private val ioDispatcher = Dispatchers.IO
@@ -89,6 +91,7 @@ class MBSheetFingerprintCardReaderViewModel(
                 sendBooking(user.card, 2, Utils.getDateTimeFromGC(greg), sheet)
                 sheet.setStatus(-1)
             } else {
+                soundSource.playSound(SoundSource.authenticationFailed)
                 sheet.animateSuccess()
                 sheet.getBinding().textViewBookingMessage.text =
                     languageService.getText("#VerificationFailed")
@@ -114,6 +117,7 @@ class MBSheetFingerprintCardReaderViewModel(
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
                 sheet.setStatus(-1)
             } else {
+                soundSource.playSound(SoundSource.authenticationFailed)
                 sheet.animateSuccess()
                 sheet.getBinding().textViewBookingMessage.text =
                     languageService.getText("#VerificationFailed")
@@ -139,6 +143,7 @@ class MBSheetFingerprintCardReaderViewModel(
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
                 sheet.setStatus(-1)
             } else {
+                soundSource.playSound(SoundSource.authenticationFailed)
                 sheet.animateSuccess()
                 sheet.getBinding().textViewBookingMessage.text =
                     languageService.getText("#VerificationFailed")
@@ -186,6 +191,7 @@ class MBSheetFingerprintCardReaderViewModel(
                                     sheet.getBinding().textViewBookingMessage.text =
                                         obj.getString("message")
                                     if (!obj.getBoolean("success")) {
+                                        soundSource.playSound(SoundSource.failedSound)
                                         val color =
                                             sheet.activity?.resources?.getColorStateList(
                                                 R.color.error_booking,
@@ -194,12 +200,15 @@ class MBSheetFingerprintCardReaderViewModel(
                                         if (color != null)
                                             sheet.getBinding().bookingInfoContainer.backgroundTintList =
                                                 color
+                                    }else{
+                                        soundSource.playSound(SoundSource.successSound)
                                     }
                                 }
                             }
                             sheet.hideLoadMask()
                         }, { e, res, context, output ->
                             sheet.hideLoadMask()
+                            soundSource.playSound(SoundSource.offlineSaved)
                             viewModelScope.launch {
                                 bookingService.insertBooking(
                                     card,
@@ -222,6 +231,7 @@ class MBSheetFingerprintCardReaderViewModel(
             }
         } else {
             viewModelScope.launch {
+                soundSource.playSound(SoundSource.offlineSaved)
                 bookingService.insertBooking(card, inputCode, date, sheet.getStatus())
                 sheet.activity?.runOnUiThread {
                     sheet.getBinding().textViewBookingMessage.text =

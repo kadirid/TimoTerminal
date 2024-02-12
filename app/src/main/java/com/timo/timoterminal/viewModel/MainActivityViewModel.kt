@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.java.KoinJavaComponent
 
 class MainActivityViewModel(
     private val demoRepository: DemoRepository,
@@ -108,6 +107,8 @@ class MainActivityViewModel(
             val users = userRepository.getEntityByCard(card)
             if (users.isNotEmpty()) {
                 mainActivity.showSettings(users[0])
+            }else {
+                soundSource.playSound(SoundSource.authenticationFailed)
             }
         }
     }
@@ -117,16 +118,16 @@ class MainActivityViewModel(
             val users = userRepository.getEntity(id.toLong())
             if (users.isNotEmpty()) {
                 mainActivity.showSettings(users[0])
+            }else{
+                soundSource.playSound(SoundSource.authenticationFailed)
             }
         }
     }
 
     fun hideSystemUI() {
-        soundSource.beep()
         hardware.hideSystemUI()
     }
     fun showSystemUI() {
-        soundSource.beep()
         hardware.showSystemUI()
     }
 }
