@@ -1,26 +1,18 @@
 package com.timo.timoterminal.service
 
-import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Handler
-import android.os.HandlerThread
 import android.os.Looper
-import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.lifecycle.viewModelScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.timo.timoterminal.R
-import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.serviceUtils.ProgressListener
 import com.timo.timoterminal.service.serviceUtils.ProgressResponseBody
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.ResponseToJSON
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import mcv.facepass.BuildConfig
 import okhttp3.Call
 import okhttp3.Callback
@@ -41,34 +33,13 @@ import java.util.concurrent.TimeUnit
 
 
 class HttpService() : KoinComponent {
-
     private val sharedPrefService: SharedPrefService by inject()
-    private val settingsService: SettingsService by inject()
-    private val userService: UserService by inject()
-    private val languageService: LanguageService by inject()
-    private val loginService: LoginService by inject()
-    private val bookingService: BookingService by inject()
+
     private var client: OkHttpClient = OkHttpClient().newBuilder()
-        .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(10, TimeUnit.SECONDS)
         .retryOnConnectionFailure(false)
         .build()
-
-    private fun getCompany(): String? {
-        return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-    }
-
-    private fun getURl(): String? {
-        return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-    }
-
-    private fun getTerminalID(): Int {
-        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-    }
-
-    private fun getToken(): String {
-        return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
-    }
 
 
     companion object {
@@ -167,56 +138,6 @@ class HttpService() : KoinComponent {
         }
     }
 
-    fun initHeartbeatWorker(application: Application, activity: MainActivity) {
-//        val workerService: WorkerService = WorkerService.getInstance(application)
-        //Alle 15 Minuten wird jetzt der Code ausgeführt, der da definiert ist
-//        workerService.addPeriodicRequest(
-//            HeartbeatWorker::class.java,
-//            15L,
-//            TimeUnit.MINUTES,
-//            {},
-//            lifecycleOwner = activity
-//        )
-
-        val handlerThread = HandlerThread("backgroundThread")
-        if (!handlerThread.isAlive) handlerThread.start()
-        val handler = Handler(handlerThread.looper)
-        var runnable: Runnable? = null
-
-        runnable = Runnable {
-            handler.postDelayed(runnable!!, 30000L)
-            val url = getURl()
-            val company = getCompany()
-            val terminalId = getTerminalID()
-            val token = getToken()
-            val date = Utils.getDateTimeFromGC(Utils.getCal())
-            if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
-                post(
-                    "${url}services/rest/zktecoTerminal/heartbeat",
-                    mapOf(
-                        Pair("firma", company),
-                        Pair("date", date),
-                        Pair("terminalId", terminalId.toString()),
-                        Pair("token", token)
-                    ),
-                    null,
-                    { obj, _, _ ->
-                        if (obj != null) {
-                            handelHeartBeatResponse(obj, activity)
-                        }
-                    }
-                )
-            }
-        }
-        handler.postDelayed(runnable, 1000L)
-    }
-
-    fun killHeartBeatWorkers(application: Application) {
-        println("killklkhljkklkljukjh")
-        val workerService: WorkerService = WorkerService.getInstance(application)
-        workerService.killAllWorkers()
-    }
-
     fun get(
         url: String,
         parameters: Map<String, String>?,
@@ -264,6 +185,17 @@ class HttpService() : KoinComponent {
                 e, response, context, output
             )
         }
+    ) {
+        postWithClient(client, url, parameters, context, successCallback, errorCallback)
+    }
+
+    fun postWithClient(
+        client: OkHttpClient,
+        url: String,
+        parameters: Map<String, String>,
+        context: Context?,
+        successCallback: (objResponse: JSONObject?, arrResponse: JSONArray?, strResponse: String?) -> Unit?,
+        errorCallback: (e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit
     ) {
         val formBody: RequestBody = createRequestBody(parameters)
         val request = Request.Builder()
@@ -322,72 +254,21 @@ class HttpService() : KoinComponent {
         })
     }
 
-    private fun handelHeartBeatResponse(obj: JSONObject, activity: MainActivity) {
-        val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
-        if (!obj.isNull("timezone") && !timezone.equals(obj.getString("timezone"))) {
-            settingsService.setTimeZone(activity, obj.getString("timezone")) {}
-            Utils.updateLocale()
-        }
-        val tTime = Utils.parseDBDateTime(obj.getString("time"))
-        Utils.setCal(tTime)
-        var updateAllUser = false
-        var loadPermissions = false
-        var loadLanguage = false
-        var rebootTerminal = false
-        val updateIds = arrayListOf<String>()
-        val deleteIds = arrayListOf<String>()
-        val deleteFP = arrayListOf<String>()
-        if (!obj.isNull("commands") && obj.getJSONArray("commands").length() > 0) {
-            val array = obj.getJSONArray("commands")
-            for (i in 0 until array.length()) {
-                val command = array.optString(i, "retrieval failed!")
-                Log.d("Commands", command)
-                if (command == "updateAllUser") {
-                    updateAllUser = true
-                } else if (command.startsWith("updateUser:")) {
-                    updateIds.add(command.substring(11, command.length))
-                } else if (command.startsWith("deleteUser:")) {
-                    deleteIds.add(command.substring(11, command.length))
-                } else if (command.startsWith("deleteFP:")) {
-                    deleteFP.add(command.substring(9, command.length))
-                } else if (command == "loadPermissions") {
-                    loadPermissions = true
-                } else if (command == "loadLanguage") {
-                    loadLanguage = true
-                } else if (command == "rebootTerminal") {
-                    rebootTerminal = true
-                }
-            }
-        }
-        val scope = activity.getViewModel().viewModelScope
-        scope.launch {
-            if (updateAllUser) {
-                userService.loadUsersFromServer(scope)
-            } else {
-                for (no in updateIds) {
-                    userService.loadUserFromServer(scope, no)
-                }
-                for (no in deleteIds) {
-                    userService.deleteUser(no)
-                }
-                for (no in deleteFP) {
-                    userService.deleteFPForUser(no)
-                }
-            }
-            if (loadPermissions) {
-                loginService.loadPermissions(scope, activity) {}
-            }
-            if (loadLanguage) {
-                languageService.requestLanguageFromServer(scope, activity)
-            }
-            if (rebootTerminal) {
-                if (loadLanguage || loadPermissions || updateAllUser || updateIds.size > 0 || deleteIds.size > 0 || deleteFP.size > 0) {
-                    delay(10000L)
-                }
-                activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
-            } else {
-                bookingService.sendSavedBooking(scope)
-            }
+    fun responseForCommand(unique: String) {
+        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
+        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
+        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
+
+        if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty() && unique.isNotEmpty()) {
+            post(
+                "${url}services/rest/zktecoTerminal/doneCommand",
+                mapOf(
+                    Pair("company", company),
+                    Pair("terminalId", "$terminalId"),
+                    Pair("token", token),
+                    Pair("unique", unique)
+                ), null, { _, _, _ -> }, { _, _, _, _ -> })
         }
     }
 }

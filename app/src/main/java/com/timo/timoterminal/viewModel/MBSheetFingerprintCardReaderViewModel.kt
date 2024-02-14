@@ -89,10 +89,10 @@ class MBSheetFingerprintCardReaderViewModel(
                 }
                 sheet.showLoadMask()
                 sendBooking(user.card, 2, Utils.getDateTimeFromGC(greg), sheet)
-                sheet.setStatus(-1)
             } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
                 sheet.animateSuccess()
+                sheet.setStatus(-1)
                 sheet.getBinding().textViewBookingMessage.text =
                     languageService.getText("#VerificationFailed")
                 val color =
@@ -115,12 +115,12 @@ class MBSheetFingerprintCardReaderViewModel(
                 }
                 sheet.showLoadMask()
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
-                sheet.setStatus(-1)
             } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
                 sheet.animateSuccess()
+                sheet.setStatus(-1)
                 sheet.getBinding().textViewBookingMessage.text =
-                    languageService.getText("#VerificationFailed")
+                    languageService.getText("#Number unknown")
                 val color =
                     sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
                 if (color != null)
@@ -141,10 +141,10 @@ class MBSheetFingerprintCardReaderViewModel(
                 }
                 sheet.showLoadMask()
                 sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
-                sheet.setStatus(-1)
             } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
                 sheet.animateSuccess()
+                sheet.setStatus(-1)
                 sheet.getBinding().textViewBookingMessage.text =
                     languageService.getText("#VerificationFailed")
                 val color =
@@ -185,6 +185,7 @@ class MBSheetFingerprintCardReaderViewModel(
                         { obj, _, _ ->
                             if (obj != null) {
                                 sheet.animateSuccess()
+                                sheet.setStatus(-1)
                                 RfidService.unregister()
                                 FingerprintService.unregister()
                                 sheet.activity?.runOnUiThread {
@@ -200,13 +201,13 @@ class MBSheetFingerprintCardReaderViewModel(
                                         if (color != null)
                                             sheet.getBinding().bookingInfoContainer.backgroundTintList =
                                                 color
-                                    }else{
+                                    } else {
                                         soundSource.playSound(SoundSource.successSound)
                                     }
                                 }
                             }
                             sheet.hideLoadMask()
-                        }, { e, res, context, output ->
+                        }, { _, _, _, _ ->
                             sheet.hideLoadMask()
                             soundSource.playSound(SoundSource.offlineSaved)
                             viewModelScope.launch {
@@ -217,14 +218,14 @@ class MBSheetFingerprintCardReaderViewModel(
                                     sheet.getStatus()
                                 )
                             }
-                            HttpService.handleGenericRequestError(
-                                e,
-                                res,
-                                context,
-                                output,
-                                languageService.getText("#TimoServiceNotReachable") + " " +
-                                        languageService.getText("#BookingTemporarilySaved")
-                            )
+                            sheet.activity?.runOnUiThread {
+                                sheet.getBinding().textViewBookingMessage.text =
+                                    languageService.getText("#BookingTemporarilySaved")
+                                sheet.animateSuccess()
+                                sheet.setStatus(-1)
+                                RfidService.unregister()
+                                FingerprintService.unregister()
+                            }
                         }
                     )
                 }
@@ -237,6 +238,7 @@ class MBSheetFingerprintCardReaderViewModel(
                     sheet.getBinding().textViewBookingMessage.text =
                         languageService.getText("#BookingTemporarilySaved")
                     sheet.animateSuccess()
+                    sheet.setStatus(-1)
                     RfidService.unregister()
                     FingerprintService.unregister()
                 }

@@ -22,7 +22,7 @@ class UserService(
     private val languageService: LanguageService
 ) : KoinComponent {
 
-    fun loadUsersFromServer(scope: CoroutineScope) {
+    fun loadUsersFromServer(scope: CoroutineScope, unique: String = "") {
         scope.launch {
             //Load from server
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
@@ -41,6 +41,9 @@ class UserService(
                         //Save it persistently offline
                         loadIntoDB(arrResponse, scope)
                         getFPFromServer(scope)
+                        if(unique.isNotEmpty()){
+                            httpService.responseForCommand(unique)
+                        }
                     })
             }
         }
@@ -313,7 +316,7 @@ class UserService(
         )
     }
 
-    fun loadUserFromServer(scope: CoroutineScope, userId: String) {
+    fun loadUserFromServer(scope: CoroutineScope, userId: String, unique: String = "") {
         //Load from server
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
@@ -336,6 +339,9 @@ class UserService(
                             userRepository.insertOne(userEntity)
                             if (userEntity.assignedToTerminal) {
                                 getFPForUser(url, { }, userId, company, terminalId, token)
+                                if (unique.isNotEmpty()) {
+                                    httpService.responseForCommand(unique)
+                                }
                             }
                         }
                     }
@@ -344,15 +350,18 @@ class UserService(
         }
     }
 
-    suspend fun deleteUser(userId: String) {
+    suspend fun deleteUser(userId: String, unique: String = "") {
         val list = userRepository.getEntity(userId.toLong())
         if (list.isNotEmpty()) {
             userRepository.delete(list[0])
             deleteFPForUser(userId)
+            if (unique.isNotEmpty()) {
+                httpService.responseForCommand(unique)
+            }
         }
     }
 
-    fun deleteFPForUser(userId: String) {
+    fun deleteFPForUser(userId: String, unique: String = "") {
         FingerprintService.delete("$userId|0")
         FingerprintService.delete("$userId|1")
         FingerprintService.delete("$userId|2")
@@ -363,6 +372,9 @@ class UserService(
         FingerprintService.delete("$userId|7")
         FingerprintService.delete("$userId|8")
         FingerprintService.delete("$userId|9")
+        if (unique.isNotEmpty()) {
+            httpService.responseForCommand(unique)
+        }
     }
 
     private fun processFPArray(arr: JSONArray?) {

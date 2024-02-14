@@ -75,4 +75,12 @@ class AttendanceFragmentViewModel(
         }
         return null
     }
+
+    suspend fun getUserByCard(card:String):UserEntity?{
+        val users = userRepository.getEntityByCard(card)
+        if(users.isNotEmpty()){
+            return users[0]
+        }
+        return null
+    }
 }

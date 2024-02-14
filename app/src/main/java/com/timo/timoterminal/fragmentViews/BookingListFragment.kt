@@ -61,6 +61,7 @@ class BookingListFragment : Fragment() {
                 adapter = BookingBUEntityAdapter(it, userMap, statusMap,
                     object : BookingBUEntityAdapter.OnItemClickListener {
                         override fun onItemClick(entity: BookingBUEntity) {
+                            (activity as MainActivity?)?.restartTimer()
                             // do stuff here
                         }
                     })

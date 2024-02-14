@@ -91,7 +91,7 @@ class MBSheetFingerprintCardReader(
         //before starting the animation, populate the fields with the correct data! Set the color
         // as well!
         status = arguments?.getInt("status") ?: -1
-        val sStatus = when (arguments?.getInt("status")) {
+        val sStatus = when (status) {
             100 -> languageService.getText("#Kommt")
             200 -> languageService.getText("#Geht")
             110 -> languageService.getText("ALLGEMEIN#Pause")
@@ -276,7 +276,10 @@ class MBSheetFingerprintCardReader(
             val id = this.substring(0, this.length - 2).toLong()
             timer.cancel()
             viewModel.sendBookingById(id, this@MBSheetFingerprintCardReader)
+            return
         }
+        soundSource.playSound(SoundSource.authenticationFailed)
+        Utils.showMessage(parentFragmentManager, languageService.getText("#VerificationFailed"))
     }
 
     private fun showVerificationAlert() {

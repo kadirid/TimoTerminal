@@ -28,11 +28,11 @@ class SettingsService(
         }.toTypedArray()
     }
 
-    fun changeLanguage(activity: Activity, lang: String) {
+    fun changeLanguage(activity: Activity, lang: String, unique: String = "") {
         val editor = sharedPrefService.getEditor()
         var chosenLanguageCode = ""
         for (loc in getLanguages()) {
-            if (Locale.forLanguageTag(loc.language).displayLanguage.equals(lang)) {
+            if (Locale.forLanguageTag(loc.language).displayLanguage.equals(lang) || loc.language.equals(lang)) {
                 chosenLanguageCode = loc.language
                 break
             }
@@ -40,8 +40,11 @@ class SettingsService(
         editor.putString(SharedPreferenceKeys.LANGUAGE.name, chosenLanguageCode)
         editor.apply()
 
-
         LocaleHelper.setLocale(activity.applicationContext, chosenLanguageCode)
+
+        if(unique.isNotEmpty()){
+            httpService.responseForCommand(unique)
+        }
     }
 
     fun changeLanguage(context:Context?, lang: String) {

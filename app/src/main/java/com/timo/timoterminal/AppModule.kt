@@ -14,6 +14,7 @@ import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.LanguageRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.BookingService
+import com.timo.timoterminal.service.HeartbeatService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
@@ -103,6 +104,7 @@ var appModule = module {
 
     single { HttpService() }
     single { WebSocketService() }
+    single { HeartbeatService() }
     single { SharedPrefService(androidContext()) }
     single { PropertyService(androidContext()) }
     single { WorkerService(get()) }

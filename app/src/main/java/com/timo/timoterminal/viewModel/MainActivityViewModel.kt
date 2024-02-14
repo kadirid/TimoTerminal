@@ -1,6 +1,5 @@
 package com.timo.timoterminal.viewModel
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.activities.MainActivity
@@ -9,7 +8,7 @@ import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.UserRepository
-import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.HeartbeatService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.sdk.sources.IHardwareSource
@@ -23,19 +22,18 @@ class MainActivityViewModel(
     private val userRepository: UserRepository,
     private val configRepository: ConfigRepository,
     private val sharedPrefService: SharedPrefService,
-    private val httpService: HttpService
+    private val heartbeatService: HeartbeatService
 ) : ViewModel(), KoinComponent {
     val demoEntities: Flow<List<DemoEntity>> = demoRepository.getAllEntities
     val userEntities: Flow<List<UserEntity>> = userRepository.getAllEntities
     private val hardware: IHardwareSource by inject()
     private val soundSource: SoundSource by inject()
 
-    fun initHeartbeatService(application: Application, activity: MainActivity) {
-        httpService.initHeartbeatWorker(application, activity)
+    fun initHeartbeatService(activity: MainActivity) {
+        heartbeatService.initHeartbeatWorker(activity)
     }
 
-    fun killHeartBeatWorkers(application: Application) {
-        httpService.killHeartBeatWorkers(application)
+    fun killHeartBeatWorkers() {
         viewModelScope.launch {
             sharedPrefService.removeAllCreds()
         }
@@ -107,7 +105,7 @@ class MainActivityViewModel(
             val users = userRepository.getEntityByCard(card)
             if (users.isNotEmpty()) {
                 mainActivity.showSettings(users[0])
-            }else {
+            } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
             }
         }
@@ -118,7 +116,7 @@ class MainActivityViewModel(
             val users = userRepository.getEntity(id.toLong())
             if (users.isNotEmpty()) {
                 mainActivity.showSettings(users[0])
-            }else{
+            } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
             }
         }
@@ -127,6 +125,7 @@ class MainActivityViewModel(
     fun hideSystemUI() {
         hardware.hideSystemUI()
     }
+
     fun showSystemUI() {
         hardware.showSystemUI()
     }

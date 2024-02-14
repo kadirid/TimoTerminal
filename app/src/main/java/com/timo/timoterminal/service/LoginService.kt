@@ -54,7 +54,7 @@ class LoginService(
                         company,
                         username,
                         password,
-                        url.substring(0,url.length-1),
+                        url.substring(0, url.length - 1),
                         context,
                         successCallback,
                     )
@@ -194,7 +194,11 @@ class LoginService(
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty()) {
                 httpService.get(
                     "${url}services/rest/zktecoTerminal/permission",
-                    mapOf(Pair("firma", company),Pair("terminalId", "$terminalId"),Pair("token", token)),
+                    mapOf(
+                        Pair("firma", company),
+                        Pair("terminalId", "$terminalId"),
+                        Pair("token", token)
+                    ),
                     context,
                     { _, array, _ ->
                         if (array != null && array.length() > 0) {

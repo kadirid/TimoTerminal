@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         registerNetworkReceiver()
 
         //How to start a worker
-        mainActivityViewModel.initHeartbeatService(application, this)
+        mainActivityViewModel.initHeartbeatService(this)
 
         clickListeners()
     }
@@ -165,7 +165,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
         binding.imageViewLogo.setSafeOnClickListener {
             if (BuildConfig.DEBUG)
-                mainActivityViewModel.killHeartBeatWorkers(application)
+                mainActivityViewModel.killHeartBeatWorkers()
         }
     }
 
@@ -181,14 +181,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                 attendancePermission == "true"
         }
 
-        binding.navigationRail.menu.findItem(R.id.info).title =
-            languageService.getText("ALLGEMEIN#Info")
-        binding.navigationRail.menu.findItem(R.id.project).title =
-            languageService.getText("ALLGEMEIN#Projekt")
-        binding.navigationRail.menu.findItem(R.id.attendance).title =
-            languageService.getText("#Attendance")
-        binding.navigationRail.menu.findItem(R.id.absence).title =
-            languageService.getText("#Absence")
+        setText()
         binding.navigationRail.menu.findItem(R.id.absence).isVisible =
             false// currently no functionality
 
@@ -248,6 +241,17 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             }
             restartTimer()
         }
+    }
+
+    fun setText() {
+        binding.navigationRail.menu.findItem(R.id.info).title =
+            languageService.getText("ALLGEMEIN#Info")
+        binding.navigationRail.menu.findItem(R.id.project).title =
+            languageService.getText("ALLGEMEIN#Projekt")
+        binding.navigationRail.menu.findItem(R.id.attendance).title =
+            languageService.getText("#Attendance")
+        binding.navigationRail.menu.findItem(R.id.absence).title =
+            languageService.getText("#Absence")
     }
 
     // verify user if present before opening settings page
@@ -429,4 +433,9 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             binding.layoutLoadMaks.visibility = View.GONE
         }
     }
+
+    fun reloadSoundSource() {
+        soundSource.reloadForLanguage()
+    }
+
 }

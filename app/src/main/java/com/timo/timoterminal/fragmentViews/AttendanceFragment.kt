@@ -213,8 +213,16 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
                 oct = "0$oct"
             }
             oct = oct.reversed()
-            (activity as MainActivity?)?.showLoadMask()
-            sendBooking(oct, 1)
+            viewModel.viewModelScope.launch {
+                val user = viewModel.getUserByCard(oct)
+                if (user != null) {
+                    (activity as MainActivity?)?.showLoadMask()
+                    sendBooking(oct, 1)
+                } else {
+                    soundSource.playSound(SoundSource.authenticationFailed)
+                    Utils.showMessage(parentFragmentManager, languageService.getText("#VerificationFailed"))
+                }
+            }
         }
     }
 
@@ -234,11 +242,12 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
                 if (user != null) {
                     (activity as MainActivity?)?.showLoadMask()
                     sendBooking(user.card, 2)
-                } else {
-                    soundSource.playSound(SoundSource.authenticationFailed)
                 }
             }
+            return
         }
+        soundSource.playSound(SoundSource.authenticationFailed)
+        Utils.showMessage(parentFragmentManager, languageService.getText("#VerificationFailed"))
     }
 
     private fun adaptLottieAnimationTime() {

@@ -12,6 +12,7 @@ import com.timo.timoterminal.service.SharedPrefService
 class SoundSource(val sharedPrefService: SharedPrefService, val context: Context) {
     private val soundPool = SoundPool.Builder().setMaxStreams(1).build()
     private val map = HashMap<Int, Int>()
+    private var poolNo = 0
 
     init {
         loadDefault()
@@ -19,7 +20,7 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
 
     fun playSound(soundId: Int) {
         if (map[soundId] != null && map[soundId] != -1) {
-            soundPool.play(map[soundId]!!, 1f, 1f, 1, 0, 1f)
+            soundPool.play(map[soundId]!!, 0.1f, 0.1f, 1, 0, 1f)
         } else {
             Log.d("Sound missed", soundId.toString())
         }
@@ -54,6 +55,7 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
             return
         }
         unload()
+        poolNo = 2
 
         val lang = sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)
         if (lang == "de") {
@@ -61,7 +63,6 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
         } else {
             map[offlineSaved] = soundPool.load(context, R.raw.en_offline_saved, 1)
         }
-        Log.d("Sound loaded", "Attendance")
     }
 
     fun loadForLogin(lang: String) {
@@ -69,6 +70,7 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
             return
         }
         unload()
+        poolNo = 1
 
         if (lang.toLowerCase(Locale.current).startsWith("de")) {
             map[loginFailed] = soundPool.load(context, R.raw.de_login_failed, 1)
@@ -77,7 +79,6 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
             map[loginFailed] = soundPool.load(context, R.raw.en_login_failed, 1)
             map[loginSuccessful] = soundPool.load(context, R.raw.en_login_successful, 1)
         }
-        Log.d("Sound loaded", "Login")
     }
 
     fun loadForFP() {
@@ -85,6 +86,7 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
             return
         }
         unload()
+        poolNo = 3
 
         val lang = sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)
         if (lang == "de") {
@@ -168,7 +170,6 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
                 1
             )
         }
-        Log.d("Sound loaded", "Fingerprint")
     }
 
     companion object {
@@ -197,5 +198,25 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
         const val takeFingerAwayAndPutItOnAgain = 22
         const val savedSuccessfully = 23
         const val savingError = 24
+    }
+
+    fun reloadForLanguage() {
+        val lang = sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)
+        unload()
+        if (lang != null) {
+            when (poolNo) {
+                1 -> loadForLogin(lang)
+                2 -> loadForAttendance()
+                3 -> loadForFP()
+            }
+            soundPool.unload(map[authenticationFailed]!!)
+            if (lang == "de") {
+                map[authenticationFailed] =
+                    soundPool.load(context, R.raw.de_authentification_failed, 1)
+            } else {
+                map[authenticationFailed] =
+                    soundPool.load(context, R.raw.en_authentification_failed, 1)
+            }
+        }
     }
 }

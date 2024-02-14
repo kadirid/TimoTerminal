@@ -20,7 +20,11 @@ class LanguageService(
 
     private val languages = ConcurrentHashMap<String, ConcurrentHashMap<String, String>>()
 
-    fun requestLanguageFromServer(coroutineScope: CoroutineScope, context: Context) {
+    fun requestLanguageFromServer(
+        coroutineScope: CoroutineScope,
+        context: Context,
+        unique: String = ""
+    ) {
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         if (!company.isNullOrEmpty()) {
             if (Utils.isOnline(context)) {
@@ -30,7 +34,11 @@ class LanguageService(
                 coroutineScope.launch {
                     withContext(Dispatchers.IO) {
                         httpService.get("${url}services/rest/zktecoTerminal/language",
-                            mapOf(Pair("firma", company),Pair("terminalId", "$terminalId"),Pair("token", token)),
+                            mapOf(
+                                Pair("firma", company),
+                                Pair("terminalId", "$terminalId"),
+                                Pair("token", token)
+                            ),
                             context,
                             { obj, _, _ ->
                                 if (obj != null) {
@@ -52,6 +60,9 @@ class LanguageService(
                                         }
                                     }
                                     putLanguageValuesInMap(list)
+                                    if(unique.isNotEmpty()){
+                                        httpService.responseForCommand(unique)
+                                    }
                                 }
                             }
                         )
@@ -80,14 +91,14 @@ class LanguageService(
     }
 
     fun getText(key: String): String {
-        if(languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)] != null) {
+        if (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)] != null) {
             return (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)]?.get(key))
                 ?: ""
         }
         return ""
     }
 
-    fun deleteAll(scope: CoroutineScope){
+    fun deleteAll(scope: CoroutineScope) {
         scope.launch {
             languageRepository.deleteAll()
         }
