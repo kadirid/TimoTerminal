@@ -123,7 +123,7 @@ class MainActivityViewModel(
     }
 
     fun hideSystemUI() {
-        hardware.hideSystemUI()
+//        hardware.hideSystemUI()
     }
 
     fun showSystemUI() {

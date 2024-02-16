@@ -2,6 +2,7 @@ package com.timo.timoterminal.modalBottomSheets
 
 import android.annotation.SuppressLint
 import android.app.Dialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -51,6 +52,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
 
         super.onResume()
     }
+
     @SuppressLint("SetTextI18n")
     private fun setText() {
         binding.textViewCurrentDay.text = languageService.getText("ALLGEMEIN#Aktueller Tag")
@@ -104,6 +106,12 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
 
     fun showSeconds(seconds:String){
         binding.textviewSecondClose.text = seconds
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+
+        viewModel?.dismissInfoSheet()
     }
 
     private fun getText(key: String) = languageService.getText(key)

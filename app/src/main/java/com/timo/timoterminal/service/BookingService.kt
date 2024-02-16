@@ -7,14 +7,16 @@ import com.timo.timoterminal.repositories.BookingRepository
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 
-class BookingService (
+class BookingService(
     private val bookingRepository: BookingRepository,
     private val bookingBURepository: BookingBURepository,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService
-): KoinComponent {
+) : KoinComponent {
 
     private fun getCompany(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
@@ -43,50 +45,55 @@ class BookingService (
         insertBU()
     }
 
-    private suspend fun insertBU(){
+    private suspend fun insertBU() {
         val entities = bookingRepository.getAllAsList()
         bookingBURepository.insertBookingEntities(entities)
     }
 
-    suspend fun sendSavedBooking(scope: CoroutineScope){
+    suspend fun sendSavedBooking(scope: CoroutineScope) {
         bookingBURepository.deleteOldBUBookings()
-        if(bookingRepository.count() > 0){
+        if (bookingRepository.count() > 0) {
             val url = getURl()
             val company = getCompany()
             val terminalId = getTerminalID()
             val token = getToken()
             if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
                 val bookings = bookingRepository.getAllAsList()
+                val params = JSONObject()
+                params.put("terminalId", terminalId.toString())
+                params.put("token", token)
+                params.put("firma", company)
+                val arr = JSONArray()
                 for (booking in bookings) {
-                    httpService.post(
-                        "${url}services/rest/zktecoTerminal/booking",
-                        mapOf(
-                            Pair("card", booking.card),
-                            Pair("firma", company),
-                            Pair("date", Utils.parseFromDBDate(booking.date)),
-                            Pair("funcCode", "${booking.status}"),
-                            Pair("inputCode", "${booking.inputCode}"),
-                            Pair("terminalId", terminalId.toString()),
-                            Pair("token", token),
-                            Pair("validate", "false")
-                        ),
-                        null,
-                        { obj, _, _ ->
-                            if (obj != null) {
-                                scope.launch {
-                                    if(booking.id != null)
+                    val obj = JSONObject()
+                    obj.put("card", booking.card)
+                    obj.put("date", Utils.parseFromDBDate(booking.date))
+                    obj.put("funcCode", "${booking.status}")
+                    obj.put("inputCode", "${booking.inputCode}")
+                    arr.put(obj)
+                }
+                params.put("data", arr)
+                httpService.postJson(
+                    "${url}services/rest/zktecoTerminal/offlineBooking",
+                    params.toString(),
+                    null,
+                    { _, _, msg ->
+                        if(msg != null && msg.toLong() == bookings.size.toLong()) {
+                            scope.launch {
+                                for (booking in bookings) {
+                                    if (booking.id != null)
                                         bookingBURepository.setIsSend(booking.id!!)
                                     bookingRepository.delete(booking)
                                 }
                             }
                         }
-                    )
-                }
+                    }
+                )
             }
         }
     }
 
-    fun deleteAll(scope: CoroutineScope){
+    fun deleteAll(scope: CoroutineScope) {
         scope.launch {
             bookingRepository.deleteAll()
             bookingBURepository.deleteAll()

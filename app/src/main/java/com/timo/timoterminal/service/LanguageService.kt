@@ -6,9 +6,7 @@ import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.LanguageRepository
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import java.util.concurrent.ConcurrentHashMap
 
@@ -32,48 +30,46 @@ class LanguageService(
                 val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
                 val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
                 coroutineScope.launch {
-                    withContext(Dispatchers.IO) {
-                        httpService.get("${url}services/rest/zktecoTerminal/language",
-                            mapOf(
-                                Pair("firma", company),
-                                Pair("terminalId", "$terminalId"),
-                                Pair("token", token)
-                            ),
-                            context,
-                            { obj, _, _ ->
-                                if (obj != null) {
-                                    val values = Utils.parseResponseToJSON(obj.getString("values"))
-                                    val list = mutableListOf<LanguageEntity>()
-                                    if (values.array != null) {
-                                        for (i in 0 until values.array.length()) {
-                                            val oneValue = values.array.getJSONObject(i)
-                                            list.add(
-                                                LanguageEntity.convertJSONObjectToLanguageEntity(
-                                                    oneValue
-                                                )
+                    httpService.get("${url}services/rest/zktecoTerminal/language",
+                        mapOf(
+                            Pair("firma", company),
+                            Pair("terminalId", "$terminalId"),
+                            Pair("token", token)
+                        ),
+                        context,
+                        { obj, _, _ ->
+                            if (obj != null) {
+                                val values = Utils.parseResponseToJSON(obj.getString("values"))
+                                val list = mutableListOf<LanguageEntity>()
+                                if (values.array != null) {
+                                    for (i in 0 until values.array.length()) {
+                                        val oneValue = values.array.getJSONObject(i)
+                                        list.add(
+                                            LanguageEntity.convertJSONObjectToLanguageEntity(
+                                                oneValue
                                             )
-                                        }
-                                    }
-                                    coroutineScope.launch {
-                                        withContext(Dispatchers.IO) {
-                                            languageRepository.insertLanguageEntities(list)
-                                        }
-                                    }
-                                    putLanguageValuesInMap(list)
-                                    if(unique.isNotEmpty()){
-                                        httpService.responseForCommand(unique)
+                                        )
                                     }
                                 }
+                                coroutineScope.launch {
+                                    languageRepository.insertLanguageEntities(list)
+                                }
+                                putLanguageValuesInMap(list)
+                                if (unique.isNotEmpty()) {
+                                    httpService.responseForCommand(unique)
+                                }
                             }
-                        )
-                    }
+                        }, { e, res, context, output ->
+                            HttpService.handleGenericRequestError(
+                                e, res, context, output, "loadLanguage"
+                            )
+                        }
+                    )
                 }
             } else {
                 coroutineScope.launch {
-                    withContext(Dispatchers.IO) {
-                        val list = languageRepository.getAllAsList()
-                        putLanguageValuesInMap(list)
-                    }
+                    val list = languageRepository.getAllAsList()
+                    putLanguageValuesInMap(list)
                 }
             }
         }
@@ -91,11 +87,15 @@ class LanguageService(
     }
 
     fun getText(key: String): String {
+        return getText(key, "")
+    }
+
+    fun getText(key: String, default: String): String {
         if (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)] != null) {
             return (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)]?.get(key))
-                ?: ""
+                ?: default
         }
-        return ""
+        return default
     }
 
     fun deleteAll(scope: CoroutineScope) {

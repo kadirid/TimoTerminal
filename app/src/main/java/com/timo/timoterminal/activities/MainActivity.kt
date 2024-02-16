@@ -266,8 +266,13 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
-        dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
-        dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
+        dlgAlert.setNegativeButton(
+            languageService.getText(
+                "BUTTON#Gen_Cancel",
+                "CANCEL"
+            )
+        ) { dia, _ -> dia.dismiss() }
+        dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok", "OK")) { _, _ ->
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (login.isNotEmpty() && pin.isNotEmpty()) {

@@ -19,10 +19,11 @@ import okhttp3.Callback
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
-import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
@@ -43,7 +44,7 @@ class HttpService() : KoinComponent {
 
 
     companion object {
-        var mediaType = "application/json; charset=utf-8".toMediaType()
+        var mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
 
         fun buildUrl(scheme: String, host: String, params: HashMap<String, String>): HttpUrl {
             val httpBuilder = HttpUrl.Builder()
@@ -198,6 +199,43 @@ class HttpService() : KoinComponent {
         errorCallback: (e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit
     ) {
         val formBody: RequestBody = createRequestBody(parameters)
+        val request = Request.Builder()
+            .url(url)
+            .post(formBody)
+            .build()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                var responseString = response.body!!.string()
+
+                if (responseString.isEmpty()) {
+                    responseString = response.message
+                }
+                val output: ResponseToJSON = Utils.parseResponseToJSON(responseString)
+                if (response.code == 200 || response.isSuccessful) {
+                    successCallback(output.obj, output.array, output.string)
+                } else {
+                    errorCallback(null, response, context, output)
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                errorCallback(e, null, context, null)
+            }
+        })
+    }
+
+    fun postJson(
+        url: String,
+        parametersJson: String,
+        context: Context?,
+        successCallback: (objResponse: JSONObject?, arrResponse: JSONArray?, strResponse: String?) -> Unit?,
+        errorCallback: (e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit = { e, response, context, output ->
+            handleGenericRequestError(
+                e, response, context, output
+            )
+        }
+    ) {
+        val formBody = parametersJson.toRequestBody(mediaType)
         val request = Request.Builder()
             .url(url)
             .post(formBody)

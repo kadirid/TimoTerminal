@@ -27,8 +27,8 @@ class HeartbeatService : KoinComponent {
     private val httpService: HttpService by inject()
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .retryOnConnectionFailure(false)
-        .connectTimeout(5000, TimeUnit.MILLISECONDS)
-        .callTimeout(5000, TimeUnit.MILLISECONDS)
+        .connectTimeout(10000, TimeUnit.MILLISECONDS)
+        .callTimeout(10000, TimeUnit.MILLISECONDS)
         .build()
 
     private fun getCompany(): String? {
@@ -102,8 +102,8 @@ class HeartbeatService : KoinComponent {
             val array = obj.getJSONArray("commands")
             for (i in 0 until array.length()) {
                 val cmdObj = array.getJSONObject(i)
-                Log.d("Commands", cmdObj.toString())
                 val command = cmdObj.optString("command")
+                Log.d("Commands", command)
                 val id = cmdObj.optString("unique")
                 if (id.isNotEmpty()) {
                     if (command == "updateAllUser") {

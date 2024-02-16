@@ -11,8 +11,8 @@ import com.zkteco.android.core.sdk.service.FingerprintService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 
 class UserService(
@@ -41,7 +41,7 @@ class UserService(
                         //Save it persistently offline
                         loadIntoDB(arrResponse, scope)
                         getFPFromServer(scope)
-                        if(unique.isNotEmpty()){
+                        if (unique.isNotEmpty()) {
                             httpService.responseForCommand(unique)
                         }
                     })
@@ -86,38 +86,36 @@ class UserService(
                 paramMap["company"] = company
                 paramMap["token"] = token
                 paramMap["terminalId"] = terminalId.toString()
-                withContext(Dispatchers.IO) {
-                    httpService.post("${url}services/rest/zktecoTerminal/updateUserCard",
-                        paramMap,
-                        sheet.requireContext(),
-                        { obj, _, _ ->
-                            if (obj != null) {
-                                if (obj.getBoolean("success")) {
-                                    val userEntity: UserEntity =
-                                        UserEntity.parseJsonToUserEntity(obj)
-                                    scope.launch(Dispatchers.IO) {
-                                        userRepository.insertOne(userEntity)
-                                    }
+                httpService.post("${url}services/rest/zktecoTerminal/updateUserCard",
+                    paramMap,
+                    sheet.requireContext(),
+                    { obj, _, _ ->
+                        if (obj != null) {
+                            if (obj.getBoolean("success")) {
+                                val userEntity: UserEntity =
+                                    UserEntity.parseJsonToUserEntity(obj)
+                                scope.launch(Dispatchers.IO) {
+                                    userRepository.insertOne(userEntity)
                                 }
-                                sheet.afterUpdate(
-                                    obj.getBoolean("success"),
-                                    obj.optString("message", "")
-                                )
                             }
-                            sheet.hideLoadMask()
-                        }, { e, res, context, output ->
-                            sheet.hideLoadMask()
-                            HttpService.handleGenericRequestError(
-                                e,
-                                res,
-                                context,
-                                output,
-                                languageService.getText("#TimoServiceNotReachable") + " " +
-                                        languageService.getText("#ChangesReverted")
+                            sheet.afterUpdate(
+                                obj.getBoolean("success"),
+                                obj.optString("message", "")
                             )
                         }
-                    )
-                }
+                        sheet.hideLoadMask()
+                    }, { e, res, context, output ->
+                        sheet.hideLoadMask()
+                        HttpService.handleGenericRequestError(
+                            e,
+                            res,
+                            context,
+                            output,
+                            languageService.getText("#TimoServiceNotReachable") + " " +
+                                    languageService.getText("#ChangesReverted")
+                        )
+                    }
+                )
             }
         }
     }
@@ -136,40 +134,38 @@ class UserService(
                 paramMap["company"] = company
                 paramMap["token"] = token
                 paramMap["terminalId"] = terminalId.toString()
-                withContext(Dispatchers.IO) {
-                    httpService.post("${url}services/rest/zktecoTerminal/updateUserPIN",
-                        paramMap,
-                        fragment.requireContext(),
-                        { obj, _, _ ->
-                            if (obj != null) {
-                                if (obj.getBoolean("success")) {
-                                    val userEntity: UserEntity =
-                                        UserEntity.parseJsonToUserEntity(obj)
-                                    scope.launch(Dispatchers.IO) {
-                                        userRepository.insertOne(userEntity)
-                                    }
-                                }
-                                fragment.activity?.runOnUiThread {
-                                    Utils.showMessage(
-                                        fragment.parentFragmentManager,
-                                        obj.optString("message", "")
-                                    )
+                httpService.post("${url}services/rest/zktecoTerminal/updateUserPIN",
+                    paramMap,
+                    fragment.requireContext(),
+                    { obj, _, _ ->
+                        if (obj != null) {
+                            if (obj.getBoolean("success")) {
+                                val userEntity: UserEntity =
+                                    UserEntity.parseJsonToUserEntity(obj)
+                                scope.launch(Dispatchers.IO) {
+                                    userRepository.insertOne(userEntity)
                                 }
                             }
-                            (fragment.activity as MainActivity?)?.hideLoadMask()
-                        }, { e, res, context, output ->
-                            (fragment.activity as MainActivity?)?.hideLoadMask()
-                            HttpService.handleGenericRequestError(
-                                e,
-                                res,
-                                context,
-                                output,
-                                languageService.getText("#TimoServiceNotReachable") + " " +
-                                        languageService.getText("#ChangesReverted")
-                            )
+                            fragment.activity?.runOnUiThread {
+                                Utils.showMessage(
+                                    fragment.parentFragmentManager,
+                                    obj.optString("message", "")
+                                )
+                            }
                         }
-                    )
-                }
+                        (fragment.activity as MainActivity?)?.hideLoadMask()
+                    }, { e, res, context, output ->
+                        (fragment.activity as MainActivity?)?.hideLoadMask()
+                        HttpService.handleGenericRequestError(
+                            e,
+                            res,
+                            context,
+                            output,
+                            languageService.getText("#TimoServiceNotReachable") + " " +
+                                    languageService.getText("#ChangesReverted")
+                        )
+                    }
+                )
             }
         }
     }
@@ -243,9 +239,7 @@ class UserService(
                     paramMap,
                     null,
                     { _, arr, _ ->
-                        if (arr != null && arr.length() > 0) {
-                            FingerprintService.clear()
-                        }
+                        FingerprintService.clear()
                         processFPArray(arr)
                     }
                 )
@@ -309,8 +303,10 @@ class UserService(
             "${url}services/rest/zktecoTerminal/getFP",
             paramMap,
             null,
-            { _, arr, _ ->
-                processFPArray(arr)
+            { obj, _, _ ->
+                if (obj != null) {
+                    processFPObj(obj)
+                }
                 callback()
             }
         )
@@ -339,9 +335,9 @@ class UserService(
                             userRepository.insertOne(userEntity)
                             if (userEntity.assignedToTerminal) {
                                 getFPForUser(url, { }, userId, company, terminalId, token)
-                                if (unique.isNotEmpty()) {
-                                    httpService.responseForCommand(unique)
-                                }
+                            }
+                            if (unique.isNotEmpty()) {
+                                httpService.responseForCommand(unique)
                             }
                         }
                     }
@@ -381,20 +377,21 @@ class UserService(
         if (arr != null && arr.length() > 0) {
             for (c in 0 until arr.length()) {
                 val obj = arr.getJSONObject(c)
-                val user = obj.optString("user", "")
-                if (user.isNotEmpty()) {
-                    val names = obj.names()
-                    if (names != null) {
-                        for (i in 0 until names.length()) {
-                            val name = names.getString(i)
-                            if ("user" != name) {
-                                val template = obj.getString(name)
-                                val finger =
-                                    (name.substring(name.length - 1)).toInt()
-                                saveFPinDB(template, finger, user)
-                            }
-                        }
-                    }
+                processFPObj(obj)
+            }
+        }
+    }
+
+    private fun processFPObj(obj: JSONObject) {
+        val user = obj.optString("user", "")
+        if (user.isNotEmpty()) {
+            for (i in 0..9) {
+                val name = "fp$i"
+                val template = obj.optString(name)
+                if (template.isNotEmpty()) {
+                    saveFPinDB(template, i, user)
+                } else {
+                    FingerprintService.delete("$user|$i")
                 }
             }
         }

@@ -69,7 +69,7 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
         }
     }
 
-    private fun register() {
+    fun register() {
         RfidService.unregister()
         FingerprintService.unregister()
         RfidService.setListener(this)

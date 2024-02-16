@@ -222,6 +222,10 @@ class LoginService(
                         } else {
                             callback(false)
                         }
+                    },{ e, res, context, output ->
+                        HttpService.handleGenericRequestError(
+                            e, res, context, output, "loadPermission"
+                        )
                     }
                 )
             }

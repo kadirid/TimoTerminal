@@ -15,9 +15,7 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MBSheetFingerprintCardReaderViewModel(
     private val userRepository: UserRepository,
@@ -27,8 +25,6 @@ class MBSheetFingerprintCardReaderViewModel(
     private val languageService: LanguageService,
     private val soundSource: SoundSource
 ) : ViewModel() {
-
-    private val ioDispatcher = Dispatchers.IO
 
     private fun getCompany(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
@@ -48,33 +44,27 @@ class MBSheetFingerprintCardReaderViewModel(
 
     // maybe useful for fingerprint
     private suspend fun getUserEntity(id: Long): UserEntity? {
-        return withContext(ioDispatcher) {
-            val users = userRepository.getEntity(id)
-            if (users.isNotEmpty()) {
-                return@withContext users[0]
-            }
-            null
+        val users = userRepository.getEntity(id)
+        if (users.isNotEmpty()) {
+            return users[0]
         }
+        return null
     }
 
     private suspend fun getUserEntityByCard(card: String): UserEntity? {
-        return withContext(ioDispatcher) {
-            val users = userRepository.getEntityByCard(card)
-            if (users.isNotEmpty()) {
-                return@withContext users[0]
-            }
-            null
+        val users = userRepository.getEntityByCard(card)
+        if (users.isNotEmpty()) {
+            return users[0]
         }
+        return null
     }
 
     private suspend fun getUserEntityByLogin(login: String): UserEntity? {
-        return withContext(ioDispatcher) {
-            val users = userRepository.getEntityByLogin(login)
-            if (users.isNotEmpty()) {
-                return@withContext users[0]
-            }
-            null
+        val users = userRepository.getEntityByLogin(login)
+        if (users.isNotEmpty()) {
+            return users[0]
         }
+        return null
     }
 
     fun sendBookingById(id: Long, sheet: MBSheetFingerprintCardReader) {
@@ -140,7 +130,7 @@ class MBSheetFingerprintCardReaderViewModel(
                     sheet.getBinding().timeTextContainer.text = time
                 }
                 sheet.showLoadMask()
-                sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
+                sendBooking(user.card, 0, Utils.getDateTimeFromGC(greg), sheet)
             } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
                 sheet.animateSuccess()
@@ -168,67 +158,65 @@ class MBSheetFingerprintCardReaderViewModel(
             val terminalId = getTerminalID()
             val token = getToken()
             if (!company.isNullOrEmpty() && terminalId > 0 && sheet.getStatus() > 0 && token.isNotEmpty()) {
-                withContext(ioDispatcher) {
-                    httpService.post(
-                        "${url}services/rest/zktecoTerminal/booking",
-                        mapOf(
-                            Pair("card", card),
-                            Pair("firma", company),
-                            Pair("date", date),
-                            Pair("funcCode", "${sheet.getStatus()}"),
-                            Pair("inputCode", "$inputCode"),
-                            Pair("terminalId", terminalId.toString()),
-                            Pair("token", token),
-                            Pair("validate", "true")
-                        ),
-                        sheet.requireContext(),
-                        { obj, _, _ ->
-                            if (obj != null) {
-                                sheet.animateSuccess()
-                                sheet.setStatus(-1)
-                                RfidService.unregister()
-                                FingerprintService.unregister()
-                                sheet.activity?.runOnUiThread {
-                                    sheet.getBinding().textViewBookingMessage.text =
-                                        obj.getString("message")
-                                    if (!obj.getBoolean("success")) {
-                                        soundSource.playSound(SoundSource.failedSound)
-                                        val color =
-                                            sheet.activity?.resources?.getColorStateList(
-                                                R.color.error_booking,
-                                                null
-                                            )
-                                        if (color != null)
-                                            sheet.getBinding().bookingInfoContainer.backgroundTintList =
-                                                color
-                                    } else {
-                                        soundSource.playSound(SoundSource.successSound)
-                                    }
-                                }
-                            }
-                            sheet.hideLoadMask()
-                        }, { _, _, _, _ ->
-                            sheet.hideLoadMask()
-                            soundSource.playSound(SoundSource.offlineSaved)
-                            viewModelScope.launch {
-                                bookingService.insertBooking(
-                                    card,
-                                    inputCode,
-                                    date,
-                                    sheet.getStatus()
-                                )
-                            }
+                httpService.post(
+                    "${url}services/rest/zktecoTerminal/booking",
+                    mapOf(
+                        Pair("card", card),
+                        Pair("firma", company),
+                        Pair("date", date),
+                        Pair("funcCode", "${sheet.getStatus()}"),
+                        Pair("inputCode", "$inputCode"),
+                        Pair("terminalId", terminalId.toString()),
+                        Pair("token", token),
+                        Pair("validate", "true")
+                    ),
+                    sheet.requireContext(),
+                    { obj, _, _ ->
+                        if (obj != null) {
+                            sheet.animateSuccess()
+                            sheet.setStatus(-1)
+                            RfidService.unregister()
+                            FingerprintService.unregister()
                             sheet.activity?.runOnUiThread {
                                 sheet.getBinding().textViewBookingMessage.text =
-                                    languageService.getText("#BookingTemporarilySaved")
-                                sheet.animateSuccess()
-                                sheet.setStatus(-1)
-                                RfidService.unregister()
-                                FingerprintService.unregister()
+                                    obj.getString("message")
+                                if (!obj.getBoolean("success")) {
+                                    soundSource.playSound(SoundSource.failedSound)
+                                    val color =
+                                        sheet.activity?.resources?.getColorStateList(
+                                            R.color.error_booking,
+                                            null
+                                        )
+                                    if (color != null)
+                                        sheet.getBinding().bookingInfoContainer.backgroundTintList =
+                                            color
+                                } else {
+                                    soundSource.playSound(SoundSource.successSound)
+                                }
                             }
                         }
-                    )
-                }
+                        sheet.hideLoadMask()
+                    }, { _, _, _, _ ->
+                        sheet.hideLoadMask()
+                        soundSource.playSound(SoundSource.offlineSaved)
+                        viewModelScope.launch {
+                            bookingService.insertBooking(
+                                card,
+                                inputCode,
+                                date,
+                                sheet.getStatus()
+                            )
+                        }
+                        sheet.activity?.runOnUiThread {
+                            sheet.getBinding().textViewBookingMessage.text =
+                                languageService.getText("#BookingTemporarilySaved")
+                            sheet.animateSuccess()
+                            sheet.setStatus(-1)
+                            RfidService.unregister()
+                            FingerprintService.unregister()
+                        }
+                    }
+                )
             }
         } else {
             viewModelScope.launch {
