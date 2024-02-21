@@ -255,7 +255,7 @@ class Utils {
 
             val sign = "+"
 
-            return getTimeString(hrs, sign, min)
+            return getTimeString(hrs, sign, minOff)
         }
 
         fun showMessage(fragMan: FragmentManager, message: String): MBMessageSheet {

@@ -1,5 +1,8 @@
 package com.timo.timoterminal.utils.classes
 
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import android.os.SystemClock
 import android.view.View
 import org.json.JSONArray
@@ -33,4 +36,20 @@ fun View.setSafeOnClickListener(onSafeClick: (View) -> Unit) {
         onSafeClick(it)
     }
     setOnClickListener(safeClickListener)
+}
+
+class FeedReaderDbHelper(context: Context?, databaseName: String) :
+    SQLiteOpenHelper(context, databaseName, null, DATABASE_VERSION) {
+    override fun onCreate(db: SQLiteDatabase) {}
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        onCreate(db)
+    }
+
+    override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        onUpgrade(db, oldVersion, newVersion)
+    }
+
+    companion object {
+        const val DATABASE_VERSION = 1
+    }
 }

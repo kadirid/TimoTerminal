@@ -3,6 +3,11 @@ package com.timo.timoterminal.service
 import android.app.Activity
 import android.app.AlarmManager
 import android.content.Context
+import android.content.res.Configuration
+import android.os.Build
+import android.util.Log
+import androidx.compose.ui.res.stringResource
+import com.timo.timoterminal.R
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.utils.LocaleHelper
 import com.timo.timoterminal.utils.Utils
@@ -41,6 +46,7 @@ class SettingsService(
         editor.apply()
 
         LocaleHelper.setLocale(activity.applicationContext, chosenLanguageCode)
+        Utils.updateLocale()
 
         if(unique.isNotEmpty()){
             httpService.responseForCommand(unique)
@@ -79,24 +85,6 @@ class SettingsService(
         am.setTimeZone(timezone)
 
         callback(Utils.isOnline(context))
-    }
-
-    fun saveTimeZone(context: Context){
-        val timezone: String? = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
-        if(timezone != null){
-            val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-            val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-
-            val parameterMap = HashMap<String, String>()
-            parameterMap["company"] = company!!
-            parameterMap["terminalId"] = terminalId.toString()
-            parameterMap["token"] = token!!
-            parameterMap["timezone"] = timezone
-
-            httpService.post("${url}services/rest/zktecoTerminal/saveTimezone", parameterMap, context, { _, _, _ ->})
-        }
     }
 
     fun loadTimezone(context: Context) {

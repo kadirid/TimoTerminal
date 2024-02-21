@@ -39,7 +39,7 @@ class HttpService() : KoinComponent {
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .readTimeout(30, TimeUnit.SECONDS)
         .connectTimeout(10, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(false)
+//        .retryOnConnectionFailure(false)
         .build()
 
 
@@ -298,7 +298,7 @@ class HttpService() : KoinComponent {
         val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
-        if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty() && unique.isNotEmpty()) {
+        if (company.isNotEmpty() && terminalId > 0 && token.isNotEmpty() && unique.isNotEmpty()) {
             post(
                 "${url}services/rest/zktecoTerminal/doneCommand",
                 mapOf(

@@ -63,7 +63,7 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
             dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
             dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                 (activity as MainActivity?)?.showLoadMask()
-                userSettingsFragmentViewModel.assignUser(paramMap["id"]!!, callback)
+                userSettingsFragmentViewModel.assignUser(paramMap["id"]!!, userId, callback)
             }
             val dialog = dlgAlert.create()
             Utils.hideNavInDialog(dialog)

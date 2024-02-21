@@ -1,6 +1,7 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.activities.NoInternetNetworkSettingsActivity
 import com.timo.timoterminal.databinding.FragmentLoginBinding
+import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.PropertyService
@@ -26,6 +28,7 @@ import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import org.koin.android.ext.android.inject
 import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 
 
@@ -54,11 +57,13 @@ class LoginFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.onResume(this.requireContext()) {isOnline ->
-            if(isOnline) {
+        Utils.hideStatusAndNavbar(requireActivity())
+        viewModel.onResume(this.requireContext()) { isOnline ->
+            if (isOnline) {
                 showLogin()
-            }else{
-                val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
+            } else {
+                val goToInetSettingsActivity =
+                    Intent(context, NoInternetNetworkSettingsActivity::class.java)
                 startActivity(goToInetSettingsActivity)
             }
         }
@@ -91,19 +96,20 @@ class LoginFragment : Fragment() {
         val adapter =
             ArrayAdapter(requireContext(), R.layout.dropdown, languages)
         binding.dropdownMenuLanguage.setAdapter(adapter)
+        binding.dropdownMenuLanguage.setText(languages[0], false)
     }
 
     private fun initTimezoneDropdown() {
         val ids = TimeZone.getAvailableIDs().toMutableList()
         val timeZones = mutableListOf<CodesArrayAdapter.TimeZoneListEntry>()
-        for (id in ids){
+        for (id in ids) {
             val timeZone = TimeZone.getTimeZone(id)
             val offset = Utils.getOffset(timeZone.getOffset(Date().time))
             timeZones.add(CodesArrayAdapter.TimeZoneListEntry(id, timeZone.displayName, offset))
         }
         val adapter = CodesArrayAdapter(requireContext(), R.layout.double_dropdown, timeZones)
         binding.dropdownMenuTimezone.setAdapter(adapter)
-        binding.dropdownMenuTimezone.setText("Europe/Berlin")
+        binding.dropdownMenuTimezone.setText("Europe/Berlin", false)
     }
 
     private fun showLogin() {
@@ -131,7 +137,16 @@ class LoginFragment : Fragment() {
                 binding.linearTitleContainer.startAnimation(fadeInAnimation)
                 binding.linearTitleContainer.visibility = View.VISIBLE
 
-                binding.buttonSubmit.setText(R.string.login)
+                val locale =
+                    Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
+                val config = Configuration()
+                config.setLocale(locale)
+                val context = activity?.baseContext?.createConfigurationContext(config)
+                binding.buttonSubmit.text = context?.getText(R.string.login)
+                binding.linearTitleContainerText.text = context?.getText(R.string.please_enter_timo_login_data)
+                binding.textInputLayoutLoginCompany.hint = context?.getText(R.string.company)
+                binding.textInputLayoutLoginPassword.hint = context?.getText(R.string.password)
+                binding.textInputLayoutLoginUser.hint = context?.getText(R.string.loginname)
                 initLoginButton()
             }
 
@@ -148,20 +163,22 @@ class LoginFragment : Fragment() {
         binding.buttonSubmit.setSafeOnClickListener {
             val lang = binding.dropdownMenuLanguage.text.toString()
             val tz = binding.dropdownMenuTimezone.text.toString()
+            soundSource.loadForLogin(lang)
             //Set language and timezone locally and send it to backend
             viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
-                soundSource.loadForLogin(lang)
-                if(isOnline) {
+                if (isOnline) {
                     showLogin()
-                }else{
-                    val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
+                } else {
+                    val goToInetSettingsActivity =
+                        Intent(context, NoInternetNetworkSettingsActivity::class.java)
                     startActivity(goToInetSettingsActivity)
                 }
             }
         }
 
         binding.goToInetSettingsButton.setSafeOnClickListener {
-            val goToInetSettingsActivity = Intent(context, NoInternetNetworkSettingsActivity::class.java)
+            val goToInetSettingsActivity =
+                Intent(context, NoInternetNetworkSettingsActivity::class.java)
             startActivity(goToInetSettingsActivity)
         }
     }

@@ -17,6 +17,7 @@ import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.SoundSource
 import kotlinx.coroutines.launch
 
 
@@ -24,7 +25,8 @@ class InfoFragmentViewModel(
     private val userRepository: UserRepository,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService,
-    private val languageService: LanguageService
+    private val languageService: LanguageService,
+    private val soundSource: SoundSource
 ) : ViewModel() {
 
     private lateinit var sheet: MBFragmentInfoSheet
@@ -104,7 +106,10 @@ class InfoFragmentViewModel(
         viewModelScope.launch {
             val user = getUserForLogin(login)
             if (user != null && user.pin == pin) {
+                soundSource.playSound(SoundSource.successSound)
                 loadUserInformation(user, fragment)
+            }else{
+                soundSource.playSound(SoundSource.authenticationFailed)
             }
         }
     }

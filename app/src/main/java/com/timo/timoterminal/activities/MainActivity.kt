@@ -91,11 +91,6 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             showDialog()
             userService.loadUsersFromServer(mainActivityViewModel.viewModelScope)
         }
-        Log.d("Main", "Main onCreate")
-
-        setContentView(binding.root)
-
-        Utils.hideStatusAndNavbar(this)
 
         initNavbarListener()
         isInit = true
@@ -107,6 +102,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.initHeartbeatService(this)
 
         clickListeners()
+
+        val view = binding.root
+        setContentView(view)
+        Utils.hideStatusAndNavbar(this)
     }
 
     private fun showDialog() {

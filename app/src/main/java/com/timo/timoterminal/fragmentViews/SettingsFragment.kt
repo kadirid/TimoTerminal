@@ -16,6 +16,7 @@ import androidx.fragment.app.commit
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentSettingsBinding
+import com.timo.timoterminal.service.HeartbeatService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
@@ -30,6 +31,7 @@ class SettingsFragment : Fragment() {
     private lateinit var binding: FragmentSettingsBinding
     private val hardwareSource: IHardwareSource by inject()
     private val languageService: LanguageService by inject()
+    private val heartbeatService: HeartbeatService by inject()
     private val viewModel: SettingsFragmentViewModel by viewModel()
     private var userId: Long = -1
 
@@ -94,6 +96,7 @@ class SettingsFragment : Fragment() {
             dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
             dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                 viewModel.logout(requireContext())
+                heartbeatService.stopHeartBeat()
             }
             val dialog = dlgAlert.create()
             Utils.hideNavInDialog(dialog)

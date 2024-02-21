@@ -10,8 +10,8 @@ import com.timo.timoterminal.entityClasses.ConfigEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.FeedReaderDbHelper
 import com.timo.timoterminal.utils.classes.SoundSource
-import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -31,6 +31,7 @@ class LoginService(
     private val bookingService: BookingService
 ) : KoinComponent {
     private val soundSource: SoundSource by inject()
+    private val heartbeatService: HeartbeatService by inject()
 
     companion object {
         private const val TAG = "LoginService"
@@ -131,6 +132,11 @@ class LoginService(
             parameters["androidId"] = String(hashedAndroidId)
             parameters["device"] = hardware.getDevice().naming
             parameters["brand"] = Build.BRAND
+            parameters["timezone"] =
+                sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
+                    ?: "Europe/Berlin"
+            parameters["language"] =
+                sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de") ?: "de"
             parameters["ip"] = ip
             //Serial number is used as terminalId
             parameters["serialNumber"] = hardware.serialNumber()
@@ -156,7 +162,6 @@ class LoginService(
                             username,
                             password
                         )
-                        settingsService.saveTimeZone(context)
                         callback(isNewTerminal!!)
                         soundSource.playSound(SoundSource.loginSuccessful)
                     }
@@ -222,7 +227,7 @@ class LoginService(
                         } else {
                             callback(false)
                         }
-                    },{ e, res, context, output ->
+                    }, { e, res, context, output ->
                         HttpService.handleGenericRequestError(
                             e, res, context, output, "loadPermission"
                         )
@@ -298,7 +303,6 @@ class LoginService(
         sharedPrefService.removeAllCreds()
         val logoutIntent = Intent(context, LoginActivity::class.java)
         logoutIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        userService.deleteAllUsers(coroutineScope)
         context.startActivity(logoutIntent)
     }
 
@@ -312,7 +316,16 @@ class LoginService(
             configRepository.deleteAll()
         }
         bookingService.deleteAll(coroutineScope)
+        heartbeatService.stopHeartBeat()
+        val helperDB = FeedReaderDbHelper(context, "room.db").writableDatabase
+        helperDB.execSQL("CREATE TABLE dummy (id INTEGER PRIMARY KEY AUTOINCREMENT);");
+        helperDB.execSQL("DROP TABLE dummy;");
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='ConfigEntity';");
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='ConfigEntity';");
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='LanguageEntity';");
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='UserEntity';");
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingBUEntity';");
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingEntity';");
         context.startActivity(logoutIntent)
-        FingerprintService.clear()
     }
 }

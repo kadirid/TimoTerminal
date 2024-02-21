@@ -18,10 +18,10 @@
     <string name="please_enter_timo_login_data">Bitte TimO Login-Daten für Terminalkonfiguration eingeben</string>
     <string name="english">Englisch</string>
     <string name="deutsch">Deutsch</string>
-    <string name="login">Login</string>
+    <string name="login">Anmelden</string>
     <string name="save_settings">Einstellungen speichern</string>
     <string name="save">Speichern</string>
-    <string name="wilkommen_bei_timo">Welcome to TimO™</string>
+    <string name="wilkommen_bei_timo">Willkommen bei TimO®</string>
     <string name="info_intial_ethernet_settigns">Auf das Internet konnte nicht zugegriffen werden.\nBitte überprüfen Sie die Einstellungen und versuchen Sie es erneut.</string>
     <string name="ethernet_settings">Netzwerk Einstellungen</string>
     <string name="mobile_network_settings">Mobile Interneteinstellungen</string>
@@ -29,4 +29,7 @@
     <string name="retry">Erneut versuchen</string>
     <string name="user_passcode">Benutzer Pin</string>
     <string name="timo_login_name">Loginname</string>
+    <string name="company">Firma</string>
+    <string name="loginname">Login Name</string>
+    <string name="password">Passwort</string>
 </resources>

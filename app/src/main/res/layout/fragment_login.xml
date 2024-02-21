@@ -33,13 +33,13 @@
         android:id="@+id/custom_url"
         android:layout_width="500dp"
         android:layout_height="48dp"
+        android:autofillHints=""
         android:hint="local Url"
         android:inputType="textUri"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Has to be removed later to use as url for local test"
-        tools:visibility="gone"
-        android:autofillHints="" />
+        tools:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/linear_input_container"
@@ -56,7 +56,7 @@
             android:layout_width="600dp"
             android:layout_height="100dp"
             android:layout_marginBottom="10dp"
-            android:hint="Company"
+            android:hint="@string/company"
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
             app:layout_constraintEnd_toEndOf="parent"
@@ -76,7 +76,7 @@
             android:layout_width="600dp"
             android:layout_height="100dp"
             android:layout_marginBottom="10dp"
-            android:hint="Loginname"
+            android:hint="@string/loginname"
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_password"
             app:layout_constraintStart_toStartOf="@id/text_input_layout_login_company">
@@ -95,7 +95,7 @@
             android:layout_width="600dp"
             android:layout_height="100dp"
             android:layout_marginBottom="100dp"
-            android:hint="Password"
+            android:hint="@string/password"
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@id/button_submit"
             app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
@@ -121,7 +121,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-            <AutoCompleteTextView
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:id="@+id/dropdown_menu_language"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -168,6 +168,7 @@
         tools:visibility="visible">
 
         <TextView
+            android:id="@+id/linear_title_container_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"

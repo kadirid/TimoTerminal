@@ -41,7 +41,13 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
     private val soundSource: SoundSource by inject()
 
     private var viewModel: InfoFragmentViewModel =
-        InfoFragmentViewModel(userRepository, sharedPrefService, httpService, languageService)
+        InfoFragmentViewModel(
+            userRepository,
+            sharedPrefService,
+            httpService,
+            languageService,
+            soundSource
+        )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -115,15 +121,19 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
         Log.d("FP", fingerprint)
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
+            soundSource.playSound(SoundSource.successSound)
             Log.d("FP Key", this)
             (activity as MainActivity?)?.showLoadMask()
-            viewModel.loadUserInfoById(this.substring(0, this.length-2), this@InfoFragment)
+            viewModel.loadUserInfoById(this.substring(0, this.length - 2), this@InfoFragment)
+            return
         }
+        soundSource.playSound(SoundSource.authenticationFailed)
     }
 
     override fun onRfidRead(rfidInfo: String) {
         val rfidCode = rfidInfo.toLongOrNull(16)
         if (rfidCode != null) {
+            soundSource.playSound(SoundSource.successSound)
             var oct = rfidCode.toString(8)
             while (oct.length < 9) {
                 oct = "0$oct"
@@ -137,7 +147,8 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
 
-        val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
+        val dlgAlert: AlertDialog.Builder =
+            AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->

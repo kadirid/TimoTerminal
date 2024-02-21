@@ -43,6 +43,6 @@ class UserSettingsFragmentViewModel(
         userService.sendUpdateRequestFragment(paramMap, fragment, viewModelScope)
     }
 
-    fun assignUser(userId: String, callback: () -> Unit?) =
-        userService.assignUser(userId, callback, viewModelScope)
+    fun assignUser(userId: String, editorId: Long, callback: () -> Unit?) =
+        userService.assignUser(userId, editorId, callback, viewModelScope)
 }

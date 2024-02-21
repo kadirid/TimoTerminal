@@ -25,6 +25,7 @@ class HeartbeatService : KoinComponent {
     private val loginService: LoginService by inject()
     private val bookingService: BookingService by inject()
     private val httpService: HttpService by inject()
+    private lateinit var handler : Handler
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .retryOnConnectionFailure(false)
         .connectTimeout(10000, TimeUnit.MILLISECONDS)
@@ -50,7 +51,7 @@ class HeartbeatService : KoinComponent {
     fun initHeartbeatWorker(activity: MainActivity) {
         val handlerThread = HandlerThread("backgroundThread")
         if (!handlerThread.isAlive) handlerThread.start()
-        val handler = Handler(handlerThread.looper)
+        handler = Handler(handlerThread.looper)
         var runnable: Runnable? = null
 
         runnable = Runnable {
@@ -168,5 +169,9 @@ class HeartbeatService : KoinComponent {
                 bookingService.sendSavedBooking(scope)
             }
         }
+    }
+
+    fun stopHeartBeat(){
+        handler.removeCallbacksAndMessages(null)
     }
 }

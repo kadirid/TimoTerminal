@@ -247,7 +247,12 @@ class UserService(
         }
     }
 
-    fun assignUser(id: String, callback: () -> Unit?, viewModelScope: CoroutineScope) {
+    fun assignUser(
+        id: String,
+        editor: Long,
+        callback: () -> Unit?,
+        viewModelScope: CoroutineScope
+    ) {
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
@@ -257,6 +262,7 @@ class UserService(
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 val paramMap = mutableMapOf(Pair("company", company))
                 paramMap["user"] = id
+                paramMap["editor"] = "$editor"
                 paramMap["token"] = token
                 paramMap["terminalId"] = terminalId.toString()
                 httpService.post(
