@@ -59,10 +59,12 @@ class LanguageService(
                                     httpService.responseForCommand(unique)
                                 }
                             }
-                        }, { e, res, context, output ->
-                            HttpService.handleGenericRequestError(
-                                e, res, context, output, "loadLanguage"
-                            )
+                        }, { _, _, _, _ ->
+                            coroutineScope.launch {
+                                val list = languageRepository.getAllAsList()
+                                putLanguageValuesInMap(list)
+                            }
+                            null
                         }
                     )
                 }
@@ -91,7 +93,7 @@ class LanguageService(
     }
 
     fun getText(key: String, default: String): String {
-        if (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)] != null) {
+        if (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "")] != null) {
             return (languages[sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE)]?.get(key))
                 ?: default
         }

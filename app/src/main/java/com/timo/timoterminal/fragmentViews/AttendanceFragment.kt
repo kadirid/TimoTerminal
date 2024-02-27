@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,36 +17,30 @@ import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
-import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
-class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
+class AttendanceFragment : Fragment() {
 
     private val sharedPrefService: SharedPrefService by inject()
     private val userRepository: UserRepository by inject()
     private val languageService: LanguageService by inject()
     private val soundSource: SoundSource by inject()
+    private val httpService: HttpService by inject()
 
     private var _broadcastReceiver: BroadcastReceiver? = null
     private lateinit var binding: FragmentAttendanceBinding
-    private val httpService: HttpService = HttpService()
-    private val viewModel = AttendanceFragmentViewModel(sharedPrefService, userRepository)
+    private val viewModel =
+        AttendanceFragmentViewModel(sharedPrefService, userRepository, soundSource, languageService)
     private var funcCode = -1
-    private val mbSheetFingerprintCardReader = MBSheetFingerprintCardReader {
-        this.setListener()
-    }
+    private var mbSheetFingerprintCardReader: MBSheetFingerprintCardReader? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,10 +48,8 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
     ): View {
         binding = FragmentAttendanceBinding.inflate(inflater, container, false)
 
-        setOnClickListeners()
-        adaptLottieAnimationTime()
+        setUpListeners()
         setText()
-        soundSource.loadForAttendance()
         return binding.root
     }
 
@@ -73,9 +64,7 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
         _broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent) {
                 if (intent.action!!.compareTo(Intent.ACTION_TIME_TICK) == 0) {
-                    val gc = Utils.getCal()
-                    binding.textViewDateTimeViewContainer.text = Utils.getDateWithNameFromGC(gc)
-                    binding.textViewTimeTimeViewContainer.text = Utils.getTimeFromGC(gc)
+                    setText()
                 }
             }
         }
@@ -90,6 +79,7 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
     override fun onResume() {
         super.onResume()
         setListener()
+        viewModel.loadSoundForAttendance()
         adaptLottieAnimationTime()
     }
 
@@ -102,7 +92,7 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
     }
 
     // set booking code and start listening
-    private fun setOnClickListeners() {
+    private fun setUpListeners() {
         binding.buttonKommen.setSafeOnClickListener {
             funcCode = 100
             executeClick()
@@ -115,6 +105,13 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
             funcCode = 200
             executeClick()
         }
+
+        viewModel.liveErrorMsg.observe(viewLifecycleOwner) {
+            notifyVerificationFailed(it)
+        }
+        viewModel.liveUserCard.observe(viewLifecycleOwner){
+            sendBooking(it.first, it.second)
+        }
     }
 
     private fun executeClick() {
@@ -122,8 +119,13 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
         FingerprintService.unregister()
         val bundle = Bundle()
         bundle.putInt("status", funcCode)
-        mbSheetFingerprintCardReader.arguments = bundle
-        mbSheetFingerprintCardReader.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
+        if (mbSheetFingerprintCardReader == null) {
+            mbSheetFingerprintCardReader = MBSheetFingerprintCardReader {
+                this.setListener()
+            }
+        }
+        mbSheetFingerprintCardReader!!.arguments = bundle
+        mbSheetFingerprintCardReader!!.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
 
     }
 
@@ -131,16 +133,16 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
     private fun setListener() {
         RfidService.unregister()
         FingerprintService.unregister()
-        RfidService.setListener(this)
+        RfidService.setListener(viewModel)
         RfidService.register()
-        FingerprintService.setListener(this)
+        FingerprintService.setListener(viewModel)
         FingerprintService.register()
     }
 
     // send all necessary information to timo to create a booking
     private fun sendBooking(card: String, inputCode: Int) {
+        (activity as MainActivity?)?.showLoadMask()
         if (Utils.isOnline(requireContext())) {
-            val dateFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
             viewModel.viewModelScope.launch {
                 val url = viewModel.getURl()
                 val company = viewModel.getCompany()
@@ -152,7 +154,7 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
                         mapOf(
                             Pair("card", card),
                             Pair("firma", company),
-                            Pair("date", dateFormatter.format(Date())),
+                            Pair("date", Utils.getDateTimeFromGC(Utils.getCal())),
                             Pair("inputCode", "$inputCode"),
                             Pair("terminalId", "$terminalId"),
                             Pair("token", token)
@@ -169,9 +171,8 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
                                 )
                             }
                             if (!msg.isNullOrEmpty()) {
-                                soundSource.playSound(SoundSource.failedSound)
                                 activity?.runOnUiThread {
-                                    Utils.showMessage(parentFragmentManager, msg)
+                                    notifyFailure(msg)
                                 }
                             }
                             (activity as MainActivity?)?.hideLoadMask()
@@ -187,16 +188,11 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
                         }
                     )
                 } else {
-                    (activity as MainActivity?)?.hideLoadMask()
-                    Utils.showMessage(
-                        parentFragmentManager,
-                        languageService.getText("#InternetRequired")
-                    )
+                    notifyFailure(languageService.getText("#InternetRequired"))
                 }
             }
         } else {
-            (activity as MainActivity?)?.hideLoadMask()
-            Utils.showMessage(parentFragmentManager, languageService.getText("#InternetRequired"))
+            notifyFailure(languageService.getText("#InternetRequired"))
         }
     }
 
@@ -204,63 +200,29 @@ class AttendanceFragment : Fragment(), TimoRfidListener, FingerprintListener {
         const val TAG = "AttendanceFragmentTag"
     }
 
-    // get code of scanned card
-    override fun onRfidRead(rfidInfo: String) {
-        val rfidCode = rfidInfo.toLongOrNull(16)
-        if (rfidCode != null) {
-            var oct = rfidCode.toString(8)
-            while (oct.length < 9) {
-                oct = "0$oct"
-            }
-            oct = oct.reversed()
-            viewModel.viewModelScope.launch {
-                val user = viewModel.getUserByCard(oct)
-                if (user != null) {
-                    (activity as MainActivity?)?.showLoadMask()
-                    sendBooking(oct, 1)
-                } else {
-                    soundSource.playSound(SoundSource.authenticationFailed)
-                    Utils.showMessage(parentFragmentManager, languageService.getText("#VerificationFailed"))
-                }
-            }
-        }
+    private fun notifyFailure(msg: String){
+        (activity as MainActivity?)?.hideLoadMask()
+        soundSource.playSound(SoundSource.failedSound)
+        Utils.showMessage(parentFragmentManager, msg)
     }
 
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
-        Log.d("FP", fingerprint)
-        // get Key associated to the fingerprint
-        FingerprintService.identify(template)?.run {
-            Log.d("FP Key", this)
-            val id = this.substring(0, this.length - 2).toLong()
-            viewModel.viewModelScope.launch {
-                val user = viewModel.getUser(id)
-                if (user != null) {
-                    (activity as MainActivity?)?.showLoadMask()
-                    sendBooking(user.card, 2)
-                }
-            }
-            return
-        }
+    private fun notifyVerificationFailed(msg: String) {
+        (activity as MainActivity?)?.hideLoadMask()
         soundSource.playSound(SoundSource.authenticationFailed)
-        Utils.showMessage(parentFragmentManager, languageService.getText("#VerificationFailed"))
+        Utils.showMessage(parentFragmentManager, msg)
     }
 
     private fun adaptLottieAnimationTime() {
-        super.onResume()
-        val calendar: Calendar = Calendar.getInstance()
-        val hour: Int = calendar.get(Calendar.HOUR_OF_DAY)
+        viewModel.viewModelScope.launch {
+            val hour: Int = Utils.getCal().get(Calendar.HOUR_OF_DAY)
 
-        if (hour < 7 || hour > 20) {
-            binding.lottieAnimationView.setMinAndMaxFrame(0, 60)
-            binding.lottieAnimationView.playAnimation()
-        } else {
-            binding.lottieAnimationView.setMinAndMaxFrame(60, 120)
-            binding.lottieAnimationView.playAnimation()
+            if (hour < 7 || hour > 20) {
+                binding.lottieAnimationView.setMinAndMaxFrame(0, 60)
+                binding.lottieAnimationView.playAnimation()
+            } else {
+                binding.lottieAnimationView.setMinAndMaxFrame(60, 120)
+                binding.lottieAnimationView.playAnimation()
+            }
         }
     }
 }

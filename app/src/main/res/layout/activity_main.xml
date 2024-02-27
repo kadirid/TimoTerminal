@@ -22,7 +22,7 @@
             android:layout_marginTop="30dp"
             android:contentDescription="@string/timo_logo"
             android:scaleType="fitCenter"
-            android:src="@drawable/logo_nur_o_hell_blau_4096x2304"
+            android:src="@drawable/logo_white_light_blue_single_o_40x40"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

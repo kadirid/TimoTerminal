@@ -3,7 +3,6 @@ package com.timo.timoterminal.repositories
 import androidx.annotation.WorkerThread
 import com.timo.timoterminal.dao.ConfigDAO
 import com.timo.timoterminal.entityClasses.ConfigEntity
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 class ConfigRepository(private val configDao: ConfigDAO){
@@ -11,6 +10,8 @@ class ConfigRepository(private val configDao: ConfigDAO){
     private val permissionMap: MutableMap<String, String> = mutableMapOf()
     private var url: String = ""
     private var company: String = ""
+
+    suspend fun getAllAsList() = configDao.getAllAsList()
 
     suspend fun initMap() {
         val list = configDao.getAllAsList()
@@ -23,6 +24,9 @@ class ConfigRepository(private val configDao: ConfigDAO){
 
     @WorkerThread
     suspend fun insertConfigEntity(entity: ConfigEntity) = configDao.insertOne(entity)
+
+    @WorkerThread
+    suspend fun updateConfigEntity(entity: ConfigEntity) = configDao.updateEntity(entity)
 
     @WorkerThread
     suspend fun insertAll(entities: List<ConfigEntity>) = configDao.insertAll(entities)

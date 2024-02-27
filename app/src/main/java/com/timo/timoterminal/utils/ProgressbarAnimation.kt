@@ -1,6 +1,5 @@
 package com.timo.timoterminal.utils
 
-import android.animation.AnimatorListenerAdapter
 import android.view.animation.Animation
 import android.view.animation.Transformation
 import android.widget.ProgressBar

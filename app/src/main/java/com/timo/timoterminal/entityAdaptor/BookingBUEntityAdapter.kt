@@ -8,7 +8,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.timo.timoterminal.R
 import com.timo.timoterminal.entityClasses.BookingBUEntity
-import com.timo.timoterminal.utils.Utils
 
 class BookingBUEntityAdapter(
     private val entities: List<BookingBUEntity>,
@@ -61,7 +60,7 @@ class BookingBUEntityAdapter(
             status: String
         ) {
             nameView.text = userName
-            dateView.text = Utils.parseFromDBDate(entity.date)
+            dateView.text = entity.date
             idView.text = "${entity.id}"
             statusView.text = status
 

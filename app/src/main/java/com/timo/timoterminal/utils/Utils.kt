@@ -14,7 +14,10 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
+import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.FragmentManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.timo.timoterminal.R
 import com.timo.timoterminal.modalBottomSheets.MBMessageSheet
 import com.timo.timoterminal.utils.classes.ResponseToJSON
@@ -42,7 +45,7 @@ class Utils {
         private var databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
 
         private val handlerThread = HandlerThread("backgroundTimerThread")
-        private val calendar = object : GregorianCalendar() {}
+        private val calendar = GregorianCalendar()
         private var handler: Handler? = null
 
         fun isOnline(context: Context): Boolean {
@@ -179,15 +182,15 @@ class Utils {
             activity.actionBar?.hide()
         }
 
-        fun getTimeFromGC(gc: Calendar): String {
+        fun getTimeFromGC(gc: GregorianCalendar): String {
             return timeFormatter.format(gc.time)
         }
 
-        fun getDateTimeFromGC(gc: Calendar): String {
+        fun getDateTimeFromGC(gc: GregorianCalendar): String {
             return dateTimeFormatter.format(gc.time)
         }
 
-        fun getDateWithNameFromGC(gc: Calendar): String {
+        fun getDateWithNameFromGC(gc: GregorianCalendar): String {
             return dateNameFormatter.format(gc.time)
         }
 
@@ -200,7 +203,7 @@ class Utils {
         }
 
         fun parseDateTime(date: String): GregorianCalendar {
-            val greg = getCal()
+            val greg = GregorianCalendar()
             val pDate = dateTimeFormatter.parse(date)
             if (pDate != null)
                 greg.time = pDate
@@ -208,7 +211,7 @@ class Utils {
         }
 
         fun parseDBDateTime(date: String): GregorianCalendar {
-            val greg = getCal()
+            val greg = GregorianCalendar()
             val pDate = databaseFormatter.parse(date)
             if (pDate != null)
                 greg.time = pDate
@@ -295,7 +298,27 @@ class Utils {
             secTimer()
         }
 
-        fun getCal() = calendar
-    }
+        fun getCal() = calendar.clone() as GregorianCalendar
 
+        fun showErrorMessage(context: Context, msg: String){
+            val dialog = MaterialAlertDialogBuilder(context, R.style.MyDialog)
+            dialog.setTitle(context.getString(R.string.error))
+            dialog.setIcon(
+                AppCompatResources.getDrawable(
+                    context, R.drawable.baseline_error_24
+                )
+            )
+            dialog.setMessage(msg)
+            dialog.setPositiveButton("OK") { dia, _ ->
+                dia.dismiss()
+            }
+            val dia = dialog.create()
+            hideNavInDialog(dia)
+            dia.setOnShowListener {
+                val textView = dia.findViewById<TextView>(android.R.id.message)
+                textView?.textSize = 40f
+            }
+            dia.show()
+        }
+    }
 }

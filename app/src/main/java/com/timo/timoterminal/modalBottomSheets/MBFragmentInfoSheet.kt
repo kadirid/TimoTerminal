@@ -16,13 +16,14 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import org.json.JSONObject
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class MBFragmentInfoSheet : BottomSheetDialogFragment() {
     private val languageService:LanguageService by inject()
 
     private lateinit var binding: FragmentInfoMessageSheetItemBinding
 
-    var viewModel: InfoFragmentViewModel? = null
+    val viewModel by sharedViewModel<InfoFragmentViewModel>()
     private var card: String = ""
     private var res: String = ""
     companion object {
@@ -40,14 +41,25 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         card = arguments?.getString("card") ?: ""
         setText()
 
+        viewModel.liveDismissSheet.observe(viewLifecycleOwner){
+            if(it == true) {
+                this@MBFragmentInfoSheet.dismiss()
+                viewModel.liveDismissSheet.value = false
+            }
+        }
+        viewModel.liveShowSeconds.observe(viewLifecycleOwner){
+            if(it.isNotEmpty()) {
+                binding.textviewSecondClose.text = it
+                viewModel.liveShowSeconds.value = ""
+            }
+        }
+
         return binding.root
     }
 
     override fun onResume() {
-        if(viewModel!=null){
-            binding.linearTextContainer.setOnClickListener {
-                viewModel!!.restartTimer()
-            }
+        binding.linearTextContainer.setOnClickListener {
+            viewModel.restartTimer()
         }
 
         super.onResume()
@@ -104,14 +116,10 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         return dialog
     }
 
-    fun showSeconds(seconds:String){
-        binding.textviewSecondClose.text = seconds
-    }
-
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
 
-        viewModel?.dismissInfoSheet()
+        viewModel.dismissInfoSheet()
     }
 
     private fun getText(key: String) = languageService.getText(key)

@@ -3,11 +3,6 @@ package com.timo.timoterminal.service
 import android.app.Activity
 import android.app.AlarmManager
 import android.content.Context
-import android.content.res.Configuration
-import android.os.Build
-import android.util.Log
-import androidx.compose.ui.res.stringResource
-import com.timo.timoterminal.R
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.utils.LocaleHelper
 import com.timo.timoterminal.utils.Utils

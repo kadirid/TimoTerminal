@@ -5,8 +5,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
-import android.os.CountDownTimer
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -30,21 +28,22 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MainActivityViewModel
-import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.GregorianCalendar
+import java.util.Timer
+import kotlin.concurrent.schedule
 
 
 class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
-    NetworkChangeReceiver.NetworkStatusCallback, TimoRfidListener, FingerprintListener {
+    NetworkChangeReceiver.NetworkStatusCallback {
 
     private val mainActivityViewModel: MainActivityViewModel by viewModel()
     private val languageService: LanguageService by inject()
@@ -55,6 +54,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private lateinit var batteryReceiver: BatteryReceiver
     private lateinit var networkChangeReceiver: NetworkChangeReceiver
     private lateinit var mbLoginWelcomeSheet: MBLoginWelcomeSheet
+    private var alertTimer: Timer? = null
     private var dialog: AlertDialog? = null
     private var isInit: Boolean = false
 
@@ -62,23 +62,14 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         const val TAG = "MainActivity"
     }
 
-    private val timer = object : CountDownTimer(10000, 500) {
-        override fun onTick(millisUntilFinished: Long) {}
-
-        override fun onFinish() {
-            supportFragmentManager.commit {
-                replace(
-                    R.id.fragment_container_view,
-                    AttendanceFragment(),
-                    AttendanceFragment.TAG
-                )
-            }
-        }
-    }
+    private var timer = Timer("showAttendanceFragment", false)
 
     fun restartTimer() {
         timer.cancel()
-        timer.start()
+        timer = Timer("showAttendanceFragment", false)
+        timer.schedule(10000L) {
+            showAttendanceFragment()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,9 +80,14 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
         if (isNewTerminal) {
             showDialog()
-            userService.loadUsersFromServer(mainActivityViewModel.viewModelScope)
+        } else {
+            mainActivityViewModel.viewModelScope.launch {
+                if (mainActivityViewModel.count() <= 0)
+                    userService.loadUsersFromServer(mainActivityViewModel.viewModelScope)
+            }
         }
 
+        Utils.setCal(GregorianCalendar())
         initNavbarListener()
         isInit = true
 
@@ -101,7 +97,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         //How to start a worker
         mainActivityViewModel.initHeartbeatService(this)
 
-        clickListeners()
+        setUpListeners()
 
         val view = binding.root
         setContentView(view)
@@ -137,7 +133,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     override fun onResume() {
         val frag = supportFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
         if (!isInit && (frag == null || !frag.isVisible))
-            timer.start()
+            restartTimer()
         Utils.hideStatusAndNavbar(this)
         mainActivityViewModel.hideSystemUI()
         isInit = false
@@ -151,11 +147,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun clickListeners() {
+    private fun setUpListeners() {
         binding.buttonSettings.setSafeOnClickListener {
             showVerificationAlert()
         }
-        // to kill heart beat worker and clear some of the db data
         binding.batteryIcon.setSafeOnClickListener {
             mainActivityViewModel.hideSystemUI()
         }
@@ -166,6 +161,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             if (BuildConfig.DEBUG)
                 mainActivityViewModel.killHeartBeatWorkers()
         }
+
+        mainActivityViewModel.liveUserEntity.observe(this) { showSettings(it) }
     }
 
     private fun initNavbarListener() {
@@ -216,13 +213,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
         //init correct fragment, this could be also configurable if needed, but this is for the future
         if (binding.navigationRail.menu.findItem(R.id.attendance).isVisible) {
-            supportFragmentManager.commit {
-                replace(
-                    R.id.fragment_container_view,
-                    AttendanceFragment(),
-                    AttendanceFragment.TAG
-                )
-            }
+            showAttendanceFragment()
             timer.cancel()
         } else if (binding.navigationRail.menu.findItem(R.id.project).isVisible) {
             supportFragmentManager.commit {
@@ -243,24 +234,52 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     fun setText() {
-        binding.navigationRail.menu.findItem(R.id.info).title =
-            languageService.getText("ALLGEMEIN#Info")
-        binding.navigationRail.menu.findItem(R.id.project).title =
-            languageService.getText("ALLGEMEIN#Projekt")
-        binding.navigationRail.menu.findItem(R.id.attendance).title =
-            languageService.getText("#Attendance")
-        binding.navigationRail.menu.findItem(R.id.absence).title =
-            languageService.getText("#Absence")
+        mainActivityViewModel.viewModelScope.launch {
+            binding.navigationRail.menu.findItem(R.id.info).title =
+                languageService.getText("ALLGEMEIN#Info")
+            binding.navigationRail.menu.findItem(R.id.project).title =
+                languageService.getText("ALLGEMEIN#Projekt")
+            binding.navigationRail.menu.findItem(R.id.attendance).title =
+                languageService.getText("#Attendance")
+            binding.navigationRail.menu.findItem(R.id.absence).title =
+                languageService.getText("#Absence")
+        }
+    }
+
+    fun cancelTimer() {
+        timer.cancel()
+    }
+
+    fun getViewModel(): MainActivityViewModel {
+        return mainActivityViewModel
+    }
+
+    fun showLoadMask() {
+        cancelTimer()
+        runOnUiThread {
+            binding.layoutLoadMaks.visibility = View.VISIBLE
+        }
+    }
+
+    fun hideLoadMask() {
+        restartTimer()
+        runOnUiThread {
+            binding.layoutLoadMaks.visibility = View.GONE
+        }
+    }
+
+    fun reloadSoundSource() {
+        mainActivityViewModel.reloadSoundSource()
     }
 
     // verify user if present before opening settings page
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
         RfidService.unregister()
-        RfidService.setListener(this)
+        RfidService.setListener(mainActivityViewModel)
         RfidService.register()
         FingerprintService.unregister()
-        FingerprintService.setListener(this)
+        FingerprintService.setListener(mainActivityViewModel)
         FingerprintService.register()
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MySmallDialog)
@@ -298,21 +317,13 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
         dialog = dlgAlert.create()
         Utils.hideNavInDialog(dialog)
-        val alertTimer = object : CountDownTimer(10000, 500) {
-            override fun onTick(millisUntilFinished: Long) {}
-
-            override fun onFinish() {
-                dialog!!.dismiss()
-            }
-        }
+        restartAlertTimer()
 
         dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
-            alertTimer.cancel()
-            alertTimer.start()
+            restartAlertTimer()
         }
         dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
-            alertTimer.cancel()
-            alertTimer.start()
+            restartAlertTimer()
         }
         dialogBinding.textViewDialogVerificationMessage.text =
             languageService.getText("#FingerprintCardCredentials")
@@ -326,9 +337,45 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dialog!!.setOnDismissListener {
             RfidService.unregister()
             FingerprintService.unregister()
-            alertTimer.cancel()
+            alertTimer?.cancel()
         }
         dialog!!.show()
+    }
+
+    private fun showSettings(user: UserEntity?) {
+        dialog?.dismiss()
+        if (user != null && user.seeMenu) {
+            supportFragmentManager.commit {
+                replace(
+                    R.id.fragment_container_view,
+                    SettingsFragment.newInstance(user.id)
+                )
+            }
+            restartTimer()
+        } else {
+            Utils.showMessage(
+                supportFragmentManager,
+                languageService.getText("#VerificationFailed")
+            )
+        }
+    }
+
+    private fun showAttendanceFragment() {
+        runOnUiThread {
+            supportFragmentManager.commit {
+                replace(
+                    R.id.fragment_container_view,
+                    AttendanceFragment(),
+                    AttendanceFragment.TAG
+                )
+            }
+        }
+    }
+
+    private fun restartAlertTimer() {
+        alertTimer?.cancel()
+        alertTimer = Timer("dialogClose", false)
+        alertTimer!!.schedule(10000L) { dialog?.dismiss() }
     }
 
     override fun onBatteryStatusChanged(
@@ -370,76 +417,6 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
 
         binding.networkConnectionIcon.setImageResource(res)
-    }
-
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
-        Log.d("FP", fingerprint)
-        // get Key associated to the fingerprint
-        FingerprintService.identify(template)?.run {
-            Log.d("FP Key", this)
-            mainActivityViewModel.getUser(this.substring(0, this.length - 2), this@MainActivity)
-        }
-    }
-
-    override fun onRfidRead(rfidInfo: String) {
-        val rfidCode = rfidInfo.toLongOrNull(16)
-        if (rfidCode != null) {
-            var oct = rfidCode.toString(8)
-            while (oct.length < 9) {
-                oct = "0$oct"
-            }
-            oct = oct.reversed()
-            mainActivityViewModel.getUserForCard(oct, this)
-        }
-    }
-
-    fun showSettings(user: UserEntity?) {
-        dialog?.dismiss()
-        if (user != null && user.seeMenu) {
-            supportFragmentManager.commit {
-                replace(
-                    R.id.fragment_container_view,
-                    SettingsFragment.newInstance(user.id)
-                )
-            }
-            restartTimer()
-        } else {
-            Utils.showMessage(
-                supportFragmentManager,
-                languageService.getText("#VerificationFailed")
-            )
-        }
-    }
-
-    fun cancelTimer() {
-        timer.cancel()
-    }
-
-    fun getViewModel(): MainActivityViewModel {
-        return mainActivityViewModel
-    }
-
-    fun showLoadMask() {
-        cancelTimer()
-        runOnUiThread {
-            binding.layoutLoadMaks.visibility = View.VISIBLE
-        }
-    }
-
-    fun hideLoadMask() {
-        restartTimer()
-        runOnUiThread {
-            binding.layoutLoadMaks.visibility = View.GONE
-        }
-    }
-
-    fun reloadSoundSource() {
-        soundSource.reloadForLanguage()
     }
 
 }

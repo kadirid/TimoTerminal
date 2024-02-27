@@ -4,7 +4,6 @@ import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.BookingBURepository
 import com.timo.timoterminal.repositories.BookingRepository
-import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -35,12 +34,8 @@ class BookingService(
     }
 
     suspend fun insertBooking(
-        card: String,
-        inputCode: Int,
-        date: String,
-        status: Int
+        entity: BookingEntity
     ) {
-        val entity = BookingEntity(card, inputCode, Utils.parseToDBDate(date), status)
         bookingRepository.insertBookingEntity(entity)
         insertBU()
     }
@@ -67,7 +62,7 @@ class BookingService(
                 for (booking in bookings) {
                     val obj = JSONObject()
                     obj.put("card", booking.card)
-                    obj.put("date", Utils.parseFromDBDate(booking.date))
+                    obj.put("date", booking.date)
                     obj.put("funcCode", "${booking.status}")
                     obj.put("inputCode", "${booking.inputCode}")
                     arr.put(obj)

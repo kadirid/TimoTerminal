@@ -7,7 +7,6 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,45 +19,25 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
-import com.timo.timoterminal.repositories.UserRepository
-import com.timo.timoterminal.service.BookingService
-import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.ProgressBarAnimation
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
-import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
-import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 
 class MBSheetFingerprintCardReader(
     private val callback: () -> Unit?
-) : BottomSheetDialogFragment(), TimoRfidListener, FingerprintListener {
-    private val userRepository: UserRepository by inject()
-    private val sharedPrefService: SharedPrefService by inject()
-    private val httpService: HttpService by inject()
+) : BottomSheetDialogFragment() {
     private val languageService: LanguageService by inject()
-    private val bookingService: BookingService by inject()
-    private val soundSource: SoundSource by inject()
 
     private lateinit var binding: MbSheetFingerprintCardReaderBinding
-    private var viewModel: MBSheetFingerprintCardReaderViewModel =
-        MBSheetFingerprintCardReaderViewModel(
-            userRepository,
-            sharedPrefService,
-            httpService,
-            bookingService,
-            languageService,
-            soundSource
-        )
+    private val viewModel: MBSheetFingerprintCardReaderViewModel by sharedViewModel()
 
-    //    lateinit var textView: TextView
     private var status: Int = -1
     private var ranCancel: Boolean = false
     private val timer = object : CountDownTimer(10000, 5000) {
@@ -82,7 +61,7 @@ class MBSheetFingerprintCardReader(
         binding = MbSheetFingerprintCardReaderBinding.inflate(inflater, container, false)
 
         setValues()
-        setUpOnClickListeners()
+        setUpListeners()
 
         return binding.root
     }
@@ -115,7 +94,7 @@ class MBSheetFingerprintCardReader(
         callback()
     }
 
-    private fun setUpOnClickListeners() {
+    private fun setUpListeners() {
         // Can it be removed?
 //        binding.fingerprintImage.setOnClickListener {
 //            binding.timeTextContainer.text = Utils.getTimeFromGC(Utils.getCal())
@@ -128,6 +107,67 @@ class MBSheetFingerprintCardReader(
 
         binding.keyboardImage.setSafeOnClickListener {
             showVerificationAlert()
+        }
+
+        viewModel.liveDone.observe(viewLifecycleOwner) {
+            if (it == true) {
+                animateSuccess()
+                status = -1
+                viewModel.liveDone.value = false
+            }
+        }
+        viewModel.liveShowErrorColor.observe(viewLifecycleOwner) {
+            if (it == true) {
+                val color = activity?.resources?.getColorStateList(R.color.error_booking, null)
+                if (color != null) binding.bookingInfoContainer.backgroundTintList = color
+                viewModel.liveShowErrorColor.value = false
+            }
+        }
+        viewModel.liveSetText.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                binding.textViewBookingMessage.text = it
+                viewModel.liveSetText.value = ""
+            }
+        }
+        viewModel.liveHideMask.observe(viewLifecycleOwner) {
+            if (it == true) {
+                binding.sheetLayoutLoadMaks.visibility = View.GONE
+                viewModel.liveHideMask.value = false
+            }
+        }
+        viewModel.liveShowMask.observe(viewLifecycleOwner) {
+            if (it == true) {
+                binding.sheetLayoutLoadMaks.visibility = View.VISIBLE
+                viewModel.liveShowMask.value = false
+            }
+        }
+        viewModel.liveOfflineBooking.observe(viewLifecycleOwner) {
+            if (it.status != -1) {
+                viewModel.processOffline(it)
+                it.status = -1
+                viewModel.liveOfflineBooking.value = it
+
+                viewModel.liveHideMask.value = true
+                viewModel.liveSetText.value = languageService.getText("#BookingTemporarilySaved")
+                viewModel.liveDone.value = true
+            }
+        }
+        viewModel.liveShowInfo.observe(viewLifecycleOwner) {
+            if (it.first.isNotEmpty()) {
+                binding.timeTextContainer.text = it.first
+                binding.nameContainer.text = it.second
+                viewModel.liveShowMask.value = true
+
+                viewModel.liveShowInfo.value = Pair("", "")
+            }
+        }
+        viewModel.liveSendBooking.observe(viewLifecycleOwner) {
+            if (it.status == -1) {
+                timer.cancel()
+                it.status = status
+                viewModel.sendBooking(it)
+                viewModel.liveSendBooking.value = it
+            }
         }
     }
 
@@ -148,9 +188,9 @@ class MBSheetFingerprintCardReader(
 
         RfidService.unregister()
         FingerprintService.unregister()
-        RfidService.setListener(this)
+        RfidService.setListener(viewModel)
         RfidService.register()
-        FingerprintService.setListener(this)
+        FingerprintService.setListener(viewModel)
         FingerprintService.register()
         timer.start()
     }
@@ -167,7 +207,7 @@ class MBSheetFingerprintCardReader(
         super.onPause()
     }
 
-    fun animateSuccess() {
+    private fun animateSuccess() {
         timer.cancel()
         binding.identificationText.animate()
             .translationY(-binding.identificationText.height.toFloat())
@@ -248,40 +288,6 @@ class MBSheetFingerprintCardReader(
             })
     }
 
-    // get code of scanned card
-    override fun onRfidRead(rfidInfo: String) {
-        val rfidCode = rfidInfo.toLongOrNull(16)
-        if (rfidCode != null) {
-            var oct = rfidCode.toString(8)
-            while (oct.length < 9) {
-                oct = "0$oct"
-            }
-            oct = oct.reversed()
-            if (status > 0) {
-                timer.cancel()
-                viewModel.sendBookingByCard(oct, this)
-            }
-        }
-    }
-
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
-        // get Key associated to the fingerprint
-        FingerprintService.identify(template)?.run {
-            Log.d("FP Key", this)
-            val id = this.substring(0, this.length - 2).toLong()
-            timer.cancel()
-            viewModel.sendBookingById(id, this@MBSheetFingerprintCardReader)
-            return
-        }
-        soundSource.playSound(SoundSource.authenticationFailed)
-        Utils.showMessage(parentFragmentManager, languageService.getText("#VerificationFailed"))
-    }
-
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
         timer.cancel()
@@ -293,7 +299,7 @@ class MBSheetFingerprintCardReader(
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (login.isNotEmpty() && pin.isNotEmpty()) {
-                viewModel.sendBookingByLogin(login, pin, this)
+                viewModel.sendBookingByLogin(login, pin)
             }
         }
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
@@ -332,25 +338,5 @@ class MBSheetFingerprintCardReader(
             timer.start()
         }
         dialog.show()
-    }
-
-    fun getStatus() = status
-
-    fun setStatus(status: Int) {
-        this.status = status
-    }
-
-    fun getBinding(): MbSheetFingerprintCardReaderBinding = binding
-
-    fun showLoadMask() {
-        activity?.runOnUiThread {
-            binding.sheetLayoutLoadMaks.visibility = View.VISIBLE
-        }
-    }
-
-    fun hideLoadMask() {
-        activity?.runOnUiThread {
-            binding.sheetLayoutLoadMaks.visibility = View.GONE
-        }
     }
 }

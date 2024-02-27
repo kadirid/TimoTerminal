@@ -58,7 +58,7 @@ class LoginFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         Utils.hideStatusAndNavbar(requireActivity())
-        viewModel.onResume(this.requireContext()) { isOnline ->
+        viewModel.onResume() { isOnline ->
             if (isOnline) {
                 showLogin()
             } else {

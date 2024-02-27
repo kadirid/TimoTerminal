@@ -12,7 +12,7 @@ class SettingsFragmentViewModel(
 ) : ViewModel() {
 
     fun logout(context: Context) {
-        loginService.logout(context,viewModelScope)
+        loginService.logout(context)
     }
 
     fun actualizeTerminal(context: Context){

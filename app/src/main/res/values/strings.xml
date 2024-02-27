@@ -32,4 +32,5 @@
     <string name="company">Company</string>
     <string name="loginname">Loginname</string>
     <string name="password">Password</string>
+    <string name="timo_service_not_reachable">TimO service is not reachable.</string>
 </resources>

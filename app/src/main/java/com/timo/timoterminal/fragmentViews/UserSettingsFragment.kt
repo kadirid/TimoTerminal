@@ -279,7 +279,20 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
                         val code = passCodeEditText.text
                         paramMap["pin"] = code.toString()
                         (activity as MainActivity?)?.showLoadMask()
-                        userSettingsFragmentViewModel.updatePin(paramMap, this)
+                        userSettingsFragmentViewModel.updatePin(paramMap) { obj ->
+                            if (obj != null) {
+                                if (obj.optString("error", "").isEmpty()) {
+                                    activity?.runOnUiThread {
+                                        showMsg(
+                                            obj.optString("message", "")
+                                        )
+                                    }
+                                } else {
+                                    Utils.showErrorMessage(requireContext(), obj.getString("error"))
+                                }
+                            }
+                            (activity as MainActivity?)?.hideLoadMask()
+                        }
                     }
                     val dialog = dlgAlert.create()
                     Utils.hideNavInDialog(dialog)

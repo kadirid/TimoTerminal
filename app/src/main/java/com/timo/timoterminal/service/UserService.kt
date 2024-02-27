@@ -1,15 +1,11 @@
 package com.timo.timoterminal.service
 
-import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
-import com.timo.timoterminal.fragmentViews.UserSettingsFragment
-import com.timo.timoterminal.modalBottomSheets.MBUserWaitSheet
 import com.timo.timoterminal.repositories.UserRepository
-import com.timo.timoterminal.utils.Utils
 import com.zkteco.android.core.sdk.service.FingerprintService
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
@@ -18,9 +14,16 @@ import org.koin.core.component.KoinComponent
 class UserService(
     private val httpService: HttpService,
     private val sharedPrefService: SharedPrefService,
-    private val userRepository: UserRepository,
-    private val languageService: LanguageService
+    private val userRepository: UserRepository
 ) : KoinComponent {
+
+    suspend fun getEntity(id: Long): List<UserEntity> = userRepository.getEntity(id)
+
+    suspend fun insertOne(user: UserEntity) = userRepository.insertOne(user)
+
+    val getAllEntities: Flow<List<UserEntity>> = userRepository.getAllEntities
+
+    suspend fun getAllAsList(): List<UserEntity> = userRepository.getAllAsList()
 
     fun loadUsersFromServer(scope: CoroutineScope, unique: String = "") {
         scope.launch {
@@ -72,157 +75,6 @@ class UserService(
         }
     }
 
-    fun sendUpdateRequestSheet(
-        paramMap: HashMap<String, String>,
-        sheet: MBUserWaitSheet,
-        scope: CoroutineScope
-    ) {
-        scope.launch {
-            val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
-            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-            if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
-                paramMap["company"] = company
-                paramMap["token"] = token
-                paramMap["terminalId"] = terminalId.toString()
-                httpService.post("${url}services/rest/zktecoTerminal/updateUserCard",
-                    paramMap,
-                    sheet.requireContext(),
-                    { obj, _, _ ->
-                        if (obj != null) {
-                            if (obj.getBoolean("success")) {
-                                val userEntity: UserEntity =
-                                    UserEntity.parseJsonToUserEntity(obj)
-                                scope.launch(Dispatchers.IO) {
-                                    userRepository.insertOne(userEntity)
-                                }
-                            }
-                            sheet.afterUpdate(
-                                obj.getBoolean("success"),
-                                obj.optString("message", "")
-                            )
-                        }
-                        sheet.hideLoadMask()
-                    }, { e, res, context, output ->
-                        sheet.hideLoadMask()
-                        HttpService.handleGenericRequestError(
-                            e,
-                            res,
-                            context,
-                            output,
-                            languageService.getText("#TimoServiceNotReachable") + " " +
-                                    languageService.getText("#ChangesReverted")
-                        )
-                    }
-                )
-            }
-        }
-    }
-
-    fun sendUpdateRequestFragment(
-        paramMap: HashMap<String, String>,
-        fragment: UserSettingsFragment,
-        scope: CoroutineScope
-    ) {
-        scope.launch {
-            val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
-            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-            if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
-                paramMap["company"] = company
-                paramMap["token"] = token
-                paramMap["terminalId"] = terminalId.toString()
-                httpService.post("${url}services/rest/zktecoTerminal/updateUserPIN",
-                    paramMap,
-                    fragment.requireContext(),
-                    { obj, _, _ ->
-                        if (obj != null) {
-                            if (obj.getBoolean("success")) {
-                                val userEntity: UserEntity =
-                                    UserEntity.parseJsonToUserEntity(obj)
-                                scope.launch(Dispatchers.IO) {
-                                    userRepository.insertOne(userEntity)
-                                }
-                            }
-                            fragment.activity?.runOnUiThread {
-                                Utils.showMessage(
-                                    fragment.parentFragmentManager,
-                                    obj.optString("message", "")
-                                )
-                            }
-                        }
-                        (fragment.activity as MainActivity?)?.hideLoadMask()
-                    }, { e, res, context, output ->
-                        (fragment.activity as MainActivity?)?.hideLoadMask()
-                        HttpService.handleGenericRequestError(
-                            e,
-                            res,
-                            context,
-                            output,
-                            languageService.getText("#TimoServiceNotReachable") + " " +
-                                    languageService.getText("#ChangesReverted")
-                        )
-                    }
-                )
-            }
-        }
-    }
-
-    fun saveFPonServer(
-        id: String?,
-        finger: Int,
-        template: String,
-        viewModelScope: CoroutineScope,
-        sheet: MBUserWaitSheet,
-        callback: () -> Any?
-    ) {
-        if (id != null) {
-            viewModelScope.launch {
-                var user = "-1"
-                val users = userRepository.getEntity(id.toLong())
-                if (users.isNotEmpty()) {
-                    user = users[0].card.ifEmpty { id }
-                }
-
-                val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-                val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-                val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
-                val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-
-                if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty() && user != "-1") {
-                    val paramMap = mutableMapOf(Pair("fp", template))
-                    paramMap["user"] = user
-                    paramMap["fingerNo"] = "$finger"
-                    paramMap["company"] = company
-                    paramMap["token"] = token
-                    paramMap["terminalId"] = terminalId.toString()
-                    httpService.post(
-                        "${url}services/rest/zktecoTerminal/saveFP",
-                        paramMap,
-                        sheet.requireContext(),
-                        { _, _, _ ->
-                            callback()
-                            sheet.hideLoadMask()
-                        }, { e, response, context, output ->
-                            HttpService.handleGenericRequestError(
-                                e,
-                                response,
-                                context,
-                                output,
-                                languageService.getText("#TimoServiceNotReachable") + " " +
-                                        languageService.getText("#ChangesReverted")
-                            )
-                            FingerprintService.delete("$user|$finger")
-                            sheet.hideLoadMask()
-                        }
-                    )
-                }
-            }
-        }
-    }
-
     private fun getFPFromServer(viewModelScope: CoroutineScope) {
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
@@ -247,53 +99,7 @@ class UserService(
         }
     }
 
-    fun assignUser(
-        id: String,
-        editor: Long,
-        callback: () -> Unit?,
-        viewModelScope: CoroutineScope
-    ) {
-        viewModelScope.launch {
-            val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
-            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-
-            if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
-                val paramMap = mutableMapOf(Pair("company", company))
-                paramMap["user"] = id
-                paramMap["editor"] = "$editor"
-                paramMap["token"] = token
-                paramMap["terminalId"] = terminalId.toString()
-                httpService.post(
-                    "${url}services/rest/zktecoTerminal/assignUser",
-                    paramMap,
-                    null,
-                    { _, _, str ->
-                        if ("true" == str) {
-                            viewModelScope.launch {
-                                val user = userRepository.getEntity(id.toLong())[0]
-                                user.assignedToTerminal = true
-                                userRepository.insertOne(user)
-                                getFPForUser(url, callback, id, company, terminalId, token)
-                            }
-                        }
-                    }, { e, res, context, output ->
-                        HttpService.handleGenericRequestError(
-                            e,
-                            res,
-                            context,
-                            output,
-                            languageService.getText("#TimoServiceNotReachable") + " " +
-                                    languageService.getText("#ChangesReverted")
-                        )
-                    }
-                )
-            }
-        }
-    }
-
-    private fun getFPForUser(
+    fun getFPForUser(
         url: String?,
         callback: () -> Unit?,
         id: String,
@@ -357,9 +163,9 @@ class UserService(
         if (list.isNotEmpty()) {
             userRepository.delete(list[0])
             deleteFPForUser(userId)
-            if (unique.isNotEmpty()) {
-                httpService.responseForCommand(unique)
-            }
+        }
+        if (unique.isNotEmpty()) {
+            httpService.responseForCommand(unique)
         }
     }
 
@@ -409,55 +215,6 @@ class UserService(
             return
         }
         FingerprintService.load(key, template)
-    }
-
-    fun deleteFP(
-        id: String,
-        finger: Int,
-        viewModelScope: CoroutineScope,
-        sheet: MBUserWaitSheet,
-        callback: () -> Any?
-    ) {
-        viewModelScope.launch {
-            var user = "-1"
-            val users = userRepository.getEntity(id.toLong())
-            if (users.isNotEmpty()) {
-                user = users[0].card.ifEmpty { id }
-            }
-
-            val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
-            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-
-            if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty() && user != "-1") {
-                val paramMap = mutableMapOf(Pair("user", user))
-                paramMap["fingerNo"] = "$finger"
-                paramMap["company"] = company
-                paramMap["token"] = token
-                paramMap["terminalId"] = terminalId.toString()
-                httpService.post(
-                    "${url}services/rest/zktecoTerminal/delFP",
-                    paramMap,
-                    sheet.requireContext(),
-                    { _, _, _ ->
-                        sheet.hideLoadMask()
-                        callback()
-                        FingerprintService.delete("$id|$finger")
-                    }, { e, response, context, output ->
-                        sheet.hideLoadMask()
-                        HttpService.handleGenericRequestError(
-                            e,
-                            response,
-                            context,
-                            output,
-                            languageService.getText("#TimoServiceNotReachable") +
-                                    " " + languageService.getText("#ChangesReverted")
-                        )
-                    }
-                )
-            }
-        }
     }
 
 }

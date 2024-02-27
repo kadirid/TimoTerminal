@@ -25,9 +25,11 @@ import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.service.WebSocketService
 import com.timo.timoterminal.service.WorkerService
 import com.timo.timoterminal.utils.classes.SoundSource
-import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
+import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
+import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
+import com.timo.timoterminal.viewModel.MBUserWaitSheetViewModel
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.timo.timoterminal.viewModel.SettingsFragmentViewModel
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
@@ -111,17 +113,19 @@ var appModule = module {
     single { SoundSource(get(), androidContext()) }
     single { SettingsService(get(), get()) }
     single { LanguageService(get(), get(), get()) }
-    single { UserService(get(), get(), get(), get()) }
+    single { UserService(get(), get(), get()) }
     single { BookingService(get(), get(), get(), get()) }
-    single { LoginService(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { LoginService(get(), get(), get(), get(), get(), get(), get(), get()) }
 
 
-    viewModel { AttendanceFragmentViewModel(get(), get()) }
     viewModel { SettingsFragmentViewModel(get(), get()) }
-    viewModel { UserSettingsFragmentViewModel(get(), get()) }
+    viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get()) }
+    viewModel { MBUserWaitSheetViewModel(get(), get(), get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
-    viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
+    viewModel { MainActivityViewModel(get(), get(), get(), get()) }
+    viewModel { InfoFragmentViewModel(get(), get(), get(), get(), get()) }
+    viewModel { MBSheetFingerprintCardReaderViewModel(get(), get(), get(), get(), get(), get()) }
 
     worker(named<HeartbeatWorker>()) {
         HeartbeatWorker(

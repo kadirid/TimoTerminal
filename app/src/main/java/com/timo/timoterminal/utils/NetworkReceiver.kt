@@ -6,9 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.NetworkInfo
-import android.os.Build
 import android.telephony.TelephonyManager
 import androidx.core.app.ActivityCompat
 import com.timo.timoterminal.enums.NetworkType

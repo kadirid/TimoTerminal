@@ -52,11 +52,11 @@ class LoginFragmentViewModel(
         settingsService.setTimeZone(activity, timezone, callback)
     }
 
-    fun onResume(context:Context, callback: (isOnline: Boolean) -> Unit) {
+    fun onResume(callback: (isOnline: Boolean) -> Unit) {
         viewModelScope.launch {
             val saved: Boolean = !sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "").isNullOrEmpty()
             if (saved) {
-                callback(Utils.isOnline(context))
+                callback(true)
             }
         }
     }

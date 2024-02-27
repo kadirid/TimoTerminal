@@ -3,8 +3,10 @@ package com.timo.timoterminal.service
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings.*
+import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.LoginActivity
 import com.timo.timoterminal.entityClasses.ConfigEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
@@ -17,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.util.Locale
 
 
 class LoginService(
@@ -25,7 +28,6 @@ class LoginService(
     private val sharedPrefService: SharedPrefService,
     private val hardware: IHardwareSource,
     private val userService: UserService,
-    private val workerService: WorkerService,
     private val settingsService: SettingsService,
     private val languageService: LanguageService,
     private val bookingService: BookingService
@@ -113,6 +115,7 @@ class LoginService(
     ) {
 
 
+        val language = sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de") ?: "de"
         //if not created, create a ID for the device. This ID is the recognizer for the timo
         // system and will be used as terminal id
         val hashedAndroidId =
@@ -135,8 +138,7 @@ class LoginService(
             parameters["timezone"] =
                 sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
                     ?: "Europe/Berlin"
-            parameters["language"] =
-                sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de") ?: "de"
+            parameters["language"] = language
             parameters["ip"] = ip
             //Serial number is used as terminalId
             parameters["serialNumber"] = hardware.serialNumber()
@@ -167,12 +169,18 @@ class LoginService(
                     }
                 }, { e, res, context, output ->
                     soundSource.playSound(SoundSource.loginFailed)
+                    val config = Configuration()
+                    config.setLocale(Locale(language))
+                    val nContext = context?.createConfigurationContext(config)
                     HttpService.handleGenericRequestError(
                         e,
                         res,
                         context,
                         output,
-                        languageService.getText("#TimoServiceNotReachable")
+                        languageService.getText(
+                            "#TimoServiceNotReachable",
+                            nContext?.getText(R.string.timo_service_not_reachable).toString()
+                        )
                     )
                 }
             )
@@ -219,18 +227,21 @@ class LoginService(
                                 )
                             }
                             coroutineScope.launch {
-                                configRepository.insertAll(list)
+                                insertOrUpdateConfigEntities(list)
                                 configRepository.initMap()
+                                callback(true)
                             }
-                            //callback should only be called if the array is really loaded!
-                            callback(true)
+                            null
                         } else {
                             callback(false)
                         }
-                    }, { e, res, context, output ->
-                        HttpService.handleGenericRequestError(
-                            e, res, context, output, "loadPermission"
-                        )
+                    }, { _, _, _, _ ->
+                        //check if permissions table is really populated
+                        coroutineScope.launch {
+                            val size = configRepository.getItemCount()
+                            if (size > 3) callback(true) else callback(false)
+                        }
+                        null
                     }
                 )
             }
@@ -238,7 +249,7 @@ class LoginService(
             //check if permissions table is really populated
             coroutineScope.launch {
                 val size = configRepository.getItemCount()
-                if (size > 10) callback(true) else callback(false)
+                if (size > 3) callback(true) else callback(false)
             }
         }
     }
@@ -291,15 +302,14 @@ class LoginService(
                         callback()
                     }
                 },
-                { e, res, c, json ->
-                    HttpService.handleGenericRequestError(e, res, c, json)
-                    sharedPrefService.removeAllCreds()
+                { _, _, _, _ ->
+                    callback()
                 }
             )
         }
     }
 
-    fun logout(context: Context, coroutineScope: CoroutineScope) {
+    fun logout(context: Context) {
         sharedPrefService.removeAllCreds()
         val logoutIntent = Intent(context, LoginActivity::class.java)
         logoutIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -318,14 +328,29 @@ class LoginService(
         bookingService.deleteAll(coroutineScope)
         heartbeatService.stopHeartBeat()
         val helperDB = FeedReaderDbHelper(context, "room.db").writableDatabase
-        helperDB.execSQL("CREATE TABLE dummy (id INTEGER PRIMARY KEY AUTOINCREMENT);");
-        helperDB.execSQL("DROP TABLE dummy;");
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='ConfigEntity';");
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='ConfigEntity';");
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='LanguageEntity';");
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='UserEntity';");
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingBUEntity';");
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingEntity';");
+        helperDB.execSQL("CREATE TABLE dummy (id INTEGER PRIMARY KEY AUTOINCREMENT);")
+        helperDB.execSQL("DROP TABLE dummy;")
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='ConfigEntity';")
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='LanguageEntity';")
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='UserEntity';")
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingBUEntity';")
+        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingEntity';")
         context.startActivity(logoutIntent)
+    }
+
+    private suspend fun insertOrUpdateConfigEntities(list : ArrayList<ConfigEntity>){
+        val current = configRepository.getAllAsList()
+        for(element in list) {
+            var saved = false
+            for (entity in current){
+                if(entity == element) {
+                    element.id = entity.id
+                    configRepository.updateConfigEntity(element)
+                    saved = true
+                }
+            }
+            if(saved) continue
+            configRepository.insertConfigEntity(element)
+        }
     }
 }

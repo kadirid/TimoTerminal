@@ -23,7 +23,6 @@ import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
@@ -33,6 +32,7 @@ import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 private const val ARG_ID = "id"
 private const val ARG_EDITOR = "editor"
@@ -42,8 +42,7 @@ private const val ARG_IS_DELETE = "isDelete"
 class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, FingerprintListener {
 
     private var enrollCount: Int = 0
-    private val userService: UserService by inject()
-    private val viewModel = MBUserWaitSheetViewModel(userService)
+    private val viewModel : MBUserWaitSheetViewModel by sharedViewModel()
     private lateinit var binding: MbSheetFingerprintCardReaderBinding
     private val languageService: LanguageService by inject()
     private val soundSource: SoundSource by inject()
@@ -57,7 +56,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     private var isDelete = false
     private var finger = -1
     private var timer: CountDownTimer? = null
-    private val timer2 = object : CountDownTimer(5000, 500) {
+    private val timer2 = object : CountDownTimer(5000, 4000) {
         override fun onTick(millisUntilFinished: Long) {
         }
 
@@ -148,11 +147,16 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
             dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
             dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                 showLoadMask()
-                viewModel.delFP(id, fingerNo, this) {
-                    requireActivity().runOnUiThread {
-                        it.imageTintList = null
-                        it.alpha = 0F
+                viewModel.delFP(id, fingerNo) { error ->
+                    if(error.isEmpty()) {
+                        requireActivity().runOnUiThread {
+                            it.imageTintList = null
+                            it.alpha = 0F
+                        }
+                    }else{
+                        Utils.showErrorMessage(requireContext(), error)
                     }
+                    hideLoadMask()
                 }
             }
             val dialog = dlgAlert.create()
@@ -167,7 +171,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     }
 
     private fun setValues() {
-        timer = object : CountDownTimer(if (isFP) 20000 else 10000, 5000) {
+        timer = object : CountDownTimer(if (isFP) 20000 else 10000, 9000) {
             override fun onTick(millisUntilFinished: Long) {
             }
 
@@ -327,10 +331,15 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
             dlgAlert.setTitle(languageService.getText("#Attention"))
             dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
             dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
-                viewModel.delFP(id, finger, this) {
-                    activity?.runOnUiThread {
-                        processEnroll(enrollingKey, template)
+                viewModel.delFP(id, finger) { error ->
+                    if(error.isEmpty()) {
+                        activity?.runOnUiThread {
+                            processEnroll(enrollingKey, template)
+                        }
+                    }else {
+                        Utils.showErrorMessage(requireContext(), error)
                     }
+                    hideLoadMask()
                 }
             }
             val dialog = dlgAlert.create()
@@ -377,15 +386,22 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
             FingerprintService.enroll(enrollingKey, templates).run {
                 Log.d(javaClass.simpleName, "Enrolled template $this")
                 showLoadMask()
-                viewModel.saveFP(id, finger, this, this@MBUserWaitSheet) {
-                    requireActivity().runOnUiThread {
-                        val color = activity?.resources?.getColorStateList(R.color.green, null)
-                        if (color != null)
-                            image?.imageTintList = color
-                    }
+                viewModel.saveFP(id, finger, this) {error->
+                    if(error.isEmpty()) {
+                        requireActivity().runOnUiThread {
+                            val color = activity?.resources?.getColorStateList(R.color.green, null)
+                            if (color != null)
+                                image?.imageTintList = color
+                        }
 
-                    showMsg(languageService.getText("#SavedNewFingerprint"))
-                    soundSource.playSound(SoundSource.fingerSaved)
+                        showMsg(languageService.getText("#SavedNewFingerprint"))
+                        soundSource.playSound(SoundSource.fingerSaved)
+                    }else{
+                        activity?.runOnUiThread {
+                            Utils.showErrorMessage(requireContext(), error)
+                        }
+                    }
+                    hideLoadMask()
                 }
             }
 
@@ -412,7 +428,19 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
                 paramMap["editor"] = editor.toString()
                 paramMap["card"] = oct
                 showLoadMask()
-                viewModel.updateUser(paramMap, this)
+                viewModel.updateUser(paramMap){obj ->
+                    if(obj.optString("error", "").isEmpty()){
+                        afterUpdate(
+                            obj.getBoolean("success"),
+                            obj.optString("message", "")
+                        )
+                    }else{
+                        activity?.runOnUiThread {
+                            Utils.showErrorMessage(requireContext(), obj.getString("error"))
+                        }
+                    }
+                    hideLoadMask()
+                }
             }
         }
     }
@@ -446,7 +474,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
         (activity as MainActivity?)?.restartTimer()
     }
 
-    fun afterUpdate(success: Boolean, message: String) {
+    private fun afterUpdate(success: Boolean, message: String) {
         timer2.start()
 
         activity?.runOnUiThread {
@@ -502,7 +530,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
         }
     }
 
-    fun hideLoadMask() {
+    private fun hideLoadMask() {
         activity?.runOnUiThread {
             binding.sheetLayoutLoadMaks.visibility = View.GONE
         }

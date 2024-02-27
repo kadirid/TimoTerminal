@@ -2,7 +2,6 @@ package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,40 +13,25 @@ import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.FragmentInfoBinding
 import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
-import com.timo.timoterminal.repositories.UserRepository
-import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.modalBottomSheets.MBFragmentInfoSheet
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.service.SharedPrefService
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
-import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
-import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
+class InfoFragment : Fragment() {
 
     private lateinit var binding: FragmentInfoBinding
     private lateinit var itemBinding: FragmentInfoMessageSheetItemBinding
     private var verifying = true
 
-    private val userRepository: UserRepository by inject()
-    private val sharedPrefService: SharedPrefService by inject()
-    private val httpService: HttpService by inject()
     private val languageService: LanguageService by inject()
-    private val soundSource: SoundSource by inject()
 
-    private var viewModel: InfoFragmentViewModel =
-        InfoFragmentViewModel(
-            userRepository,
-            sharedPrefService,
-            httpService,
-            languageService,
-            soundSource
-        )
+    private val viewModel by sharedViewModel<InfoFragmentViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,7 +40,7 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
         binding = FragmentInfoBinding.inflate(inflater, container, false)
         itemBinding = FragmentInfoMessageSheetItemBinding.inflate(inflater, container, false)
 
-        setUpOnClickListeners()
+        setUpListeners()
         setText()
 
         return binding.root
@@ -75,12 +59,12 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
         }
     }
 
-    fun register() {
+    private fun register() {
         RfidService.unregister()
         FingerprintService.unregister()
-        RfidService.setListener(this)
+        RfidService.setListener(viewModel)
         RfidService.register()
-        FingerprintService.setListener(this)
+        FingerprintService.setListener(viewModel)
         FingerprintService.register()
     }
 
@@ -90,12 +74,12 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
         super.onPause()
     }
 
-    fun unregister() {
+    private fun unregister() {
         RfidService.unregister()
         FingerprintService.unregister()
     }
 
-    private fun setUpOnClickListeners() {
+    private fun setUpListeners() {
 
         binding.keyboardImage.setSafeOnClickListener {
             (activity as MainActivity?)?.restartTimer()
@@ -103,44 +87,79 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
         }
 
         itemBinding.linearTextContainer.setOnClickListener {
-            (activity as MainActivity?)?.restartTimer()
             viewModel.restartTimer()
         }
 
         binding.fragmentInfoRootLayout.setOnClickListener {
             (activity as MainActivity?)?.restartTimer()
         }
-    }
 
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
-        Log.d("FP", fingerprint)
-        // get Key associated to the fingerprint
-        FingerprintService.identify(template)?.run {
-            soundSource.playSound(SoundSource.successSound)
-            Log.d("FP Key", this)
-            (activity as MainActivity?)?.showLoadMask()
-            viewModel.loadUserInfoById(this.substring(0, this.length - 2), this@InfoFragment)
-            return
-        }
-        soundSource.playSound(SoundSource.authenticationFailed)
-    }
-
-    override fun onRfidRead(rfidInfo: String) {
-        val rfidCode = rfidInfo.toLongOrNull(16)
-        if (rfidCode != null) {
-            soundSource.playSound(SoundSource.successSound)
-            var oct = rfidCode.toString(8)
-            while (oct.length < 9) {
-                oct = "0$oct"
+        viewModel.liveRfidNumber.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                (activity as MainActivity?)?.hideLoadMask()
+                showCard(it)
+                viewModel.liveRfidNumber.value = ""
             }
-            oct = oct.reversed()
-            (activity as MainActivity?)?.showLoadMask()
-            viewModel.loadUserInfoByCard(oct, this)
+        }
+        viewModel.liveHideMask.observe(viewLifecycleOwner) {
+            if (it == true) {
+                (activity as MainActivity?)?.hideLoadMask()
+                viewModel.liveHideMask.value = false
+            }
+        }
+        viewModel.liveShowMask.observe(viewLifecycleOwner) {
+            if (it == true) {
+                (activity as MainActivity?)?.showLoadMask()
+                viewModel.liveShowMask.value = false
+            }
+        }
+        viewModel.liveRestartTimer.observe(viewLifecycleOwner) {
+            if (it == true) {
+                (activity as MainActivity?)?.restartTimer()
+                viewModel.liveRestartTimer.value = false
+            }
+        }
+        viewModel.liveDismissInfoSheet.observe(viewLifecycleOwner) {
+            if (it == true) {
+                (activity as MainActivity?)?.restartTimer()
+                register()
+                verifying = true
+                viewModel.liveDismissInfoSheet.value = false
+            }
+        }
+        viewModel.liveMessage.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                Utils.showMessage(
+                    parentFragmentManager,
+                    it
+                )
+                viewModel.liveMessage.value = ""
+            }
+        }
+        viewModel.liveUser.observe(viewLifecycleOwner) {
+            if (it != null) {
+                unregister()
+                verifying = false
+                viewModel.loadUserInformation(it)
+                viewModel.liveUser.value = null
+            }
+        }
+        viewModel.liveInfoSuccess.observe(viewLifecycleOwner) {
+            if (!it.getString("card").isNullOrBlank()) {
+                val sheet = MBFragmentInfoSheet()
+                sheet.arguments = it
+                sheet.show(
+                    parentFragmentManager,
+                    MBFragmentInfoSheet.TAG
+                )
+                viewModel.liveInfoSuccess.value = Bundle()
+            }
+        }
+        viewModel.liveErrorMessage.observe(viewLifecycleOwner){
+            if(it.isNotEmpty()){
+                Utils.showErrorMessage(requireContext(), it)
+                viewModel.liveErrorMessage.value = ""
+            }
         }
     }
 
@@ -157,7 +176,7 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (login.isNotEmpty() && pin.isNotEmpty()) {
                 (activity as MainActivity?)?.showLoadMask()
-                viewModel.loadUserInfoByLoginAndPin(login, pin, this)
+                viewModel.loadUserInfoByLoginAndPin(login, pin)
             }
         }
 
@@ -196,11 +215,7 @@ class InfoFragment : Fragment(), TimoRfidListener, FingerprintListener {
         dialog.show()
     }
 
-    fun setVerifying(b: Boolean) {
-        verifying = b
-    }
-
-    fun showCard(card: String) {
+    private fun showCard(card: String) {
         Utils.showMessage(parentFragmentManager, "RFID: $card")
     }
 }

@@ -1,18 +1,21 @@
 package com.timo.timoterminal.viewModel
 
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.timo.timoterminal.R
+import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
-import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
+import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
@@ -24,7 +27,16 @@ class MBSheetFingerprintCardReaderViewModel(
     private val bookingService: BookingService,
     private val languageService: LanguageService,
     private val soundSource: SoundSource
-) : ViewModel() {
+) : ViewModel(), TimoRfidListener, FingerprintListener {
+
+    val liveDone: MutableLiveData<Boolean> = MutableLiveData()
+    val liveShowErrorColor: MutableLiveData<Boolean> = MutableLiveData()
+    val liveSetText: MutableLiveData<String> = MutableLiveData()
+    val liveHideMask: MutableLiveData<Boolean> = MutableLiveData()
+    val liveShowMask: MutableLiveData<Boolean> = MutableLiveData()
+    val liveOfflineBooking: MutableLiveData<BookingEntity> = MutableLiveData()
+    val liveShowInfo: MutableLiveData<Pair<String, String>> = MutableLiveData()
+    val liveSendBooking: MutableLiveData<BookingEntity> = MutableLiveData()
 
     private fun getCompany(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
@@ -67,170 +79,157 @@ class MBSheetFingerprintCardReaderViewModel(
         return null
     }
 
-    fun sendBookingById(id: Long, sheet: MBSheetFingerprintCardReader) {
+    private fun sendBookingById(id: Long) {
         viewModelScope.launch {
             val user = getUserEntity(id)
             if (user != null) {
                 val greg = Utils.getCal()
-                val time = Utils.getTimeFromGC(greg)
-                sheet.activity?.runOnUiThread {
-                    sheet.getBinding().nameContainer.text = user.name()
-                    sheet.getBinding().timeTextContainer.text = time
-                }
-                sheet.showLoadMask()
-                sendBooking(user.card, 2, Utils.getDateTimeFromGC(greg), sheet)
+                liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
+                liveSendBooking.postValue(
+                    BookingEntity(
+                        user.card,
+                        2,
+                        Utils.getDateTimeFromGC(greg),
+                        -1
+                    )
+                )
             } else {
-                soundSource.playSound(SoundSource.authenticationFailed)
-                sheet.animateSuccess()
-                sheet.setStatus(-1)
-                sheet.getBinding().textViewBookingMessage.text =
-                    languageService.getText("#VerificationFailed")
-                val color =
-                    sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
-                if (color != null)
-                    sheet.getBinding().bookingInfoContainer.backgroundTintList = color
+                errorNoUser("#VerificationFailed")
             }
         }
     }
 
-    fun sendBookingByCard(card: String, sheet: MBSheetFingerprintCardReader) {
+    private fun sendBookingByCard(card: String) {
         viewModelScope.launch {
             val user = getUserEntityByCard(card)
             if (user != null) {
                 val greg = Utils.getCal()
-                val time = Utils.getTimeFromGC(greg)
-                sheet.activity?.runOnUiThread {
-                    sheet.getBinding().nameContainer.text = user.name()
-                    sheet.getBinding().timeTextContainer.text = time
-                }
-                sheet.showLoadMask()
-                sendBooking(user.card, 1, Utils.getDateTimeFromGC(greg), sheet)
+                liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
+                liveSendBooking.postValue(
+                    BookingEntity(
+                        user.card,
+                        1,
+                        Utils.getDateTimeFromGC(greg),
+                        -1
+                    )
+                )
             } else {
-                soundSource.playSound(SoundSource.authenticationFailed)
-                sheet.animateSuccess()
-                sheet.setStatus(-1)
-                sheet.getBinding().textViewBookingMessage.text =
-                    languageService.getText("#Number unknown")
-                val color =
-                    sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
-                if (color != null)
-                    sheet.getBinding().bookingInfoContainer.backgroundTintList = color
+                errorNoUser("#Number unknown")
             }
         }
     }
 
-    fun sendBookingByLogin(login: String, pin: String, sheet: MBSheetFingerprintCardReader) {
+    fun sendBookingByLogin(login: String, pin: String) {
         viewModelScope.launch {
             val user = getUserEntityByLogin(login)
             if (user != null && user.pin == pin) {
                 val greg = Utils.getCal()
-                val time = Utils.getTimeFromGC(greg)
-                sheet.activity?.runOnUiThread {
-                    sheet.getBinding().nameContainer.text = user.name()
-                    sheet.getBinding().timeTextContainer.text = time
-                }
-                sheet.showLoadMask()
-                sendBooking(user.card, 0, Utils.getDateTimeFromGC(greg), sheet)
+                liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
+                liveSendBooking.postValue(
+                    BookingEntity(
+                        user.card,
+                        0,
+                        Utils.getDateTimeFromGC(greg),
+                        -1
+                    )
+                )
             } else {
-                soundSource.playSound(SoundSource.authenticationFailed)
-                sheet.animateSuccess()
-                sheet.setStatus(-1)
-                sheet.getBinding().textViewBookingMessage.text =
-                    languageService.getText("#VerificationFailed")
-                val color =
-                    sheet.activity?.resources?.getColorStateList(R.color.error_booking, null)
-                if (color != null)
-                    sheet.getBinding().bookingInfoContainer.backgroundTintList = color
+                errorNoUser("#VerificationFailed")
             }
         }
     }
 
+    private fun errorNoUser(key: String) {
+        soundSource.playSound(SoundSource.authenticationFailed)
+        liveDone.postValue(true)
+        liveSetText.postValue(languageService.getText(key))
+        liveShowErrorColor.postValue(true)
+    }
+
     // send all necessary information to timo to create a booking
-    private suspend fun sendBooking(
-        card: String,
-        inputCode: Int,
-        date: String,
-        sheet: MBSheetFingerprintCardReader
+    fun sendBooking(
+        entity: BookingEntity
     ) {
-        if (Utils.isOnline(sheet.requireContext())) {
+        viewModelScope.launch {
             val url = getURl()
             val company = getCompany()
             val terminalId = getTerminalID()
             val token = getToken()
-            if (!company.isNullOrEmpty() && terminalId > 0 && sheet.getStatus() > 0 && token.isNotEmpty()) {
+            if (!company.isNullOrEmpty() && terminalId > 0 && entity.status > 0 && token.isNotEmpty()) {
                 httpService.post(
                     "${url}services/rest/zktecoTerminal/booking",
                     mapOf(
-                        Pair("card", card),
+                        Pair("card", entity.card),
                         Pair("firma", company),
-                        Pair("date", date),
-                        Pair("funcCode", "${sheet.getStatus()}"),
-                        Pair("inputCode", "$inputCode"),
+                        Pair("date", entity.date),
+                        Pair("funcCode", entity.status.toString()),
+                        Pair("inputCode", entity.inputCode.toString()),
                         Pair("terminalId", terminalId.toString()),
                         Pair("token", token),
                         Pair("validate", "true")
                     ),
-                    sheet.requireContext(),
+                    null,
                     { obj, _, _ ->
                         if (obj != null) {
-                            sheet.animateSuccess()
-                            sheet.setStatus(-1)
+                            liveDone.postValue(true)
                             RfidService.unregister()
                             FingerprintService.unregister()
-                            sheet.activity?.runOnUiThread {
-                                sheet.getBinding().textViewBookingMessage.text =
-                                    obj.getString("message")
-                                if (!obj.getBoolean("success")) {
-                                    soundSource.playSound(SoundSource.failedSound)
-                                    val color =
-                                        sheet.activity?.resources?.getColorStateList(
-                                            R.color.error_booking,
-                                            null
-                                        )
-                                    if (color != null)
-                                        sheet.getBinding().bookingInfoContainer.backgroundTintList =
-                                            color
-                                } else {
-                                    soundSource.playSound(SoundSource.successSound)
-                                }
+                            liveSetText.postValue(obj.getString("message"))
+                            if (!obj.getBoolean("success")) {
+                                soundSource.playSound(SoundSource.failedSound)
+                                liveShowErrorColor.postValue(true)
+                            } else {
+                                soundSource.playSound(SoundSource.successSound)
                             }
                         }
-                        sheet.hideLoadMask()
+                        liveHideMask.postValue(true)
                     }, { _, _, _, _ ->
-                        sheet.hideLoadMask()
-                        soundSource.playSound(SoundSource.offlineSaved)
-                        viewModelScope.launch {
-                            bookingService.insertBooking(
-                                card,
-                                inputCode,
-                                date,
-                                sheet.getStatus()
-                            )
-                        }
-                        sheet.activity?.runOnUiThread {
-                            sheet.getBinding().textViewBookingMessage.text =
-                                languageService.getText("#BookingTemporarilySaved")
-                            sheet.animateSuccess()
-                            sheet.setStatus(-1)
-                            RfidService.unregister()
-                            FingerprintService.unregister()
-                        }
+                        liveOfflineBooking.postValue(entity)
                     }
                 )
             }
-        } else {
-            viewModelScope.launch {
-                soundSource.playSound(SoundSource.offlineSaved)
-                bookingService.insertBooking(card, inputCode, date, sheet.getStatus())
-                sheet.activity?.runOnUiThread {
-                    sheet.getBinding().textViewBookingMessage.text =
-                        languageService.getText("#BookingTemporarilySaved")
-                    sheet.animateSuccess()
-                    sheet.setStatus(-1)
-                    RfidService.unregister()
-                    FingerprintService.unregister()
+        }
+    }
+
+    fun processOffline(entity: BookingEntity) {
+        viewModelScope.launch {
+            soundSource.playSound(SoundSource.offlineSaved)
+            RfidService.unregister()
+            FingerprintService.unregister()
+            bookingService.insertBooking(entity)
+        }
+    }
+
+    // get code of scanned card
+    override fun onRfidRead(rfidInfo: String) {
+        viewModelScope.launch {
+            val rfidCode = rfidInfo.toLongOrNull(16)
+            if (rfidCode != null) {
+                var oct = rfidCode.toString(8)
+                while (oct.length < 9) {
+                    oct = "0$oct"
                 }
+                oct = oct.reversed()
+                sendBookingByCard(oct)
             }
+        }
+    }
+
+    override fun onFingerprintPressed(
+        fingerprint: String,
+        template: String,
+        width: Int,
+        height: Int
+    ) {
+        viewModelScope.launch {
+            // get Key associated to the fingerprint
+            FingerprintService.identify(template)?.run {
+                Log.d("FP Key", this)
+                val id = this.substring(0, this.length - 2).toLong()
+                sendBookingById(id)
+                return@launch
+            }
+            errorNoUser("#VerificationFailed")
         }
     }
 

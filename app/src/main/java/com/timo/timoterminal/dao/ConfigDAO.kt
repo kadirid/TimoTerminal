@@ -32,7 +32,10 @@ interface ConfigDAO {
     suspend fun delete(entity: ConfigEntity)
 
     @Update
-    suspend fun updateEntity(entities: List<ConfigEntity>) : Int
+    suspend fun updateEntities(entities: List<ConfigEntity>) : Int
+
+    @Update
+    suspend fun updateEntity(entity: ConfigEntity) : Int
 
     @Query("DELETE FROM ConfigEntity")
     suspend fun deleteAll()

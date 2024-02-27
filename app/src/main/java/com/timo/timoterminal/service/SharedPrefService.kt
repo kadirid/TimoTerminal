@@ -2,14 +2,10 @@ package com.timo.timoterminal.service
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.provider.Settings
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.utils.Constants
 import com.timo.timoterminal.utils.Utils
 import org.koin.core.component.KoinComponent
-import android.content.ContentResolver
-import android.provider.Settings.Secure
-import java.util.UUID
 
 
 //This service makes sure that every key shared preferences is using is documented. This is why I created a service.
@@ -69,7 +65,7 @@ class SharedPrefService(context: Context) : KoinComponent {
         password: String
     ) {
         val editor = getEditor()
-        editor.putString(SharedPreferenceKeys.DEVICE_UUID.name, terminalUUID);
+        editor.putString(SharedPreferenceKeys.DEVICE_UUID.name, terminalUUID)
         editor.putInt(SharedPreferenceKeys.TIMO_TERMINAL_ID.name, id)
         editor.putString(SharedPreferenceKeys.TOKEN.name, token)
         editor.putString(SharedPreferenceKeys.COMPANY.name, company)
@@ -80,7 +76,7 @@ class SharedPrefService(context: Context) : KoinComponent {
     }
 
     fun checkIfCredsAreSaved(): Boolean {
-        val UUID = getString(SharedPreferenceKeys.DEVICE_UUID);
+        val UUID = getString(SharedPreferenceKeys.DEVICE_UUID)
         val T_ID = getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val TOKEN = getString(SharedPreferenceKeys.TOKEN)
         val COMPANY = getString(SharedPreferenceKeys.COMPANY)
