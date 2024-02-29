@@ -102,6 +102,8 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
         binding.textviewLastNameLabel.text = languageService.getText("MITARBEITER#Nachname")
         binding.textviewHireDateLabel.text =
             languageService.getText("MITARBEITER#Einstellungsdatum")
+        binding.searchBar.hint = languageService.getText("#SearchEmployee")
+        binding.searchView.hint = languageService.getText("#SearchEmployee")
     }
 
     private fun initSearchFilter() {

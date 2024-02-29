@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.utils.Utils
@@ -76,7 +77,14 @@ class HeartbeatService : KoinComponent {
                         if (obj != null) {
                             handelHeartBeatResponse(obj, activity)
                         }
-                    }, { _, _, _, _ -> }
+                    }, { _, _, _, _ ->
+                        val color = activity.resources?.getColorStateList(R.color.red, null)
+                        if(activity.getBinding().serverConnectionIcon.imageTintList != color){
+                            activity.runOnUiThread {
+                                activity.getBinding().serverConnectionIcon.imageTintList = color
+                            }
+                        }
+                    }
                 )
             }
         }
@@ -129,6 +137,12 @@ class HeartbeatService : KoinComponent {
         }
         val scope = activity.getViewModel().viewModelScope
         scope.launch {
+            val color = activity.resources?.getColorStateList(R.color.green, null)
+            if(activity.getBinding().serverConnectionIcon.imageTintList != color){
+                activity.runOnUiThread {
+                    activity.getBinding().serverConnectionIcon.imageTintList = color
+                }
+            }
             if (updateAllUser.isNotEmpty()) {
                 userService.loadUsersFromServer(scope, updateAllUser)
             } else {

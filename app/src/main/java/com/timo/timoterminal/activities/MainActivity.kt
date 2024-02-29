@@ -281,6 +281,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         FingerprintService.unregister()
         FingerprintService.setListener(mainActivityViewModel)
         FingerprintService.register()
+        dialogBinding.textInputLayoutVerificationId.hint = languageService.getText("#Login","Login")
+        dialogBinding.textInputLayoutVerificationPin.hint = languageService.getText("#PinCode","PIN")
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
@@ -419,4 +421,5 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         binding.networkConnectionIcon.setImageResource(res)
     }
 
+    fun getBinding() = binding
 }

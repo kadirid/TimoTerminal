@@ -17,6 +17,7 @@
         tools:text="Bitte verifizieren: Finger, RFID oder PIN" />
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/text_input_Layout_verification_id"
         android:layout_width="600dp"
         android:layout_height="60dp"
         android:layout_marginHorizontal="20dp"
@@ -37,6 +38,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/text_input_layout_verification_pin"
         android:layout_width="600dp"
         android:layout_height="60dp"
         android:layout_marginHorizontal="20dp"

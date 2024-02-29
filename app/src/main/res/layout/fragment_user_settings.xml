@@ -20,16 +20,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.search.SearchBar
-            android:id="@+id/search_bar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/rounded_container_16dp"
-            android:backgroundTint="?attr/colorSurfaceContainerHighest"
-            android:hint="@string/choose_worker"
-            app:elevation="0dp" />
-
-        <!-- NestedScrollingChild goes here (NestedScrollView, RecyclerView, etc.). -->
         <androidx.core.widget.NestedScrollView
             android:id="@+id/fragment_user_settings_nested_scroll_view"
             android:layout_width="match_parent"
@@ -45,6 +35,14 @@
                 tools:listitem="@layout/item_user" />
         </androidx.core.widget.NestedScrollView>
 
+        <com.google.android.material.search.SearchBar
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_container_16dp"
+            android:backgroundTint="?attr/colorSurfaceContainerHighest"
+            android:hint="@string/choose_worker"
+            app:elevation="0dp" />
 
         <com.google.android.material.search.SearchView
             android:id="@+id/search_view"
@@ -63,7 +61,6 @@
         </com.google.android.material.search.SearchView>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_form"
@@ -119,7 +116,7 @@
                     android:id="@+id/textview_first_name_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="Vorname" />
+                    tools:text="Firstname" />
 
                 <TextView
                     android:id="@+id/first_name_text"
@@ -141,7 +138,7 @@
                     android:id="@+id/textview_last_name_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="Nachname" />
+                    tools:text="Lastname" />
 
                 <TextView
                     android:id="@+id/last_name_text"
@@ -163,7 +160,7 @@
                     android:id="@+id/textview_hire_date_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="Einstellungsdatum" />
+                    tools:text="TimO Startdate" />
 
                 <TextView
                     android:id="@+id/hire_date_text"
