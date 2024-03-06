@@ -106,7 +106,7 @@ class LoginFragment : Fragment() {
 
     private fun initTimezoneDropdown() {
         viewModel.viewModelScope.launch {
-            val ids = TimeZone.getAvailableIDs().toMutableList()
+            val ids = TimeZone.getAvailableIDs()
             val timeZones = mutableListOf<CodesArrayAdapter.TimeZoneListEntry>()
             for (id in ids) {
                 val timeZone = TimeZone.getTimeZone(id)
@@ -172,7 +172,9 @@ class LoginFragment : Fragment() {
             binding.buttonSubmit.setSafeOnClickListener {
                 val lang = binding.dropdownMenuLanguage.text.toString()
                 val tz = binding.dropdownMenuTimezone.text.toString()
-                soundSource.loadForLogin(lang)
+                viewModel.viewModelScope.launch {
+                    soundSource.loadForLogin(lang)
+                }
                 //Set language and timezone locally and send it to backend
                 viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
                     if (isOnline) {

@@ -156,6 +156,12 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
     }
 
     private fun setAdapter() {
+        val emptyAdapter = UserEntityAdaptor(emptyList(),
+            object : OnItemClickListener {
+                override fun onItemClick(user: UserEntity) {}
+            })
+        binding.viewRecyclerUserFilter.adapter = emptyAdapter
+        binding.viewRecyclerUserAll.adapter = emptyAdapter
         userSettingsFragmentViewModel.viewModelScope.launch {
             userSettingsFragmentViewModel.getAll().collect {
                 adapter = UserEntityAdaptor(it,
@@ -166,11 +172,6 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
                     })
                 binding.viewRecyclerUserAll.adapter = adapter
             }
-            binding.viewRecyclerUserFilter.adapter = UserEntityAdaptor(emptyList(),
-                object : OnItemClickListener {
-                    override fun onItemClick(user: UserEntity) {}
-                }
-            )
         }
     }
 

@@ -78,6 +78,7 @@ class SettingsFragment : Fragment() {
             binding.fragmentSettingRootLayout.setOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
             }
+
             binding.buttonUserSetting.setSafeOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
                 parentFragmentManager.commit {
@@ -127,23 +128,24 @@ class SettingsFragment : Fragment() {
             }
             binding.buttonWifi.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonWifi.setSafeOnClickListener {
-                hardwareSource.showSystemUI()
+                viewModel.showSystemUI()
                 val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
                 startActivity(intent)
             }
             binding.buttonMobileNetwork.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonMobileNetwork.setSafeOnClickListener {
-                hardwareSource.showSystemUI()
+                viewModel.showSystemUI()
                 val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
                 startActivity(intent)
             }
             binding.buttonEthernet.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonEthernet.setSafeOnClickListener {
-                hardwareSource.showSystemUI()
+                viewModel.showSystemUI()
                 hardwareSource.openAndroidEthernetSettings()
             }
             binding.buttonActualizeTerminal.setSafeOnClickListener {
                 viewModel.actualizeTerminal(requireContext())
+                Utils.showMessage(parentFragmentManager, languageService.getText("#TerminalUpdating"))
             }
             binding.buttonResetTerminal.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonResetTerminal.setSafeOnClickListener {
@@ -185,7 +187,7 @@ class SettingsFragment : Fragment() {
                 dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                     val code = passCodeEditText.text.toString()
                     if (code == "TimoTimo1") {
-                        hardwareSource.showSystemUI()
+                        viewModel.showSystemUI()
                         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
                         startActivity(intent)
                     }
