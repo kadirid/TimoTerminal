@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
@@ -14,6 +15,7 @@ import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -41,16 +43,20 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         card = arguments?.getString("card") ?: ""
         setText()
 
-        viewModel.liveDismissSheet.observe(viewLifecycleOwner){
-            if(it == true) {
-                this@MBFragmentInfoSheet.dismiss()
-                viewModel.liveDismissSheet.value = false
+        viewModel.viewModelScope.launch {
+            viewModel.liveDismissSheet.value = false
+            viewModel.liveDismissSheet.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    this@MBFragmentInfoSheet.dismiss()
+                    viewModel.liveDismissSheet.value = false
+                }
             }
-        }
-        viewModel.liveShowSeconds.observe(viewLifecycleOwner){
-            if(it.isNotEmpty()) {
-                binding.textviewSecondClose.text = it
-                viewModel.liveShowSeconds.value = ""
+            viewModel.liveShowSeconds.value = ""
+            viewModel.liveShowSeconds.observe(viewLifecycleOwner) {
+                if (it.isNotEmpty()) {
+                    binding.textviewSecondClose.text = it
+                    viewModel.liveShowSeconds.value = ""
+                }
             }
         }
 
@@ -67,41 +73,44 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
 
     @SuppressLint("SetTextI18n")
     private fun setText() {
-        binding.textViewCurrentDay.text = languageService.getText("ALLGEMEIN#Aktueller Tag")
-        binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
-        val res = JSONObject(res)
+        viewModel.viewModelScope.launch {
+            binding.textViewCurrentDay.text = languageService.getText("ALLGEMEIN#Aktueller Tag")
+            binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
+            val res = JSONObject(res)
 
-        binding.textViewInformation.text = getText("#ActualInformation") + " RFID: $card"
-        binding.textViewRfid.text = res.optString("user","")
-        var ist = res.getDouble("ist")
-        if (res.optInt("zeitTyp", 0) in listOf(1, 4, 6) && !res.optString("zeitLB", "")
-                .isNullOrBlank()
-        ) {
-            val gcDate = Utils.getCal()
-            val greg = Utils.parseDateTime(res.getString("zeitLB"))
-            var diff = gcDate.timeInMillis - greg.timeInMillis
-            diff /= 1000
-            diff /= 60
-            ist += diff
+            binding.textViewInformation.text = getText("#ActualInformation") + " RFID: $card"
+            binding.textViewRfid.text = res.optString("user", "")
+            var ist = res.getDouble("ist")
+            if (res.optInt("zeitTyp", 0) in listOf(1, 4, 6) && !res.optString("zeitLB", "")
+                    .isNullOrBlank()
+            ) {
+                val gcDate = Utils.getCal()
+                val greg = Utils.parseDateTime(res.getString("zeitLB"))
+                var diff = gcDate.timeInMillis - greg.timeInMillis
+                diff /= 1000
+                diff /= 60
+                ist += diff
+            }
+            binding.textviewTimeTarget.text = "${getText("#Target")}: ${res.getString("soll")}"
+            binding.textviewTimeActual.text =
+                "${getText("ALLGEMEIN#Ist")}: ${Utils.convertTime(ist)}"
+            binding.textviewTimeStartOfWork.text =
+                "${getText("#CheckIn")}: ${res.getString("kommen")}"
+            binding.textviewTimeBreakTotal.text =
+                "${getText("ALLGEMEIN#Pause")}: ${res.getString("pause")}"
+            binding.textviewTimeEndOfWork.text =
+                "${getText("#CheckOut")}: ${res.getString("gehen")}"
+            binding.textviewTimeOvertime.text =
+                "${getText("PDFSOLLIST#spalteGzGleitzeit")}: ${res.getString("overtime")}"
+            binding.textviewVacationEntitlement.text =
+                "${getText("ALLGEMEIN#Anspruch")}: ${res.getString("vacation")}"
+            binding.textviewVacationTaken.text =
+                "${getText("ALLGEMEIN#Genommen")}: ${res.getString("gVacation")}"
+            binding.textviewVacationRequested.text =
+                "${getText("ALLGEMEIN#Beantragt")}: ${res.getString("bVacation")}"
+            binding.textviewVacationRemaining.text =
+                "${getText("#Remaining")}: ${res.getString("rVacation")}"
         }
-        binding.textviewTimeTarget.text = "${getText("#Target")}: ${res.getString("soll")}"
-        binding.textviewTimeActual.text = "${getText("ALLGEMEIN#Ist")}: ${Utils.convertTime(ist)}"
-        binding.textviewTimeStartOfWork.text =
-            "${getText("#CheckIn")}: ${res.getString("kommen")}"
-        binding.textviewTimeBreakTotal.text =
-            "${getText("ALLGEMEIN#Pause")}: ${res.getString("pause")}"
-        binding.textviewTimeEndOfWork.text =
-            "${getText("#CheckOut")}: ${res.getString("gehen")}"
-        binding.textviewTimeOvertime.text =
-            "${getText("PDFSOLLIST#spalteGzGleitzeit")}: ${res.getString("overtime")}"
-        binding.textviewVacationEntitlement.text =
-            "${getText("ALLGEMEIN#Anspruch")}: ${res.getString("vacation")}"
-        binding.textviewVacationTaken.text =
-            "${getText("ALLGEMEIN#Genommen")}: ${res.getString("gVacation")}"
-        binding.textviewVacationRequested.text =
-            "${getText("ALLGEMEIN#Beantragt")}: ${res.getString("bVacation")}"
-        binding.textviewVacationRemaining.text =
-            "${getText("#Remaining")}: ${res.getString("rVacation")}"
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

@@ -29,7 +29,6 @@ import com.timo.timoterminal.modalBottomSheets.MBUserWaitSheet
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
-import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -51,7 +50,6 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
     private val paramMap = HashMap<String, String>()
     private var userId: Long = -1
     private var assignedToTerminal = false
-    private val soundSource: SoundSource by inject()
 
     private val assignUser = fun(callback: () -> Unit?) {
         (activity as MainActivity?)?.restartTimer()
@@ -92,47 +90,55 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
         setAdapter()
         initSearchFilter()
         setText()
-        soundSource.loadForFP()
         return binding.root
     }
 
     private fun setText() {
-        binding.textviewPersonalIdLabel.text = languageService.getText("#JourneyId")
-        binding.textviewFirstNameLabel.text = languageService.getText("MITARBEITER#Vorname")
-        binding.textviewLastNameLabel.text = languageService.getText("MITARBEITER#Nachname")
-        binding.textviewHireDateLabel.text =
-            languageService.getText("MITARBEITER#Einstellungsdatum")
-        binding.searchBar.hint = languageService.getText("#SearchEmployee")
-        binding.searchView.hint = languageService.getText("#SearchEmployee")
+        userSettingsFragmentViewModel.viewModelScope.launch {
+            binding.textviewPersonalIdLabel.text = languageService.getText("#JourneyId")
+            binding.textviewFirstNameLabel.text = languageService.getText("MITARBEITER#Vorname")
+            binding.textviewLastNameLabel.text = languageService.getText("MITARBEITER#Nachname")
+            binding.textviewHireDateLabel.text =
+                languageService.getText("MITARBEITER#Einstellungsdatum")
+            binding.searchBar.hint = languageService.getText("#SearchEmployee")
+            binding.searchView.hint = languageService.getText("#SearchEmployee")
+        }
     }
 
     private fun initSearchFilter() {
-        binding.searchView.editText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-                // This method is called before the text changes.
-            }
-
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                (activity as MainActivity?)?.restartTimer()
-                userSettingsFragmentViewModel.viewModelScope.launch {
-                    val queriedList = userSettingsFragmentViewModel.getAllAsList().filter {
-                        it.lastName.toLowerCase(Locale.current).contains(s) ||
-                                it.firstName.toLowerCase(Locale.current).contains(s) ||
-                                s.toString() == it.card
-                    }
-                    binding.viewRecyclerUserFilter.adapter = UserEntityAdaptor(queriedList,
-                        object : OnItemClickListener {
-                            override fun onItemClick(user: UserEntity) {
-                                loadFormData(user)
-                            }
-                        })
+        userSettingsFragmentViewModel.viewModelScope.launch {
+            binding.searchView.editText.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                    // This method is called before the text changes.
                 }
-            }
 
-            override fun afterTextChanged(s: Editable) {
-                // This method is called after the text changes.
-            }
-        })
+                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                    (activity as MainActivity?)?.restartTimer()
+                    userSettingsFragmentViewModel.viewModelScope.launch {
+                        val queriedList = userSettingsFragmentViewModel.getAllAsList().filter {
+                            it.lastName.toLowerCase(Locale.current).contains(s) ||
+                                    it.firstName.toLowerCase(Locale.current).contains(s) ||
+                                    s.toString() == it.card
+                        }
+                        binding.viewRecyclerUserFilter.adapter = UserEntityAdaptor(queriedList,
+                            object : OnItemClickListener {
+                                override fun onItemClick(user: UserEntity) {
+                                    loadFormData(user)
+                                }
+                            })
+                    }
+                }
+
+                override fun afterTextChanged(s: Editable) {
+                    // This method is called after the text changes.
+                }
+            })
+        }
     }
 
     override fun onResume() {
@@ -160,6 +166,11 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
                     })
                 binding.viewRecyclerUserAll.adapter = adapter
             }
+            binding.viewRecyclerUserFilter.adapter = UserEntityAdaptor(emptyList(),
+                object : OnItemClickListener {
+                    override fun onItemClick(user: UserEntity) {}
+                }
+            )
         }
     }
 
@@ -179,154 +190,159 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
     }
 
     private fun setUpOnClickListeners() {
-        binding.buttonUserLoad.setOnClickListener {
-            userSettingsFragmentViewModel.loadUserFromServer()
-            (activity as MainActivity?)?.restartTimer()
-        }
-
-        binding.buttonRfid.setSafeOnClickListener {
-            val call = fun() {
-                (activity as MainActivity?)?.hideLoadMask()
-                (activity as MainActivity?)?.cancelTimer()
-                requireActivity().runOnUiThread {
-                    val sheet =
-                        MBUserWaitSheet.newInstance(paramMap["id"], paramMap["editor"], false)
-                    sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
-                }
-            }
-            if (Utils.isOnline(requireContext())) {
-                if (paramMap["id"] != null) {
-                    if (assignedToTerminal) {
-                        call()
-                    } else {
-                        assignUser(call)
-                    }
-                }
-            } else {
-                showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
-            }
-        }
-        binding.buttonFingerprint.setSafeOnClickListener {
-            val call = fun() {
-                (activity as MainActivity?)?.hideLoadMask()
-                (activity as MainActivity?)?.cancelTimer()
-                requireActivity().runOnUiThread {
-                    val sheet =
-                        MBUserWaitSheet.newInstance(paramMap["id"], paramMap["editor"], true)
-                    sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
-                }
-            }
-            if (Utils.isOnline(requireContext())) {
-                if (paramMap["id"] != null) {
-                    if (assignedToTerminal) {
-                        call()
-                    } else {
-                        assignUser(call)
-                    }
-                }
-            } else {
-                showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
-            }
-        }
-        binding.buttonDeleteFingerprint.setSafeOnClickListener {
-            val call = fun() {
-                (activity as MainActivity?)?.hideLoadMask()
-                (activity as MainActivity?)?.cancelTimer()
-                requireActivity().runOnUiThread {
-                    val sheet =
-                        MBUserWaitSheet.newInstance(
-                            paramMap["id"], paramMap["editor"],
-                            isFP = true,
-                            isDelete = true
-                        )
-                    sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
-                }
-            }
-            if (Utils.isOnline(requireContext())) {
-                if (paramMap["id"] != null) {
-                    if (assignedToTerminal) {
-                        call()
-                    } else {
-                        assignUser(call)
-                    }
-                }
-            } else {
-                showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
-            }
-        }
-        binding.buttonPin.setOnClickListener {
-            val call = fun() {
-                (activity as MainActivity?)?.hideLoadMask()
+        userSettingsFragmentViewModel.viewModelScope.launch {
+            binding.buttonUserLoad.setOnClickListener {
+                userSettingsFragmentViewModel.loadUserFromServer()
                 (activity as MainActivity?)?.restartTimer()
-                requireActivity().runOnUiThread {
+            }
 
-                    val textLayout = TextInputLayout(requireContext())
-                    textLayout.hint = "Pin Code"
-                    textLayout.endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
-
-                    val passCodeEditText = TextInputEditText(textLayout.context)
-                    passCodeEditText.inputType =
-                        InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
-                    passCodeEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 40F)
-                    val layoutParams = LinearLayout.LayoutParams(600, 100)
-                    passCodeEditText.layoutParams = layoutParams
-
-                    textLayout.addView(passCodeEditText)
-
-                    val dlgAlert: AlertDialog.Builder =
-                        AlertDialog.Builder(requireContext(), R.style.MyDialog)
-                    dlgAlert.setMessage(languageService.getText("#NewPIN"))
-                    dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
-                    dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
-                        val code = passCodeEditText.text
-                        paramMap["pin"] = code.toString()
-                        (activity as MainActivity?)?.showLoadMask()
-                        userSettingsFragmentViewModel.updatePin(paramMap) { obj ->
-                            if (obj != null) {
-                                if (obj.optString("error", "").isEmpty()) {
-                                    activity?.runOnUiThread {
-                                        showMsg(
-                                            obj.optString("message", "")
-                                        )
-                                    }
-                                } else {
-                                    Utils.showErrorMessage(requireContext(), obj.getString("error"))
-                                }
-                            }
-                            (activity as MainActivity?)?.hideLoadMask()
+            binding.buttonRfid.setSafeOnClickListener {
+                val call = fun() {
+                    (activity as MainActivity?)?.hideLoadMask()
+                    (activity as MainActivity?)?.cancelTimer()
+                    requireActivity().runOnUiThread {
+                        val sheet =
+                            MBUserWaitSheet.newInstance(paramMap["id"], paramMap["editor"], false)
+                        sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
+                    }
+                }
+                if (Utils.isOnline(requireContext())) {
+                    if (paramMap["id"] != null) {
+                        if (assignedToTerminal) {
+                            call()
+                        } else {
+                            assignUser(call)
                         }
                     }
-                    val dialog = dlgAlert.create()
-                    Utils.hideNavInDialog(dialog)
-                    passCodeEditText.doOnTextChanged { _, _, _, _ ->
-                        (activity as MainActivity?)?.restartTimer()
-                    }
-                    dialog.setView(textLayout, 20, 0, 20, 0)
-                    dialog.setOnShowListener {
-                        val textView = dialog.findViewById<TextView>(android.R.id.message)
-                        textView?.textSize = 40f
-                    }
-                    dialog.show()
+                } else {
+                    showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
                 }
             }
-            if (Utils.isOnline(requireContext())) {
-                if (paramMap["id"] != null) {
-                    if (assignedToTerminal) {
-                        call()
-                    } else {
-                        assignUser(call)
+            binding.buttonFingerprint.setSafeOnClickListener {
+                val call = fun() {
+                    (activity as MainActivity?)?.hideLoadMask()
+                    (activity as MainActivity?)?.cancelTimer()
+                    requireActivity().runOnUiThread {
+                        val sheet =
+                            MBUserWaitSheet.newInstance(paramMap["id"], paramMap["editor"], true)
+                        sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
                     }
                 }
-            } else {
-                showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
+                if (Utils.isOnline(requireContext())) {
+                    if (paramMap["id"] != null) {
+                        if (assignedToTerminal) {
+                            call()
+                        } else {
+                            assignUser(call)
+                        }
+                    }
+                } else {
+                    showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
+                }
             }
-        }
+            binding.buttonDeleteFingerprint.setSafeOnClickListener {
+                val call = fun() {
+                    (activity as MainActivity?)?.hideLoadMask()
+                    (activity as MainActivity?)?.cancelTimer()
+                    requireActivity().runOnUiThread {
+                        val sheet =
+                            MBUserWaitSheet.newInstance(
+                                paramMap["id"], paramMap["editor"],
+                                isFP = true,
+                                isDelete = true
+                            )
+                        sheet.show(parentFragmentManager, MBUserWaitSheet.TAG)
+                    }
+                }
+                if (Utils.isOnline(requireContext())) {
+                    if (paramMap["id"] != null) {
+                        if (assignedToTerminal) {
+                            call()
+                        } else {
+                            assignUser(call)
+                        }
+                    }
+                } else {
+                    showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
+                }
+            }
+            binding.buttonPin.setOnClickListener {
+                val call = fun() {
+                    (activity as MainActivity?)?.hideLoadMask()
+                    (activity as MainActivity?)?.restartTimer()
+                    requireActivity().runOnUiThread {
 
-        binding.fragmentUserSettingsRootLayout.setOnClickListener {
-            (activity as MainActivity?)?.restartTimer()
-        }
-        binding.fragmentUserSettingsNestedScrollView.setOnScrollChangeListener { _, _, _, _, _ ->
-            (activity as MainActivity?)?.restartTimer()
+                        val textLayout = TextInputLayout(requireContext())
+                        textLayout.hint = "Pin Code"
+                        textLayout.endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
+
+                        val passCodeEditText = TextInputEditText(textLayout.context)
+                        passCodeEditText.inputType =
+                            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+                        passCodeEditText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 40F)
+                        val layoutParams = LinearLayout.LayoutParams(600, 100)
+                        passCodeEditText.layoutParams = layoutParams
+
+                        textLayout.addView(passCodeEditText)
+
+                        val dlgAlert: AlertDialog.Builder =
+                            AlertDialog.Builder(requireContext(), R.style.MyDialog)
+                        dlgAlert.setMessage(languageService.getText("#NewPIN"))
+                        dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
+                        dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
+                            val code = passCodeEditText.text
+                            paramMap["pin"] = code.toString()
+                            (activity as MainActivity?)?.showLoadMask()
+                            userSettingsFragmentViewModel.updatePin(paramMap) { obj ->
+                                if (obj != null) {
+                                    if (obj.optString("error", "").isEmpty()) {
+                                        activity?.runOnUiThread {
+                                            showMsg(
+                                                obj.optString("message", "")
+                                            )
+                                        }
+                                    } else {
+                                        Utils.showErrorMessage(
+                                            requireContext(),
+                                            obj.getString("error")
+                                        )
+                                    }
+                                }
+                                (activity as MainActivity?)?.hideLoadMask()
+                            }
+                        }
+                        val dialog = dlgAlert.create()
+                        Utils.hideNavInDialog(dialog)
+                        passCodeEditText.doOnTextChanged { _, _, _, _ ->
+                            (activity as MainActivity?)?.restartTimer()
+                        }
+                        dialog.setView(textLayout, 20, 0, 20, 0)
+                        dialog.setOnShowListener {
+                            val textView = dialog.findViewById<TextView>(android.R.id.message)
+                            textView?.textSize = 40f
+                        }
+                        dialog.show()
+                    }
+                }
+                if (Utils.isOnline(requireContext())) {
+                    if (paramMap["id"] != null) {
+                        if (assignedToTerminal) {
+                            call()
+                        } else {
+                            assignUser(call)
+                        }
+                    }
+                } else {
+                    showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
+                }
+            }
+
+            binding.fragmentUserSettingsRootLayout.setOnClickListener {
+                (activity as MainActivity?)?.restartTimer()
+            }
+            binding.fragmentUserSettingsNestedScrollView.setOnScrollChangeListener { _, _, _, _, _ ->
+                (activity as MainActivity?)?.restartTimer()
+            }
         }
     }
 

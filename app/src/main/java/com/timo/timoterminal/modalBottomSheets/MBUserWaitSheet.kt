@@ -17,6 +17,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.animation.doOnEnd
+import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
@@ -31,6 +32,7 @@ import com.timo.timoterminal.viewModel.MBUserWaitSheetViewModel
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
@@ -90,42 +92,44 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     }
 
     private fun setOnClickListeners() {
-        if (isFP) {
-            binding.fingerSelectArrow0.setSafeOnClickListener {
-                processFingerClickListener(it, 0)
-            }
-            binding.fingerSelectArrow1.setSafeOnClickListener {
-                processFingerClickListener(it, 1)
-            }
-            binding.fingerSelectArrow2.setSafeOnClickListener {
-                processFingerClickListener(it, 2)
-            }
-            binding.fingerSelectArrow3.setSafeOnClickListener {
-                processFingerClickListener(it, 3)
-            }
-            binding.fingerSelectArrow4.setSafeOnClickListener {
-                processFingerClickListener(it, 4)
-            }
-            binding.fingerSelectArrow5.setSafeOnClickListener {
-                processFingerClickListener(it, 5)
-            }
-            binding.fingerSelectArrow6.setSafeOnClickListener {
-                processFingerClickListener(it, 6)
-            }
-            binding.fingerSelectArrow7.setSafeOnClickListener {
-                processFingerClickListener(it, 7)
-            }
-            binding.fingerSelectArrow8.setSafeOnClickListener {
-                processFingerClickListener(it, 8)
-            }
-            binding.fingerSelectArrow9.setSafeOnClickListener {
-                processFingerClickListener(it, 9)
-            }
-            if (!isDelete) {
-                binding.textViewFPExplanation.visibility = View.VISIBLE
-                binding.textViewFPExplanation.text =
-                    languageService.getText("#SelectFingerForRegister")
-                soundSource.playSound(SoundSource.selectFinger)
+        viewModel.viewModelScope.launch {
+            if (isFP) {
+                binding.fingerSelectArrow0.setSafeOnClickListener {
+                    processFingerClickListener(it, 0)
+                }
+                binding.fingerSelectArrow1.setSafeOnClickListener {
+                    processFingerClickListener(it, 1)
+                }
+                binding.fingerSelectArrow2.setSafeOnClickListener {
+                    processFingerClickListener(it, 2)
+                }
+                binding.fingerSelectArrow3.setSafeOnClickListener {
+                    processFingerClickListener(it, 3)
+                }
+                binding.fingerSelectArrow4.setSafeOnClickListener {
+                    processFingerClickListener(it, 4)
+                }
+                binding.fingerSelectArrow5.setSafeOnClickListener {
+                    processFingerClickListener(it, 5)
+                }
+                binding.fingerSelectArrow6.setSafeOnClickListener {
+                    processFingerClickListener(it, 6)
+                }
+                binding.fingerSelectArrow7.setSafeOnClickListener {
+                    processFingerClickListener(it, 7)
+                }
+                binding.fingerSelectArrow8.setSafeOnClickListener {
+                    processFingerClickListener(it, 8)
+                }
+                binding.fingerSelectArrow9.setSafeOnClickListener {
+                    processFingerClickListener(it, 9)
+                }
+                if (!isDelete) {
+                    binding.textViewFPExplanation.visibility = View.VISIBLE
+                    binding.textViewFPExplanation.text =
+                        languageService.getText("#SelectFingerForRegister")
+                    soundSource.playSound(SoundSource.selectFinger)
+                }
             }
         }
     }
@@ -171,73 +175,77 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     }
 
     private fun setValues() {
-        timer = object : CountDownTimer(if (isFP) 20000 else 10000, 9000) {
-            override fun onTick(millisUntilFinished: Long) {
+        viewModel.viewModelScope.launch {
+            timer = object : CountDownTimer(if (isFP) 20000 else 10000, 9000) {
+                override fun onTick(millisUntilFinished: Long) {
+                }
+
+                override fun onFinish() {
+                    dismiss()
+                }
             }
 
-            override fun onFinish() {
-                dismiss()
+            binding.identificationText.visibility = View.GONE
+            binding.keyboardImage.visibility = View.GONE
+            binding.nameContainer.visibility = View.GONE
+            binding.bookingTypeTextContainer.visibility = View.GONE
+            binding.progressContainer.visibility = View.GONE
+            binding.timeTextContainer.visibility = View.GONE
+            binding.sheetSeparator.visibility = View.GONE
+            if (isFP) {
+                binding.cardImage.visibility = View.GONE
+                binding.fingerSelectContainer.visibility = View.VISIBLE
+                checkForFP()
+            } else {
+                binding.fingerprintImage.visibility = View.GONE
             }
-        }
-
-        binding.identificationText.visibility = View.GONE
-        binding.keyboardImage.visibility = View.GONE
-        binding.nameContainer.visibility = View.GONE
-        binding.bookingTypeTextContainer.visibility = View.GONE
-        binding.progressContainer.visibility = View.GONE
-        binding.timeTextContainer.visibility = View.GONE
-        binding.sheetSeparator.visibility = View.GONE
-        if (isFP) {
-            binding.cardImage.visibility = View.GONE
-            binding.fingerSelectContainer.visibility = View.VISIBLE
-            checkForFP()
-        } else {
-            binding.fingerprintImage.visibility = View.GONE
         }
     }
 
     private fun checkForFP() {
-        val color = activity?.resources?.getColorStateList(R.color.green, null)
-        if (color != null) {
-            FingerprintService.getTemplate("$id|0")?.let {
-                binding.fingerSelectArrow0.imageTintList = color
-                binding.fingerSelectArrow0.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|1")?.let {
-                binding.fingerSelectArrow1.imageTintList = color
-                binding.fingerSelectArrow1.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|2")?.let {
-                binding.fingerSelectArrow2.imageTintList = color
-                binding.fingerSelectArrow2.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|3")?.let {
-                binding.fingerSelectArrow3.imageTintList = color
-                binding.fingerSelectArrow3.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|4")?.let {
-                binding.fingerSelectArrow4.imageTintList = color
-                binding.fingerSelectArrow4.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|5")?.let {
-                binding.fingerSelectArrow5.imageTintList = color
-                binding.fingerSelectArrow5.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|6")?.let {
-                binding.fingerSelectArrow6.imageTintList = color
-                binding.fingerSelectArrow6.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|7")?.let {
-                binding.fingerSelectArrow7.imageTintList = color
-                binding.fingerSelectArrow7.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|8")?.let {
-                binding.fingerSelectArrow8.imageTintList = color
-                binding.fingerSelectArrow8.alpha = 1F
-            }
-            FingerprintService.getTemplate("$id|9")?.let {
-                binding.fingerSelectArrow9.imageTintList = color
-                binding.fingerSelectArrow9.alpha = 1F
+        viewModel.viewModelScope.launch {
+            val color = activity?.resources?.getColorStateList(R.color.green, null)
+            if (color != null) {
+                FingerprintService.getTemplate("$id|0")?.let {
+                    binding.fingerSelectArrow0.imageTintList = color
+                    binding.fingerSelectArrow0.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|1")?.let {
+                    binding.fingerSelectArrow1.imageTintList = color
+                    binding.fingerSelectArrow1.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|2")?.let {
+                    binding.fingerSelectArrow2.imageTintList = color
+                    binding.fingerSelectArrow2.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|3")?.let {
+                    binding.fingerSelectArrow3.imageTintList = color
+                    binding.fingerSelectArrow3.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|4")?.let {
+                    binding.fingerSelectArrow4.imageTintList = color
+                    binding.fingerSelectArrow4.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|5")?.let {
+                    binding.fingerSelectArrow5.imageTintList = color
+                    binding.fingerSelectArrow5.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|6")?.let {
+                    binding.fingerSelectArrow6.imageTintList = color
+                    binding.fingerSelectArrow6.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|7")?.let {
+                    binding.fingerSelectArrow7.imageTintList = color
+                    binding.fingerSelectArrow7.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|8")?.let {
+                    binding.fingerSelectArrow8.imageTintList = color
+                    binding.fingerSelectArrow8.alpha = 1F
+                }
+                FingerprintService.getTemplate("$id|9")?.let {
+                    binding.fingerSelectArrow9.imageTintList = color
+                    binding.fingerSelectArrow9.alpha = 1F
+                }
             }
         }
     }
@@ -446,25 +454,27 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     }
 
     private fun showFinger() {
-        val handlerThread = HandlerThread("backgroundThread")
-        if (!handlerThread.isAlive) handlerThread.start()
-        val handler = Handler(handlerThread.looper)
-        handler.postDelayed({
-            activity?.runOnUiThread {
-                val valueAnimator = ValueAnimator.ofInt(
-                    binding.scanBottomSheet.measuredHeight,
-                    binding.scanBottomSheet.measuredHeight + if (isFP) 300 else 30
-                )
-                valueAnimator.duration = 500L
-                valueAnimator.addUpdateListener {
-                    val animatedValue = valueAnimator.animatedValue as Int
-                    val layoutParams = binding.scanBottomSheet.layoutParams
-                    layoutParams.height = animatedValue
-                    binding.scanBottomSheet.layoutParams = layoutParams
+        viewModel.viewModelScope.launch {
+            val handlerThread = HandlerThread("backgroundThread")
+            if (!handlerThread.isAlive) handlerThread.start()
+            val handler = Handler(handlerThread.looper)
+            handler.postDelayed({
+                activity?.runOnUiThread {
+                    val valueAnimator = ValueAnimator.ofInt(
+                        binding.scanBottomSheet.measuredHeight,
+                        binding.scanBottomSheet.measuredHeight + if (isFP) 300 else 30
+                    )
+                    valueAnimator.duration = 500L
+                    valueAnimator.addUpdateListener {
+                        val animatedValue = valueAnimator.animatedValue as Int
+                        val layoutParams = binding.scanBottomSheet.layoutParams
+                        layoutParams.height = animatedValue
+                        binding.scanBottomSheet.layoutParams = layoutParams
+                    }
+                    valueAnimator.start()
                 }
-                valueAnimator.start()
-            }
-        }, 1000L)
+            }, 1000L)
+        }
     }
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -525,12 +535,14 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
 
     private fun showLoadMask() {
         timer?.cancel()
+        this.dialog?.setCanceledOnTouchOutside(false)
         activity?.runOnUiThread {
             binding.sheetLayoutLoadMaks.visibility = View.VISIBLE
         }
     }
 
     private fun hideLoadMask() {
+        this.dialog?.setCanceledOnTouchOutside(true)
         activity?.runOnUiThread {
             binding.sheetLayoutLoadMaks.visibility = View.GONE
         }

@@ -36,6 +36,7 @@
         android:autofillHints=""
         android:hint="local Url"
         android:inputType="textUri"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Has to be removed later to use as url for local test"

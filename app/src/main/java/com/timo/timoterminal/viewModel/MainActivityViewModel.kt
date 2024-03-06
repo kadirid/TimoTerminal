@@ -22,7 +22,6 @@ import org.koin.core.component.inject
 class MainActivityViewModel(
     private val userRepository: UserRepository,
     private val configRepository: ConfigRepository,
-    private val sharedPrefService: SharedPrefService,
     private val heartbeatService: HeartbeatService
 ) : ViewModel(), KoinComponent, FingerprintListener, TimoRfidListener {
     private val hardware: IHardwareSource by inject()
@@ -32,12 +31,6 @@ class MainActivityViewModel(
 
     fun initHeartbeatService(activity: MainActivity) {
         heartbeatService.initHeartbeatWorker(activity)
-    }
-
-    fun killHeartBeatWorkers() {
-        viewModelScope.launch {
-            sharedPrefService.removeAllCreds()
-        }
     }
 
     fun hideSystemUI() {
@@ -84,7 +77,7 @@ class MainActivityViewModel(
     }
 
     private fun processUserList(users: List<UserEntity>) {
-        if (users.isNotEmpty()) {
+        if (users.isNotEmpty() && users[0].seeMenu) {
             soundSource.playSound(SoundSource.successSound)
             liveUserEntity.postValue(users[0])
         } else {
@@ -130,7 +123,6 @@ class MainActivityViewModel(
         height: Int
     ) {
         viewModelScope.launch {
-            Log.d("FP", fingerprint)
             // get Key associated to the fingerprint
             FingerprintService.identify(template)?.run {
                 Log.d("FP Key", this)

@@ -14,11 +14,13 @@ import android.view.animation.Animation
 import androidx.appcompat.app.AlertDialog
 import androidx.core.animation.doOnEnd
 import androidx.core.widget.doOnTextChanged
+import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.DialogVerificationBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
+import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.ProgressBarAnimation
 import com.timo.timoterminal.utils.Utils
@@ -26,6 +28,7 @@ import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
@@ -67,27 +70,31 @@ class MBSheetFingerprintCardReader(
     }
 
     private fun setValues() {
-        //before starting the animation, populate the fields with the correct data! Set the color
-        // as well!
-        status = arguments?.getInt("status") ?: -1
-        val sStatus = when (status) {
-            100 -> languageService.getText("#Kommt")
-            200 -> languageService.getText("#Geht")
-            110 -> languageService.getText("ALLGEMEIN#Pause")
-            210 -> languageService.getText("ALLGEMEIN#Pausenende")
-            else -> {
-                "No known type"
+        viewModel.viewModelScope.launch {
+            //before starting the animation, populate the fields with the correct data! Set the color
+            // as well!
+            status = arguments?.getInt("status") ?: -1
+            viewModel.status = status
+            val sStatus = when (status) {
+                100 -> languageService.getText("#Kommt")
+                200 -> languageService.getText("#Geht")
+                110 -> languageService.getText("ALLGEMEIN#Pause")
+                210 -> languageService.getText("ALLGEMEIN#Pausenende")
+                else -> {
+                    "No known type"
+                }
             }
+            binding.bookingTypeTextContainer.text = sStatus
+            binding.cardImage.contentDescription = languageService.getText("#RFID")
+            binding.keyboardImage.contentDescription = languageService.getText("#RFID")
+            binding.identificationText.text = languageService.getText("#WaitIdentification")
         }
-        binding.bookingTypeTextContainer.text = sStatus
-        binding.cardImage.contentDescription = languageService.getText("#RFID")
-        binding.keyboardImage.contentDescription = languageService.getText("#RFID")
-        binding.identificationText.text = languageService.getText("#WaitIdentification")
     }
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
 
+        viewModel.status = 0
         ranCancel = true
         RfidService.unregister()
         FingerprintService.unregister()
@@ -95,78 +102,71 @@ class MBSheetFingerprintCardReader(
     }
 
     private fun setUpListeners() {
-        // Can it be removed?
-//        binding.fingerprintImage.setOnClickListener {
-//            binding.timeTextContainer.text = Utils.getTimeFromGC(Utils.getCal())
-//            animateSuccess()
-//        }
+        viewModel.viewModelScope.launch {
+            binding.keyboardImage.setSafeOnClickListener {
+                showVerificationAlert()
+            }
 
-//      binding.cardImage.setOnClickListener {
-//          viewModel.sendBookingByCard("505650110", this)
-//      }
+            viewModel.liveDone.value = false
+            viewModel.liveDone.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    animateSuccess()
+                    status = -1
+                    viewModel.liveDone.value = false
+                }
+            }
+            viewModel.liveShowErrorColor.value = false
+            viewModel.liveShowErrorColor.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    val color = activity?.resources?.getColorStateList(R.color.error_booking, null)
+                    if (color != null) binding.bookingInfoContainer.backgroundTintList = color
+                    viewModel.liveShowErrorColor.value = false
+                }
+            }
+            viewModel.liveSetText.value = ""
+            viewModel.liveSetText.observe(viewLifecycleOwner) {
+                if (it.isNotEmpty()) {
+                    binding.textViewBookingMessage.text = it
+                    viewModel.liveSetText.value = ""
+                }
+            }
+            viewModel.liveHideMask.value = false
+            viewModel.liveHideMask.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    this@MBSheetFingerprintCardReader.dialog?.setCanceledOnTouchOutside(true)
+                    binding.sheetLayoutLoadMaks.visibility = View.GONE
+                    viewModel.liveHideMask.value = false
+                }
+            }
+            viewModel.liveShowMask.value = false
+            viewModel.liveShowMask.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    this@MBSheetFingerprintCardReader.dialog?.setCanceledOnTouchOutside(false)
+                    timer.cancel()
+                    binding.sheetLayoutLoadMaks.visibility = View.VISIBLE
+                    viewModel.liveShowMask.value = false
+                }
+            }
+            viewModel.liveOfflineBooking.value = BookingEntity("", -1, "", -1)
+            viewModel.liveOfflineBooking.observe(viewLifecycleOwner) {
+                if (it.status != -1) {
+                    viewModel.liveOfflineBooking.value = BookingEntity("", -1, "", -1)
 
-        binding.keyboardImage.setSafeOnClickListener {
-            showVerificationAlert()
-        }
+                    viewModel.liveHideMask.value = true
+                    viewModel.liveSetText.value =
+                        languageService.getText("#BookingTemporarilySaved")
+                    viewModel.liveDone.value = true
+                }
+            }
+            viewModel.liveShowInfo.value = Pair("", "")
+            viewModel.liveShowInfo.observe(viewLifecycleOwner) {
+                if (it.first.isNotEmpty()) {
+                    binding.timeTextContainer.text = it.first
+                    binding.nameContainer.text = it.second
+                    viewModel.liveShowMask.value = true
 
-        viewModel.liveDone.observe(viewLifecycleOwner) {
-            if (it == true) {
-                animateSuccess()
-                status = -1
-                viewModel.liveDone.value = false
-            }
-        }
-        viewModel.liveShowErrorColor.observe(viewLifecycleOwner) {
-            if (it == true) {
-                val color = activity?.resources?.getColorStateList(R.color.error_booking, null)
-                if (color != null) binding.bookingInfoContainer.backgroundTintList = color
-                viewModel.liveShowErrorColor.value = false
-            }
-        }
-        viewModel.liveSetText.observe(viewLifecycleOwner) {
-            if (it.isNotEmpty()) {
-                binding.textViewBookingMessage.text = it
-                viewModel.liveSetText.value = ""
-            }
-        }
-        viewModel.liveHideMask.observe(viewLifecycleOwner) {
-            if (it == true) {
-                binding.sheetLayoutLoadMaks.visibility = View.GONE
-                viewModel.liveHideMask.value = false
-            }
-        }
-        viewModel.liveShowMask.observe(viewLifecycleOwner) {
-            if (it == true) {
-                binding.sheetLayoutLoadMaks.visibility = View.VISIBLE
-                viewModel.liveShowMask.value = false
-            }
-        }
-        viewModel.liveOfflineBooking.observe(viewLifecycleOwner) {
-            if (it.status != -1) {
-                viewModel.processOffline(it)
-                it.status = -1
-                viewModel.liveOfflineBooking.value = it
-
-                viewModel.liveHideMask.value = true
-                viewModel.liveSetText.value = languageService.getText("#BookingTemporarilySaved")
-                viewModel.liveDone.value = true
-            }
-        }
-        viewModel.liveShowInfo.observe(viewLifecycleOwner) {
-            if (it.first.isNotEmpty()) {
-                binding.timeTextContainer.text = it.first
-                binding.nameContainer.text = it.second
-                viewModel.liveShowMask.value = true
-
-                viewModel.liveShowInfo.value = Pair("", "")
-            }
-        }
-        viewModel.liveSendBooking.observe(viewLifecycleOwner) {
-            if (it.status == -1) {
-                timer.cancel()
-                it.status = status
-                viewModel.sendBooking(it)
-                viewModel.liveSendBooking.value = it
+                    viewModel.liveShowInfo.value = Pair("", "")
+                }
             }
         }
     }

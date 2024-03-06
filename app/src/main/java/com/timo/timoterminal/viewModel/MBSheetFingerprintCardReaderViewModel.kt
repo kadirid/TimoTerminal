@@ -36,7 +36,8 @@ class MBSheetFingerprintCardReaderViewModel(
     val liveShowMask: MutableLiveData<Boolean> = MutableLiveData()
     val liveOfflineBooking: MutableLiveData<BookingEntity> = MutableLiveData()
     val liveShowInfo: MutableLiveData<Pair<String, String>> = MutableLiveData()
-    val liveSendBooking: MutableLiveData<BookingEntity> = MutableLiveData()
+
+    var status = 0
 
     private fun getCompany(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
@@ -85,12 +86,12 @@ class MBSheetFingerprintCardReaderViewModel(
             if (user != null) {
                 val greg = Utils.getCal()
                 liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
-                liveSendBooking.postValue(
+                sendBooking(
                     BookingEntity(
                         user.card,
                         2,
                         Utils.getDateTimeFromGC(greg),
-                        -1
+                        status
                     )
                 )
             } else {
@@ -105,12 +106,12 @@ class MBSheetFingerprintCardReaderViewModel(
             if (user != null) {
                 val greg = Utils.getCal()
                 liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
-                liveSendBooking.postValue(
+                sendBooking(
                     BookingEntity(
                         user.card,
                         1,
                         Utils.getDateTimeFromGC(greg),
-                        -1
+                        status
                     )
                 )
             } else {
@@ -125,12 +126,12 @@ class MBSheetFingerprintCardReaderViewModel(
             if (user != null && user.pin == pin) {
                 val greg = Utils.getCal()
                 liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
-                liveSendBooking.postValue(
+                sendBooking(
                     BookingEntity(
                         user.card,
                         0,
                         Utils.getDateTimeFromGC(greg),
-                        -1
+                        status
                     )
                 )
             } else {
@@ -147,7 +148,7 @@ class MBSheetFingerprintCardReaderViewModel(
     }
 
     // send all necessary information to timo to create a booking
-    fun sendBooking(
+    private fun sendBooking(
         entity: BookingEntity
     ) {
         viewModelScope.launch {
@@ -185,13 +186,14 @@ class MBSheetFingerprintCardReaderViewModel(
                         liveHideMask.postValue(true)
                     }, { _, _, _, _ ->
                         liveOfflineBooking.postValue(entity)
+                        processOffline(entity)
                     }
                 )
             }
         }
     }
 
-    fun processOffline(entity: BookingEntity) {
+    private fun processOffline(entity: BookingEntity) {
         viewModelScope.launch {
             soundSource.playSound(SoundSource.offlineSaved)
             RfidService.unregister()

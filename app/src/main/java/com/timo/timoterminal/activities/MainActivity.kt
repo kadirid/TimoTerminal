@@ -12,7 +12,6 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
-import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
 import com.timo.timoterminal.databinding.DialogVerificationBinding
@@ -148,21 +147,25 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setUpListeners() {
-        binding.buttonSettings.setSafeOnClickListener {
-            showVerificationAlert()
-        }
-        binding.batteryIcon.setSafeOnClickListener {
-            mainActivityViewModel.hideSystemUI()
-        }
-        binding.networkConnectionIcon.setSafeOnClickListener {
-            mainActivityViewModel.showSystemUI()
-        }
-        binding.imageViewLogo.setSafeOnClickListener {
-            if (BuildConfig.DEBUG)
-                mainActivityViewModel.killHeartBeatWorkers()
-        }
+        mainActivityViewModel.viewModelScope.launch {
+            binding.buttonSettings.setSafeOnClickListener {
+                showVerificationAlert()
+            }
+            binding.batteryIcon.setSafeOnClickListener {
+                mainActivityViewModel.hideSystemUI()
+            }
+            binding.networkConnectionIcon.setSafeOnClickListener {
+                mainActivityViewModel.showSystemUI()
+            }
 
-        mainActivityViewModel.liveUserEntity.observe(this) { showSettings(it) }
+            mainActivityViewModel.liveUserEntity.value = null
+            mainActivityViewModel.liveUserEntity.observe(this@MainActivity) {
+                if (it != null) {
+                    showSettings(it)
+                    mainActivityViewModel.liveUserEntity.value = null
+                }
+            }
+        }
     }
 
     private fun initNavbarListener() {

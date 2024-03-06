@@ -10,6 +10,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
@@ -26,6 +27,7 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.util.Date
 import java.util.Locale
@@ -58,7 +60,7 @@ class LoginFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         Utils.hideStatusAndNavbar(requireActivity())
-        viewModel.onResume() { isOnline ->
+        viewModel.onResume { isOnline ->
             if (isOnline) {
                 showLogin()
             } else {
@@ -70,46 +72,51 @@ class LoginFragment : Fragment() {
     }
 
     private fun initDebugFields() {
-//        binding.customUrl.visibility = View.GONE
-        if (BuildConfig.DEBUG) {
-            val url = propertyService.getProperties().getProperty("customUrl")
-            val company = propertyService.getProperties().getProperty("company")
-            val username = propertyService.getProperties().getProperty("username")
-            val password = propertyService.getProperties().getProperty("password")
-            binding.customUrl.setText(url)
-            binding.textInputEditTextLoginCompany.setText(if (!company.isNullOrEmpty()) company else "")
-            binding.textInputEditTextLoginUser.setText(if (!username.isNullOrEmpty()) username else "")
-            binding.textInputEditTextLoginPassword.setText(if (!password.isNullOrEmpty()) password else "")
+        viewModel.viewModelScope.launch {
+            if (BuildConfig.DEBUG) {
+                val url = propertyService.getProperties().getProperty("customUrl")
+                val company = propertyService.getProperties().getProperty("company")
+                val username = propertyService.getProperties().getProperty("username")
+                val password = propertyService.getProperties().getProperty("password")
+                binding.customUrl.setText(url)
+                binding.customUrl.visibility = View.VISIBLE
+                binding.textInputEditTextLoginCompany.setText(if (!company.isNullOrEmpty()) company else "")
+                binding.textInputEditTextLoginUser.setText(if (!username.isNullOrEmpty()) username else "")
+                binding.textInputEditTextLoginPassword.setText(if (!password.isNullOrEmpty()) password else "")
+            }
         }
     }
 
     private fun openMainView(isNewTerminal: Boolean?) {
         val goToMainActivity = Intent(context, MainActivity::class.java)
-        goToMainActivity.flags =
-            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        goToMainActivity.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         goToMainActivity.putExtra("isNewTerminal", isNewTerminal)
         startActivity(goToMainActivity)
     }
 
     private fun initLanguageDropdown() {
-        val languages = viewModel.languages
-        val adapter =
-            ArrayAdapter(requireContext(), R.layout.dropdown, languages)
-        binding.dropdownMenuLanguage.setAdapter(adapter)
-        binding.dropdownMenuLanguage.setText(languages[0], false)
+        viewModel.viewModelScope.launch {
+            val languages = viewModel.languages
+            val adapter =
+                ArrayAdapter(requireContext(), R.layout.dropdown, languages)
+            binding.dropdownMenuLanguage.setAdapter(adapter)
+            binding.dropdownMenuLanguage.setText(languages[0], false)
+        }
     }
 
     private fun initTimezoneDropdown() {
-        val ids = TimeZone.getAvailableIDs().toMutableList()
-        val timeZones = mutableListOf<CodesArrayAdapter.TimeZoneListEntry>()
-        for (id in ids) {
-            val timeZone = TimeZone.getTimeZone(id)
-            val offset = Utils.getOffset(timeZone.getOffset(Date().time))
-            timeZones.add(CodesArrayAdapter.TimeZoneListEntry(id, timeZone.displayName, offset))
+        viewModel.viewModelScope.launch {
+            val ids = TimeZone.getAvailableIDs().toMutableList()
+            val timeZones = mutableListOf<CodesArrayAdapter.TimeZoneListEntry>()
+            for (id in ids) {
+                val timeZone = TimeZone.getTimeZone(id)
+                val offset = Utils.getOffset(timeZone.getOffset(Date().time))
+                timeZones.add(CodesArrayAdapter.TimeZoneListEntry(id, timeZone.displayName, offset))
+            }
+            val adapter = CodesArrayAdapter(requireContext(), R.layout.double_dropdown, timeZones)
+            binding.dropdownMenuTimezone.setAdapter(adapter)
+            binding.dropdownMenuTimezone.setText("Europe/Berlin", false)
         }
-        val adapter = CodesArrayAdapter(requireContext(), R.layout.double_dropdown, timeZones)
-        binding.dropdownMenuTimezone.setAdapter(adapter)
-        binding.dropdownMenuTimezone.setText("Europe/Berlin", false)
     }
 
     private fun showLogin() {
@@ -143,7 +150,8 @@ class LoginFragment : Fragment() {
                 config.setLocale(locale)
                 val context = activity?.baseContext?.createConfigurationContext(config)
                 binding.buttonSubmit.text = context?.getText(R.string.login)
-                binding.linearTitleContainerText.text = context?.getText(R.string.please_enter_timo_login_data)
+                binding.linearTitleContainerText.text =
+                    context?.getText(R.string.please_enter_timo_login_data)
                 binding.textInputLayoutLoginCompany.hint = context?.getText(R.string.company)
                 binding.textInputLayoutLoginPassword.hint = context?.getText(R.string.password)
                 binding.textInputLayoutLoginUser.hint = context?.getText(R.string.loginname)
@@ -160,26 +168,28 @@ class LoginFragment : Fragment() {
     }
 
     private fun initButtonListener() {
-        binding.buttonSubmit.setSafeOnClickListener {
-            val lang = binding.dropdownMenuLanguage.text.toString()
-            val tz = binding.dropdownMenuTimezone.text.toString()
-            soundSource.loadForLogin(lang)
-            //Set language and timezone locally and send it to backend
-            viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
-                if (isOnline) {
-                    showLogin()
-                } else {
-                    val goToInetSettingsActivity =
-                        Intent(context, NoInternetNetworkSettingsActivity::class.java)
-                    startActivity(goToInetSettingsActivity)
+        viewModel.viewModelScope.launch {
+            binding.buttonSubmit.setSafeOnClickListener {
+                val lang = binding.dropdownMenuLanguage.text.toString()
+                val tz = binding.dropdownMenuTimezone.text.toString()
+                soundSource.loadForLogin(lang)
+                //Set language and timezone locally and send it to backend
+                viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
+                    if (isOnline) {
+                        showLogin()
+                    } else {
+                        val goToInetSettingsActivity =
+                            Intent(context, NoInternetNetworkSettingsActivity::class.java)
+                        startActivity(goToInetSettingsActivity)
+                    }
                 }
             }
-        }
 
-        binding.goToInetSettingsButton.setSafeOnClickListener {
-            val goToInetSettingsActivity =
-                Intent(context, NoInternetNetworkSettingsActivity::class.java)
-            startActivity(goToInetSettingsActivity)
+            binding.goToInetSettingsButton.setSafeOnClickListener {
+                val goToInetSettingsActivity =
+                    Intent(context, NoInternetNetworkSettingsActivity::class.java)
+                startActivity(goToInetSettingsActivity)
+            }
         }
     }
 

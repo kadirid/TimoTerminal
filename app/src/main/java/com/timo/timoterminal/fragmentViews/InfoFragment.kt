@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.DialogVerificationBinding
@@ -20,6 +21,7 @@ import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
@@ -80,91 +82,103 @@ class InfoFragment : Fragment() {
     }
 
     private fun setUpListeners() {
+        viewModel.viewModelScope.launch {
 
-        binding.keyboardImage.setSafeOnClickListener {
-            (activity as MainActivity?)?.restartTimer()
-            showVerificationAlert()
-        }
-
-        itemBinding.linearTextContainer.setOnClickListener {
-            viewModel.restartTimer()
-        }
-
-        binding.fragmentInfoRootLayout.setOnClickListener {
-            (activity as MainActivity?)?.restartTimer()
-        }
-
-        viewModel.liveRfidNumber.observe(viewLifecycleOwner) {
-            if (it.isNotEmpty()) {
-                (activity as MainActivity?)?.hideLoadMask()
-                showCard(it)
-                viewModel.liveRfidNumber.value = ""
-            }
-        }
-        viewModel.liveHideMask.observe(viewLifecycleOwner) {
-            if (it == true) {
-                (activity as MainActivity?)?.hideLoadMask()
-                viewModel.liveHideMask.value = false
-            }
-        }
-        viewModel.liveShowMask.observe(viewLifecycleOwner) {
-            if (it == true) {
-                (activity as MainActivity?)?.showLoadMask()
-                viewModel.liveShowMask.value = false
-            }
-        }
-        viewModel.liveRestartTimer.observe(viewLifecycleOwner) {
-            if (it == true) {
+            binding.keyboardImage.setSafeOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
-                viewModel.liveRestartTimer.value = false
+                showVerificationAlert()
             }
-        }
-        viewModel.liveDismissInfoSheet.observe(viewLifecycleOwner) {
-            if (it == true) {
+
+            itemBinding.linearTextContainer.setOnClickListener {
+                viewModel.restartTimer()
+            }
+
+            binding.fragmentInfoRootLayout.setOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
-                register()
-                verifying = true
-                viewModel.liveDismissInfoSheet.value = false
             }
-        }
-        viewModel.liveMessage.observe(viewLifecycleOwner) {
-            if (it.isNotEmpty()) {
-                Utils.showMessage(
-                    parentFragmentManager,
-                    it
-                )
-                viewModel.liveMessage.value = ""
+
+            viewModel.liveRfidNumber.value = ""
+            viewModel.liveRfidNumber.observe(viewLifecycleOwner) {
+                if (it.isNotEmpty()) {
+                    (activity as MainActivity?)?.hideLoadMask()
+                    showCard(it)
+                    viewModel.liveRfidNumber.value = ""
+                }
             }
-        }
-        viewModel.liveUser.observe(viewLifecycleOwner) {
-            if (it != null) {
-                unregister()
-                verifying = false
-                viewModel.loadUserInformation(it)
-                viewModel.liveUser.value = null
+            viewModel.liveHideMask.value = false
+            viewModel.liveHideMask.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    (activity as MainActivity?)?.hideLoadMask()
+                    viewModel.liveHideMask.value = false
+                }
             }
-        }
-        viewModel.liveInfoSuccess.observe(viewLifecycleOwner) {
-            if (!it.getString("card").isNullOrBlank()) {
-                val sheet = MBFragmentInfoSheet()
-                sheet.arguments = it
-                sheet.show(
-                    parentFragmentManager,
-                    MBFragmentInfoSheet.TAG
-                )
-                viewModel.liveInfoSuccess.value = Bundle()
+            viewModel.liveShowMask.value = false
+            viewModel.liveShowMask.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    (activity as MainActivity?)?.showLoadMask()
+                    viewModel.liveShowMask.value = false
+                }
             }
-        }
-        viewModel.liveErrorMessage.observe(viewLifecycleOwner){
-            if(it.isNotEmpty()){
-                Utils.showErrorMessage(requireContext(), it)
-                viewModel.liveErrorMessage.value = ""
+            viewModel.liveRestartTimer.value = false
+            viewModel.liveRestartTimer.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    (activity as MainActivity?)?.restartTimer()
+                    viewModel.liveRestartTimer.value = false
+                }
+            }
+            viewModel.liveDismissInfoSheet.value = false
+            viewModel.liveDismissInfoSheet.observe(viewLifecycleOwner) {
+                if (it == true) {
+                    (activity as MainActivity?)?.restartTimer()
+                    register()
+                    verifying = true
+                    viewModel.liveDismissInfoSheet.value = false
+                }
+            }
+            viewModel.liveMessage.value = ""
+            viewModel.liveMessage.observe(viewLifecycleOwner) {
+                if (it.isNotEmpty()) {
+                    Utils.showMessage(
+                        parentFragmentManager,
+                        it
+                    )
+                    viewModel.liveMessage.value = ""
+                }
+            }
+            viewModel.liveUser.value = null
+            viewModel.liveUser.observe(viewLifecycleOwner) {
+                if (it != null) {
+                    unregister()
+                    verifying = false
+                    viewModel.loadUserInformation(it)
+                    viewModel.liveUser.value = null
+                }
+            }
+            viewModel.liveInfoSuccess.value = Bundle()
+            viewModel.liveInfoSuccess.observe(viewLifecycleOwner) {
+                if (!it.getString("card").isNullOrBlank()) {
+                    val sheet = MBFragmentInfoSheet()
+                    sheet.arguments = it
+                    sheet.show(
+                        parentFragmentManager,
+                        MBFragmentInfoSheet.TAG
+                    )
+                    viewModel.liveInfoSuccess.value = Bundle()
+                }
+            }
+            viewModel.liveErrorMessage.value = ""
+            viewModel.liveErrorMessage.observe(viewLifecycleOwner) {
+                if (it.isNotEmpty()) {
+                    Utils.showErrorMessage(requireContext(), it)
+                    viewModel.liveErrorMessage.value = ""
+                }
             }
         }
     }
 
     private fun showVerificationAlert() {
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
+        unregister()
 
         val dlgAlert: AlertDialog.Builder =
             AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
@@ -211,6 +225,7 @@ class InfoFragment : Fragment() {
         }
         dialog.setOnDismissListener {
             alertTimer.cancel()
+            register()
         }
         dialog.show()
     }

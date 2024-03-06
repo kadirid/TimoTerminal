@@ -93,24 +93,34 @@ class AttendanceFragment : Fragment() {
 
     // set booking code and start listening
     private fun setUpListeners() {
-        binding.buttonKommen.setSafeOnClickListener {
-            funcCode = 100
-            executeClick()
-        }
-        binding.buttonPauseAnfang.setSafeOnClickListener {
-            funcCode = 110
-            executeClick()
-        }
-        binding.buttonGehen.setSafeOnClickListener {
-            funcCode = 200
-            executeClick()
-        }
+        viewModel.viewModelScope.launch {
+            binding.buttonKommen.setSafeOnClickListener {
+                funcCode = 100
+                executeClick()
+            }
+            binding.buttonPauseAnfang.setSafeOnClickListener {
+                funcCode = 110
+                executeClick()
+            }
+            binding.buttonGehen.setSafeOnClickListener {
+                funcCode = 200
+                executeClick()
+            }
 
-        viewModel.liveErrorMsg.observe(viewLifecycleOwner) {
-            notifyVerificationFailed(it)
-        }
-        viewModel.liveUserCard.observe(viewLifecycleOwner){
-            sendBooking(it.first, it.second)
+            viewModel.liveErrorMsg.value = ""
+            viewModel.liveErrorMsg.observe(viewLifecycleOwner) {
+                if (it.isNotEmpty()) {
+                    notifyVerificationFailed(it)
+                    viewModel.liveErrorMsg.value = ""
+                }
+            }
+            viewModel.liveUserCard.value = Pair("", -1)
+            viewModel.liveUserCard.observe(viewLifecycleOwner) {
+                if (it.first.isNotEmpty()) {
+                    sendBooking(it.first, it.second)
+                    viewModel.liveUserCard.value = Pair("", -1)
+                }
+            }
         }
     }
 
@@ -119,13 +129,19 @@ class AttendanceFragment : Fragment() {
         FingerprintService.unregister()
         val bundle = Bundle()
         bundle.putInt("status", funcCode)
-        if (mbSheetFingerprintCardReader == null) {
-            mbSheetFingerprintCardReader = MBSheetFingerprintCardReader {
-                this.setListener()
+        if (!(mbSheetFingerprintCardReader != null
+            && mbSheetFingerprintCardReader?.dialog != null
+            && mbSheetFingerprintCardReader?.dialog?.isShowing == true
+            && mbSheetFingerprintCardReader?.isRemoving == false)) {
+
+            if (mbSheetFingerprintCardReader == null) {
+                mbSheetFingerprintCardReader = MBSheetFingerprintCardReader {
+                    this.setListener()
+                }
             }
+            mbSheetFingerprintCardReader!!.arguments = bundle
+            mbSheetFingerprintCardReader!!.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
         }
-        mbSheetFingerprintCardReader!!.arguments = bundle
-        mbSheetFingerprintCardReader!!.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
 
     }
 

@@ -5,10 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.UserService
+import com.timo.timoterminal.utils.classes.SoundSource
+import kotlinx.coroutines.launch
 
 class SettingsFragmentViewModel(
     private val loginService: LoginService,
-    private val userService: UserService
+    private val userService: UserService,
+    private val soundSource: SoundSource
 ) : ViewModel() {
 
     fun logout(context: Context) {
@@ -22,5 +25,11 @@ class SettingsFragmentViewModel(
 
     fun resetTerminal(context: Context){
         loginService.resetTerminal(context, viewModelScope)
+    }
+
+    fun loadSound() {
+        viewModelScope.launch {
+            soundSource.loadForFP()
+        }
     }
 }
