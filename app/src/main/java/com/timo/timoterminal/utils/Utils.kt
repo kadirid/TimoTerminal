@@ -10,11 +10,15 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -301,24 +305,32 @@ class Utils {
         fun getCal() = calendar.clone() as GregorianCalendar
 
         fun showErrorMessage(context: Context, msg: String){
-            val dialog = MaterialAlertDialogBuilder(context, R.style.MyDialog)
-            dialog.setTitle(context.getString(R.string.error))
-            dialog.setIcon(
-                AppCompatResources.getDrawable(
-                    context, R.drawable.baseline_error_24
+            Handler(context.mainLooper).post {
+                val dialog = MaterialAlertDialogBuilder(context, R.style.MySingleButtonDialog)
+                dialog.setTitle(context.getString(R.string.error))
+                dialog.setIcon(
+                    AppCompatResources.getDrawable(
+                        context, R.drawable.baseline_error_24
+                    )
                 )
-            )
-            dialog.setMessage(msg)
-            dialog.setPositiveButton("OK") { dia, _ ->
-                dia.dismiss()
+                dialog.setMessage(msg)
+                dialog.setPositiveButton("OK") { dia, _ ->
+                    dia.dismiss()
+                }
+                val dia = dialog.create()
+                hideNavInDialog(dia)
+                dia.setOnShowListener {
+                    val textView = dia.findViewById<TextView>(android.R.id.message)
+                    textView?.textSize = 40f
+                }
+                dia.show()
+                val positiveButton: Button = dia.getButton(AlertDialog.BUTTON_POSITIVE)
+
+                val parent = positiveButton.parent as LinearLayout
+                parent.gravity = Gravity.CENTER_HORIZONTAL
+                val leftSpacer = parent.getChildAt(1)
+                leftSpacer.visibility = View.GONE
             }
-            val dia = dialog.create()
-            hideNavInDialog(dia)
-            dia.setOnShowListener {
-                val textView = dia.findViewById<TextView>(android.R.id.message)
-                textView?.textSize = 40f
-            }
-            dia.show()
         }
     }
 }

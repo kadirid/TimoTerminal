@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:focusable="true"
     android:focusableInTouchMode="true"
     tools:context=".fragmentViews.LoginFragment">
@@ -21,13 +22,12 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/button_submit"
         android:layout_width="400dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="80dp"
+        android:layout_height="60dp"
         android:text="@string/save"
-        android:textSize="40sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_input_layout_login_password" />
 
     <EditText
         android:id="@+id/custom_url"
@@ -42,140 +42,127 @@
         tools:text="Has to be removed later to use as url for local test"
         tools:visibility="gone" />
 
-    <LinearLayout
-        android:id="@+id/linear_input_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_login_company"
-            android:layout_width="600dp"
-            android:layout_height="100dp"
-            android:layout_marginBottom="10dp"
-            android:hint="@string/company"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_input_edit_text_login_company"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:inputType="text"
-                android:textSize="40sp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_login_user"
-            android:layout_width="600dp"
-            android:layout_height="100dp"
-            android:layout_marginBottom="10dp"
-            android:hint="@string/loginname"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_password"
-            app:layout_constraintStart_toStartOf="@id/text_input_layout_login_company">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_input_edit_text_login_user"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:inputType="text"
-                android:textSize="40sp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_login_password"
-            android:layout_width="600dp"
-            android:layout_height="100dp"
-            android:layout_marginBottom="100dp"
-            android:hint="@string/password"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/button_submit"
-            app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
-            app:passwordToggleEnabled="true">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_input_edit_text_login_password"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:inputType="textPassword"
-                android:textSize="40sp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/dropdown_menu_layout_language"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="600dp"
-            android:layout_height="100dp"
-            android:layout_marginBottom="10dp"
-            android:hint="@string/language"
-            app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/dropdown_menu_language"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:imeOptions="actionDone"
-                android:inputType="none"
-
-                android:textSize="40sp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/dropdown_menu_layout_timezone"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="600dp"
-            android:layout_height="100dp"
-            android:hint="@string/timezone"
-            app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/dropdown_menu_timezone"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:dropDownWidth="800dp"
-                android:imeOptions="actionDone"
-                android:inputType="text"
-                android:textSize="40sp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linear_title_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:orientation="vertical"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/text_input_layout_login_company"
+        android:layout_width="600dp"
+        android:layout_height="70dp"
+        android:hint="@string/company"
         android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
+        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
+        tools:visibility="visible">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/text_input_edit_text_login_company"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inputType="textFilter"
+            android:privateImeOptions="nm"
+            android:textSize="30sp" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/text_input_layout_login_user"
+        android:layout_width="600dp"
+        android:layout_height="70dp"
+        android:layout_marginBottom="40dp"
+        android:hint="@string/loginname"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
 
-        <TextView
-            android:id="@+id/linear_title_container_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/please_enter_timo_login_data"
-            android:textSize="20sp" />
-    </LinearLayout>
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/text_input_edit_text_login_user"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inputType="textFilter"
+            android:privateImeOptions="nm"
+            android:textSize="30sp" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/text_input_layout_login_password"
+        android:layout_width="600dp"
+        android:layout_height="70dp"
+        android:hint="@string/password"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
+        app:layout_constraintTop_toBottomOf="@id/text_input_layout_login_user"
+        app:passwordToggleEnabled="true"
+        tools:visibility="visible">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/text_input_edit_text_login_password"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inputType="textPassword"
+            android:textSize="30sp" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/dropdown_menu_layout_language"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="600dp"
+        android:layout_height="70dp"
+        android:layout_marginBottom="90dp"
+        android:hint="@string/language"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/dropdown_menu_language"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:imeOptions="actionDone"
+            android:inputType="none"
+
+            android:textSize="30sp" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/dropdown_menu_layout_timezone"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="600dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="10dp"
+        android:hint="@string/timezone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/dropdown_menu_layout_language"
+        tools:visibility="gone">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/dropdown_menu_timezone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:dropDownWidth="800dp"
+            android:imeOptions="actionDone"
+            android:inputType="textFilter"
+            android:privateImeOptions="nm"
+            android:textSize="30sp" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/linear_title_container_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="@string/please_choose_language_and_timezone"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

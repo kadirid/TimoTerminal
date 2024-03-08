@@ -141,11 +141,11 @@ class LoginFragment : Fragment() {
                 binding.textInputLayoutLoginUser.startAnimation(fadeInAnimation)
                 binding.textInputLayoutLoginUser.visibility = View.VISIBLE
 
-                binding.linearTitleContainer.startAnimation(fadeInAnimation)
-                binding.linearTitleContainer.visibility = View.VISIBLE
-
                 val locale =
                     Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
+                viewModel.viewModelScope.launch {
+                    soundSource.loadForLogin(locale.language)
+                }
                 val config = Configuration()
                 config.setLocale(locale)
                 val context = activity?.baseContext?.createConfigurationContext(config)
@@ -172,9 +172,6 @@ class LoginFragment : Fragment() {
             binding.buttonSubmit.setSafeOnClickListener {
                 val lang = binding.dropdownMenuLanguage.text.toString()
                 val tz = binding.dropdownMenuTimezone.text.toString()
-                viewModel.viewModelScope.launch {
-                    soundSource.loadForLogin(lang)
-                }
                 //Set language and timezone locally and send it to backend
                 viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
                     if (isOnline) {
@@ -202,17 +199,36 @@ class LoginFragment : Fragment() {
             val password = binding.textInputEditTextLoginPassword.text.toString()
             val customUrl = binding.customUrl.text.toString()
 
-            viewModel.loginCompany(
-                company,
-                user,
-                password,
-                customUrl,
-                requireContext()
-            ) { isNewTerminal ->
-                viewModel.loadPermissions(requireContext()) { worked ->
-                    if (worked) {
-                        openMainView(isNewTerminal)
+            if (company.isNotEmpty() && user.isNotEmpty() && password.isNotEmpty()) {
+                viewModel.loginCompany(
+                    company,
+                    user,
+                    password,
+                    customUrl,
+                    requireContext()
+                ) { isNewTerminal ->
+                    viewModel.loadPermissions(requireContext()) { worked ->
+                        if (worked) {
+                            openMainView(isNewTerminal)
+                        }
                     }
+                }
+            } else {
+                val locale =
+                    Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
+                val config = Configuration()
+                config.setLocale(locale)
+                val context = activity?.baseContext?.createConfigurationContext(config)
+                if (context != null) {
+                    Utils.showErrorMessage(
+                        requireContext(),
+                        context.getText(R.string.fill_out_fields).toString()
+                    )
+                }else{
+                    Utils.showErrorMessage(
+                        requireContext(),
+                        requireContext().getText(R.string.fill_out_fields).toString()
+                    )
                 }
             }
         }

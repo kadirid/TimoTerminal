@@ -22,7 +22,6 @@ class LoginActivity : AppCompatActivity() {
     companion object {
         const val TAG = "LoginActivity"
     }
-
     private lateinit var binding: ActivityLoginBinding
     private val loginActivityViewModel: LoginActivityViewModel by viewModel()
 
@@ -37,7 +36,6 @@ class LoginActivity : AppCompatActivity() {
 
         val view = binding.root
         setContentView(view)
-        Utils.hideStatusAndNavbar(this)
     }
 
     //check if logged in then open main activity else check connection
@@ -50,7 +48,7 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
-
+        Utils.hideStatusAndNavbar(this)
     }
 
     //setting button Listener getting url and setting and saving url and company

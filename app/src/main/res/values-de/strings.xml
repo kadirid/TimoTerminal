@@ -22,7 +22,7 @@
     <string name="save_settings">Einstellungen speichern</string>
     <string name="save">Speichern</string>
     <string name="wilkommen_bei_timo">Willkommen bei TimO®</string>
-    <string name="info_intial_ethernet_settigns">Auf das Internet konnte nicht zugegriffen werden.\nBitte überprüfen Sie die Einstellungen und versuchen Sie es erneut.</string>
+    <string name="info_intial_ethernet_settigns">Auf das Internet konnte nicht zugegriffen werden.\nBitte überprüfen Sie die Einstellungen.</string>
     <string name="ethernet_settings">Netzwerk Einstellungen</string>
     <string name="mobile_network_settings">Mobile Interneteinstellungen</string>
     <string name="wifi_settings">WLAN Einstellungen</string>
@@ -32,5 +32,10 @@
     <string name="company">Firma</string>
     <string name="loginname">Login Name</string>
     <string name="password">Passwort</string>
-    <string name="timo_service_not_reachable">TimO Service ist nicht erreichbar.</string>
+    <string name="timo_service_not_reachable">TimO Service ist nicht erreichbar!</string>
+    <string name="company_does_not_exists_or_is_wrong">Firma existiert nicht oder Firmenname ist fehlerhaft!</string>
+    <string name="wrong_login_data">Login Daten sind fehlerhaft!</string>
+    <string name="fill_out_fields">Bitte füllen Sie alle Felder aus!</string>
+    <string name="account_locked">Account gesperrt!</string>
+    <string name="please_choose_language_and_timezone">Bitte Sprache und Zeitzone auswählen</string>
 </resources>

@@ -114,13 +114,24 @@ class LoginService(
         callback: (isNewTerminal: Boolean) -> Unit?
     ) {
 
-
         val language = sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de") ?: "de"
         //if not created, create a ID for the device. This ID is the recognizer for the timo
         // system and will be used as terminal id
         val hashedAndroidId =
             Utils.sha256(Secure.getString(context.contentResolver, Secure.ANDROID_ID))
 
+        if (!url.startsWith("http")) {
+            soundSource.playSound(SoundSource.loginFailed)
+            val config = Configuration()
+            config.setLocale(Locale(language))
+            val nContext = context.createConfigurationContext(config)
+            Utils.showErrorMessage(
+                context,
+                nContext.getText(R.string.company_does_not_exists_or_is_wrong).toString()
+            )
+
+            return
+        }
 
         if (Utils.isOnline(context)) {
             val parameters = HashMap<String, String>()
@@ -167,21 +178,27 @@ class LoginService(
                         callback(isNewTerminal!!)
                         soundSource.playSound(SoundSource.loginSuccessful)
                     }
-                }, { e, res, context, output ->
+                }, { e, _, context, obj ->
                     soundSource.playSound(SoundSource.loginFailed)
                     val config = Configuration()
                     config.setLocale(Locale(language))
                     val nContext = context?.createConfigurationContext(config)
-                    HttpService.handleGenericRequestError(
-                        e,
-                        res,
-                        context,
-                        output,
-                        languageService.getText(
-                            "#TimoServiceNotReachable",
+                    if(obj?.obj != null && obj.obj.getString("code") == "-5"){
+                        Utils.showErrorMessage(
+                            context!!,
+                            nContext?.getText(R.string.account_locked).toString()
+                        )
+                    }else if(e != null){
+                        Utils.showErrorMessage(
+                            context!!,
                             nContext?.getText(R.string.timo_service_not_reachable).toString()
                         )
-                    )
+                    }else{
+                        Utils.showErrorMessage(
+                            context!!,
+                            nContext?.getText(R.string.wrong_login_data).toString()
+                        )
+                    }
                 }
             )
 
@@ -338,18 +355,18 @@ class LoginService(
         context.startActivity(logoutIntent)
     }
 
-    private suspend fun insertOrUpdateConfigEntities(list : ArrayList<ConfigEntity>){
+    private suspend fun insertOrUpdateConfigEntities(list: ArrayList<ConfigEntity>) {
         val current = configRepository.getAllAsList()
-        for(element in list) {
+        for (element in list) {
             var saved = false
-            for (entity in current){
-                if(entity == element) {
+            for (entity in current) {
+                if (entity == element) {
                     element.id = entity.id
                     configRepository.updateConfigEntity(element)
                     saved = true
                 }
             }
-            if(saved) continue
+            if (saved) continue
             configRepository.insertConfigEntity(element)
         }
     }

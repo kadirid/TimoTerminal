@@ -25,6 +25,7 @@ import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.service.WebSocketService
 import com.timo.timoterminal.service.WorkerService
 import com.timo.timoterminal.utils.classes.SoundSource
+import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
@@ -123,6 +124,7 @@ var appModule = module {
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBUserWaitSheetViewModel(get(), get(), get(), get()) }
     viewModel { SettingsFragmentViewModel(get(), get(), get(), get()) }
+    viewModel { AttendanceFragmentViewModel(get(), get(), get(), get()) }
     viewModel { InfoFragmentViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBSheetFingerprintCardReaderViewModel(get(), get(), get(), get(), get(), get()) }

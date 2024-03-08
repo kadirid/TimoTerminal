@@ -26,19 +26,17 @@ import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.util.Calendar
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class AttendanceFragment : Fragment() {
 
-    private val sharedPrefService: SharedPrefService by inject()
-    private val userRepository: UserRepository by inject()
     private val languageService: LanguageService by inject()
     private val soundSource: SoundSource by inject()
     private val httpService: HttpService by inject()
 
     private var _broadcastReceiver: BroadcastReceiver? = null
     private lateinit var binding: FragmentAttendanceBinding
-    private val viewModel =
-        AttendanceFragmentViewModel(sharedPrefService, userRepository, soundSource, languageService)
+    private val viewModel : AttendanceFragmentViewModel by sharedViewModel()
     private var funcCode = -1
     private var mbSheetFingerprintCardReader: MBSheetFingerprintCardReader? = null
 

@@ -4,7 +4,12 @@ import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
+import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.timo.timoterminal.R
@@ -95,7 +100,7 @@ class HttpService() : KoinComponent {
             //If the context is null, we cannot show a dialogue
             if (context != null) {
                 Handler(Looper.getMainLooper()).post {
-                    val dialog = MaterialAlertDialogBuilder(context, R.style.MyDialog)
+                    val dialog = MaterialAlertDialogBuilder(context, R.style.MySingleButtonDialog)
                     dialog.setTitle(context.getString(R.string.error))
                     dialog.setIcon(
                         AppCompatResources.getDrawable(
@@ -134,6 +139,12 @@ class HttpService() : KoinComponent {
                         textView?.textSize = 40f
                     }
                     dia.show()
+                    val positiveButton: Button = dia.getButton(AlertDialog.BUTTON_POSITIVE)
+
+                    val parent = positiveButton.parent as LinearLayout
+                    parent.gravity = Gravity.CENTER_HORIZONTAL
+                    val leftSpacer = parent.getChildAt(1)
+                    leftSpacer.visibility = View.GONE
                 }
             }
         }

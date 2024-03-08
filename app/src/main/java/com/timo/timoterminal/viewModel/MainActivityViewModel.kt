@@ -9,7 +9,6 @@ import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HeartbeatService
-import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -34,11 +33,15 @@ class MainActivityViewModel(
     }
 
     fun hideSystemUI() {
-//        hardware.hideSystemUI()
+        viewModelScope.launch {
+//            hardware.hideSystemUI()
+        }
     }
 
     fun showSystemUI() {
-        hardware.showSystemUI()
+        viewModelScope.launch {
+            hardware.showSystemUI()
+        }
     }
 
     fun reloadSoundSource() {

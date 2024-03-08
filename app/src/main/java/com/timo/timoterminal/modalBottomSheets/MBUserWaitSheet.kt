@@ -33,6 +33,7 @@ import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.bind
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
@@ -94,6 +95,9 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     private fun setOnClickListeners() {
         viewModel.viewModelScope.launch {
             if (isFP) {
+                binding.buttonClose.setSafeOnClickListener {
+                    this@MBUserWaitSheet.dismiss()
+                }
                 binding.fingerSelectArrow0.setSafeOnClickListener {
                     processFingerClickListener(it, 0)
                 }
@@ -195,6 +199,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
             if (isFP) {
                 binding.cardImage.visibility = View.GONE
                 binding.fingerSelectContainer.visibility = View.VISIBLE
+                binding.buttonClose.visibility = View.VISIBLE
                 checkForFP()
             } else {
                 binding.fingerprintImage.visibility = View.GONE

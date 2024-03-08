@@ -98,6 +98,7 @@ class MBSheetFingerprintCardReader(
         ranCancel = true
         RfidService.unregister()
         FingerprintService.unregister()
+        timer.cancel()
         callback()
     }
 

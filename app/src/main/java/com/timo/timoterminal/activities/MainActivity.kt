@@ -5,9 +5,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.postDelayed
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -134,7 +137,9 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         if (!isInit && (frag == null || !frag.isVisible))
             restartTimer()
         Utils.hideStatusAndNavbar(this)
-        mainActivityViewModel.hideSystemUI()
+        Handler(this.mainLooper).postDelayed(1000) {
+            mainActivityViewModel.hideSystemUI()
+        }
         isInit = false
         super.onResume()
     }
@@ -151,12 +156,12 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             binding.buttonSettings.setSafeOnClickListener {
                 showVerificationAlert()
             }
-            binding.batteryIcon.setSafeOnClickListener {
-                mainActivityViewModel.hideSystemUI()
-            }
-            binding.networkConnectionIcon.setSafeOnClickListener {
-                mainActivityViewModel.showSystemUI()
-            }
+//            binding.batteryIcon.setSafeOnClickListener {
+//                mainActivityViewModel.hideSystemUI()
+//            }
+//            binding.networkConnectionIcon.setSafeOnClickListener {
+//                mainActivityViewModel.showSystemUI()
+//            }
 
             mainActivityViewModel.liveUserEntity.value = null
             mainActivityViewModel.liveUserEntity.observe(this@MainActivity) {
@@ -277,6 +282,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     // verify user if present before opening settings page
     private fun showVerificationAlert() {
+        timer.cancel()
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
         RfidService.unregister()
         RfidService.setListener(mainActivityViewModel)
@@ -343,6 +349,13 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             RfidService.unregister()
             FingerprintService.unregister()
             alertTimer?.cancel()
+            val frag = supportFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
+            if (!isInit && (frag == null || !frag.isVisible))
+                restartTimer()
+
+            if(frag != null && frag.isVisible)
+                (frag as AttendanceFragment).onResume()
+
         }
         dialog!!.show()
     }

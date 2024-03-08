@@ -22,7 +22,7 @@
     <string name="save">Save</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="wilkommen_bei_timo">Welcome to TimO®</string>
-    <string name="info_intial_ethernet_settigns">Could not access internet\nPlease verify settings and try again.</string>
+    <string name="info_intial_ethernet_settigns">Could not access internet\nPlease verify settings.</string>
     <string name="ethernet_settings">Ethernet Settings</string>
     <string name="mobile_network_settings">Mobile Network Settings</string>
     <string name="wifi_settings">Wifi Settings</string>
@@ -32,5 +32,10 @@
     <string name="company">Company</string>
     <string name="loginname">Loginname</string>
     <string name="password">Password</string>
-    <string name="timo_service_not_reachable">TimO service is not reachable.</string>
+    <string name="timo_service_not_reachable">TimO service is not reachable!</string>
+    <string name="company_does_not_exists_or_is_wrong">Company does not exist or company name is wrong!</string>
+    <string name="wrong_login_data">Login data is wrong!</string>
+    <string name="fill_out_fields">Please fill in all fields!</string>
+    <string name="account_locked">Account locked!</string>
+    <string name="please_choose_language_and_timezone">Please choose language and timezone</string>
 </resources>

@@ -28,7 +28,7 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
     fun playSound(soundId: Int) {
         handler.post {
             if (map[soundId] != null && map[soundId] != -1) {
-                soundPool.play(map[soundId]!!, 0.1f, 0.1f, 1, 0, 1f)
+                soundPool.play(map[soundId]!!, 0.5f, 0.5f, 1, 0, 1f)
             } else {
                 Log.d("Sound missed", soundId.toString())
             }
