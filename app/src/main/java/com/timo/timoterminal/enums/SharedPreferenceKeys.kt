@@ -9,5 +9,6 @@ enum class SharedPreferenceKeys {
     PASSWORD,
     TOKEN,
     LANGUAGE,
-    TIMEZONE
+    TIMEZONE,
+    UI_VISIBLE,
 }

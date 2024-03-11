@@ -1,16 +1,13 @@
 package com.timo.timoterminal.activities
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.os.postDelayed
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -128,6 +125,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     override fun onPause() {
+        mainActivityViewModel.showSystemUI();
         timer.cancel()
         super.onPause()
     }
@@ -137,38 +135,39 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         if (!isInit && (frag == null || !frag.isVisible))
             restartTimer()
         Utils.hideStatusAndNavbar(this)
-        Handler(this.mainLooper).postDelayed(1000) {
-            mainActivityViewModel.hideSystemUI()
-        }
+        mainActivityViewModel.hideSystemUI();
         isInit = false
         super.onResume()
     }
 
+    override fun finishAndRemoveTask() {
+        super.finishAndRemoveTask()
+        mainActivityViewModel.showSystemUI();
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        mainActivityViewModel.showSystemUI();
         unregisterReceiver(batteryReceiver)
         unregisterReceiver(networkChangeReceiver)
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     private fun setUpListeners() {
-        mainActivityViewModel.viewModelScope.launch {
-            binding.buttonSettings.setSafeOnClickListener {
-                showVerificationAlert()
-            }
-//            binding.batteryIcon.setSafeOnClickListener {
-//                mainActivityViewModel.hideSystemUI()
-//            }
-//            binding.networkConnectionIcon.setSafeOnClickListener {
-//                mainActivityViewModel.showSystemUI()
-//            }
+        binding.buttonSettings.setSafeOnClickListener {
+            showVerificationAlert()
+        }
+//        binding.batteryIcon.setSafeOnClickListener {
+//            mainActivityViewModel.hideSystemUI()
+//        }
+//        binding.networkConnectionIcon.setSafeOnClickListener {
+//            mainActivityViewModel.showSystemUI()
+//        }
 
-            mainActivityViewModel.liveUserEntity.value = null
-            mainActivityViewModel.liveUserEntity.observe(this@MainActivity) {
-                if (it != null) {
-                    showSettings(it)
-                    mainActivityViewModel.liveUserEntity.value = null
-                }
+        mainActivityViewModel.liveUserEntity.value = null
+        mainActivityViewModel.liveUserEntity.observe(this@MainActivity) {
+            if (it != null) {
+                showSettings(it)
+                mainActivityViewModel.liveUserEntity.value = null
             }
         }
     }
@@ -178,7 +177,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.viewModelScope.launch {
             val projectPermission = mainActivityViewModel.permission("projekt.use")
             binding.navigationRail.menu.findItem(R.id.project).isVisible =
-                projectPermission == "true" && false// currently no functionality
+                projectPermission == "true"// currently no functionality
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
             binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
@@ -290,8 +289,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         FingerprintService.unregister()
         FingerprintService.setListener(mainActivityViewModel)
         FingerprintService.register()
-        dialogBinding.textInputLayoutVerificationId.hint = languageService.getText("#Login","Login")
-        dialogBinding.textInputLayoutVerificationPin.hint = languageService.getText("#PinCode","PIN")
+        dialogBinding.textInputLayoutVerificationId.hint =
+            languageService.getText("#Login", "Login")
+        dialogBinding.textInputLayoutVerificationPin.hint =
+            languageService.getText("#PinCode", "PIN")
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
@@ -353,7 +354,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             if (!isInit && (frag == null || !frag.isVisible))
                 restartTimer()
 
-            if(frag != null && frag.isVisible)
+            if (frag != null && frag.isVisible)
                 (frag as AttendanceFragment).onResume()
 
         }

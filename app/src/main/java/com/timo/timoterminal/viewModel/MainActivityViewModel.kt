@@ -6,14 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.entityClasses.UserEntity
+import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HeartbeatService
+import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.sources.IHardwareSource
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -21,7 +24,8 @@ import org.koin.core.component.inject
 class MainActivityViewModel(
     private val userRepository: UserRepository,
     private val configRepository: ConfigRepository,
-    private val heartbeatService: HeartbeatService
+    private val heartbeatService: HeartbeatService,
+    private val sharedPrefService: SharedPrefService,
 ) : ViewModel(), KoinComponent, FingerprintListener, TimoRfidListener {
     private val hardware: IHardwareSource by inject()
     private val soundSource: SoundSource by inject()
@@ -34,13 +38,28 @@ class MainActivityViewModel(
 
     fun hideSystemUI() {
         viewModelScope.launch {
-//            hardware.hideSystemUI()
+            val uiVisible = sharedPrefService.getBoolean(SharedPreferenceKeys.UI_VISIBLE, false)
+            Log.d("MainActivityViewModel", "hideSystemUI: " +  uiVisible)
+            if (uiVisible) {
+                hardware.hideSystemUI()
+                sharedPrefService.getEditor().putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), false).commit()
+            }
         }
     }
 
     fun showSystemUI() {
         viewModelScope.launch {
-            hardware.showSystemUI()
+            val uiVisible = sharedPrefService.getBoolean(SharedPreferenceKeys.UI_VISIBLE, false)
+            if (!uiVisible) {
+                hardware.showSystemUI()
+                sharedPrefService.getEditor().putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), true).commit()
+            }
+        }
+    }
+
+    fun setSystemUI(visible: Boolean) {
+        viewModelScope.launch {
+            sharedPrefService.getEditor().putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), visible).commit()
         }
     }
 

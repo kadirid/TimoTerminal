@@ -119,7 +119,7 @@ var appModule = module {
     single { LoginService(get(), get(), get(), get(), get(), get(), get(), get()) }
 
 
-    viewModel { MainActivityViewModel(get(), get(), get()) }
+    viewModel { MainActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBUserWaitSheetViewModel(get(), get(), get(), get()) }

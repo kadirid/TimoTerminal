@@ -128,19 +128,16 @@ class SettingsFragment : Fragment() {
             }
             binding.buttonWifi.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonWifi.setSafeOnClickListener {
-                viewModel.showSystemUI()
                 val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
                 startActivity(intent)
             }
             binding.buttonMobileNetwork.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonMobileNetwork.setSafeOnClickListener {
-                viewModel.showSystemUI()
                 val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
                 startActivity(intent)
             }
             binding.buttonEthernet.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonEthernet.setSafeOnClickListener {
-                viewModel.showSystemUI()
                 hardwareSource.openAndroidEthernetSettings()
             }
             binding.buttonActualizeTerminal.setSafeOnClickListener {
@@ -187,7 +184,6 @@ class SettingsFragment : Fragment() {
                 dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                     val code = passCodeEditText.text.toString()
                     if (code == "TimoTimo1") {
-                        viewModel.showSystemUI()
                         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
                         startActivity(intent)
                     }
