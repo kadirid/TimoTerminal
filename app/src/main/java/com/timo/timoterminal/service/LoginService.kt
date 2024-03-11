@@ -178,27 +178,26 @@ class LoginService(
                         callback(isNewTerminal!!)
                         soundSource.playSound(SoundSource.loginSuccessful)
                     }
-                }, { e, _, context, obj ->
+                }, { e, res, context, obj ->
                     soundSource.playSound(SoundSource.loginFailed)
                     val config = Configuration()
                     config.setLocale(Locale(language))
                     val nContext = context?.createConfigurationContext(config)
-                    if(obj?.obj != null && obj.obj.getString("code") == "-5"){
-                        Utils.showErrorMessage(
-                            context!!,
+                    val errorMessage =
+                        if (obj?.obj != null && obj.obj.getString("code") == "-5") {
                             nContext?.getText(R.string.account_locked).toString()
-                        )
-                    }else if(e != null){
-                        Utils.showErrorMessage(
-                            context!!,
+                        } else if (e != null) {
                             nContext?.getText(R.string.timo_service_not_reachable).toString()
-                        )
-                    }else{
-                        Utils.showErrorMessage(
-                            context!!,
+                        } else {
                             nContext?.getText(R.string.wrong_login_data).toString()
-                        )
-                    }
+                        }
+                    HttpService.handleGenericRequestError(
+                        e,
+                        res,
+                        context,
+                        obj,
+                        errorMessage
+                    )
                 }
             )
 
