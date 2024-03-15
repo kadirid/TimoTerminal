@@ -7,7 +7,7 @@
     <string name="open_settings">Open Settings</string>
     <string name="timo_logo">TimO Logo</string>
     <string name="fingerprint">Fingerprint</string>
-    <string name="rfidcard">RFID-Card</string>
+    <string name="rfid_card">RFID-Card</string>
     <string name="wait_for_ident">Waiting for identification …</string>
     <string name="choose_worker">Choose an employee</string>
     <string name="error">Error</string>

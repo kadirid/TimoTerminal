@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
+import com.timo.timoterminal.modalBottomSheets.MBRemoteRegisterSheet
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,7 +27,7 @@ class HeartbeatService : KoinComponent {
     private val loginService: LoginService by inject()
     private val bookingService: BookingService by inject()
     private val httpService: HttpService by inject()
-    private lateinit var handler : Handler
+    private lateinit var handler: Handler
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .retryOnConnectionFailure(false)
         .connectTimeout(10000, TimeUnit.MILLISECONDS)
@@ -79,7 +80,7 @@ class HeartbeatService : KoinComponent {
                         }
                     }, { _, _, _, _ ->
                         val color = activity.resources?.getColorStateList(R.color.red, null)
-                        if(activity.getBinding().serverConnectionIcon.imageTintList != color){
+                        if (activity.getBinding().serverConnectionIcon.imageTintList != color) {
                             activity.runOnUiThread {
                                 activity.getBinding().serverConnectionIcon.imageTintList = color
                             }
@@ -103,6 +104,8 @@ class HeartbeatService : KoinComponent {
         var loadPermissions = ""
         var loadLanguage = ""
         var rebootTerminal = false
+        var enrollCard = Pair("", "")
+        var enrollFinger = Pair("", "")
         val updateIds = arrayListOf<Pair<String, String>>()
         val deleteIds = arrayListOf<Pair<String, String>>()
         val deleteFP = arrayListOf<Pair<String, String>>()
@@ -123,6 +126,10 @@ class HeartbeatService : KoinComponent {
                         deleteIds.add(Pair(command.substring(11, command.length), id))
                     } else if (command.startsWith("deleteFP:")) {
                         deleteFP.add(Pair(command.substring(9, command.length), id))
+                    } else if (command.startsWith("enrollCard:")) {
+                        enrollCard = Pair(command.substring(11, command.length), id)
+                    } else if (command.startsWith("enrollFinger:")) {
+                        enrollFinger = Pair(command.substring(13, command.length), id)
                     } else if (command == "loadPermissions") {
                         loadPermissions = id
                     } else if (command == "loadLanguage") {
@@ -138,7 +145,7 @@ class HeartbeatService : KoinComponent {
         val scope = activity.getViewModel().viewModelScope
         scope.launch {
             val color = activity.resources?.getColorStateList(R.color.green, null)
-            if(activity.getBinding().serverConnectionIcon.imageTintList != color){
+            if (activity.getBinding().serverConnectionIcon.imageTintList != color) {
                 activity.runOnUiThread {
                     activity.getBinding().serverConnectionIcon.imageTintList = color
                 }
@@ -171,6 +178,48 @@ class HeartbeatService : KoinComponent {
                 activity.reloadSoundSource()
                 Utils.updateLocale()
             }
+            if (enrollCard.first.isNotEmpty()) {
+                activity.cancelTimer()
+                activity.runOnUiThread {
+                    val ids = enrollCard.first.split(":")
+                    if (ids.size == 2) {
+                        val frag =
+                            activity.supportFragmentManager.findFragmentByTag(MBRemoteRegisterSheet.TAG)
+                        if (frag == null || !frag.isVisible) {
+                            val sheet =
+                                MBRemoteRegisterSheet.newInstance(
+                                    ids[0].substring(1, ids[0].length),
+                                    ids[1].substring(1, ids[1].length),
+                                    false,
+                                    commandId = enrollCard.second
+                                )
+                            sheet.show(activity.supportFragmentManager, MBRemoteRegisterSheet.TAG)
+                        }
+                    }
+                }
+            }
+            if (enrollFinger.first.isNotEmpty()) {
+                activity.cancelTimer()
+                activity.loadSoundForFP()
+                activity.runOnUiThread {
+                    val ids = enrollFinger.first.split(":")
+                    if (ids.size == 3) {
+                        val frag =
+                            activity.supportFragmentManager.findFragmentByTag(MBRemoteRegisterSheet.TAG)
+                        if (frag == null || !frag.isVisible) {
+                            val sheet =
+                                MBRemoteRegisterSheet.newInstance(
+                                    ids[0].substring(1, ids[0].length),
+                                    ids[1].substring(1, ids[1].length),
+                                    true,
+                                    ids[2].substring(1, ids[2].length).toInt(),
+                                    commandId = enrollFinger.second
+                                )
+                            sheet.show(activity.supportFragmentManager, MBRemoteRegisterSheet.TAG)
+                        }
+                    }
+                }
+            }
             if (rebootTerminal) {
                 if (loadLanguage.isNotEmpty() || loadPermissions.isNotEmpty() ||
                     updateAllUser.isNotEmpty() || updateIds.size > 0 || deleteIds.size > 0 ||
@@ -185,7 +234,7 @@ class HeartbeatService : KoinComponent {
         }
     }
 
-    fun stopHeartBeat(){
+    fun stopHeartBeat() {
         handler.removeCallbacksAndMessages(null)
     }
 }

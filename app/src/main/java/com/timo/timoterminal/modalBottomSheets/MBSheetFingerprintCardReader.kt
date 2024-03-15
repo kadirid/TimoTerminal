@@ -294,18 +294,18 @@ class MBSheetFingerprintCardReader(
         timer.cancel()
 
         val dlgAlert: AlertDialog.Builder =
-            AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
+            AlertDialog.Builder(requireContext(), R.style.MyDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
-            val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (login.isNotEmpty() && pin.isNotEmpty()) {
-                viewModel.sendBookingByLogin(login, pin)
+            if (pin.isNotEmpty()) {
+                viewModel.sendBookingByPIN(pin)
             }
         }
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
 
         val dialog = dlgAlert.create()
+        Utils.hideNavInDialog(dialog)
         val alertTimer = object : CountDownTimer(10000, 500) {
             override fun onTick(millisUntilFinished: Long) {}
 
@@ -314,25 +314,15 @@ class MBSheetFingerprintCardReader(
             }
         }
 
-        dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
-            alertTimer.cancel()
-            alertTimer.start()
-        }
         dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
         }
         dialogBinding.textViewDialogVerificationMessage.text =
             languageService.getText("#EnterCredentials")
-        dialog.setOnShowListener {
-            Utils.hideNavInDialog(this.dialog)
-            dialogBinding.textInputEditTextVerificationId.isFocusable = true
-            dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
-            dialogBinding.textInputEditTextVerificationId.transformationMethod = null
-            dialogBinding.textInputEditTextVerificationPin.isFocusable = true
-            dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
-        }
-        Utils.hideNavInDialog(dialog)
+        dialogBinding.textInputLayoutVerificationId.visibility = View.GONE
+        dialogBinding.textInputEditTextVerificationPin.isFocusable = true
+        dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
         dialog.setOnDismissListener {
             Utils.hideNavInDialog(this.dialog)
             alertTimer.cancel()

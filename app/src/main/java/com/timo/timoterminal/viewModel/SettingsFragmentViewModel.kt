@@ -6,15 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.classes.SoundSource
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
 
 class SettingsFragmentViewModel(
     private val loginService: LoginService,
     private val userService: UserService,
-    private val soundSource: SoundSource,
-    private val hardwareSource: IHardwareSource
+    private val soundSource: SoundSource
 ) : ViewModel() {
 
     fun logout(context: Context) {
@@ -33,12 +30,6 @@ class SettingsFragmentViewModel(
     fun loadSound() {
         viewModelScope.launch {
             soundSource.loadForFP()
-        }
-    }
-
-    fun showSystemUI() {
-        viewModelScope.launch {
-            hardwareSource.showSystemUI()
         }
     }
 }

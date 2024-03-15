@@ -16,7 +16,6 @@ import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.sources.IHardwareSource
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -39,7 +38,7 @@ class MainActivityViewModel(
     fun hideSystemUI() {
         viewModelScope.launch {
             val uiVisible = sharedPrefService.getBoolean(SharedPreferenceKeys.UI_VISIBLE, false)
-            Log.d("MainActivityViewModel", "hideSystemUI: " +  uiVisible)
+            Log.d("MainActivityViewModel", "hideSystemUI: $uiVisible")
             if (uiVisible) {
                 hardware.hideSystemUI()
                 sharedPrefService.getEditor().putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), false).commit()
@@ -162,6 +161,12 @@ class MainActivityViewModel(
             }
             oct = oct.reversed()
             getUserForCard(oct)
+        }
+    }
+
+    fun loadSoundForFP() {
+        viewModelScope.launch {
+            soundSource.loadForFP()
         }
     }
 }

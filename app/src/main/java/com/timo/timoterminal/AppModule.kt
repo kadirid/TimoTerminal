@@ -29,6 +29,7 @@ import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
+import com.timo.timoterminal.viewModel.MBRemoteRegisterSheetViewModel
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
 import com.timo.timoterminal.viewModel.MBUserWaitSheetViewModel
 import com.timo.timoterminal.viewModel.MainActivityViewModel
@@ -119,14 +120,15 @@ var appModule = module {
     single { LoginService(get(), get(), get(), get(), get(), get(), get(), get()) }
 
 
+    viewModel { SettingsFragmentViewModel(get(), get(), get()) }
     viewModel { MainActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBUserWaitSheetViewModel(get(), get(), get(), get()) }
-    viewModel { SettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { AttendanceFragmentViewModel(get(), get(), get(), get()) }
     viewModel { InfoFragmentViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get()) }
+    viewModel { MBRemoteRegisterSheetViewModel(get(), get(), get(), get()) }
     viewModel { MBSheetFingerprintCardReaderViewModel(get(), get(), get(), get(), get(), get()) }
 
     worker(named<HeartbeatWorker>()) {

@@ -8,7 +8,7 @@
     <string name="open_settings">Einstellungen öffnen</string>
     <string name="timo_logo">TimO Logo</string>
     <string name="fingerprint">Fingerabdruck</string>
-    <string name="rfidcard">RFID-Karte</string>
+    <string name="rfid_card">RFID-Karte</string>
     <string name="wait_for_ident">Warte auf Identifizierung …</string>
     <string name="choose_worker">Mitarbeiter auswählen</string>
     <string name="error">Fehler</string>

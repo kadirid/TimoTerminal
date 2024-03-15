@@ -2,15 +2,12 @@ package com.timo.timoterminal.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 class UserSettingsFragmentViewModel(
     private val userService: UserService,
@@ -26,47 +23,6 @@ class UserSettingsFragmentViewModel(
         //Get User from Server
         userService.loadUsersFromServer(viewModelScope)
     }
-
-    fun updatePin(
-        paramMap: HashMap<String, String>,
-        callback: (obj: JSONObject?) -> Unit?
-    ) {
-        viewModelScope.launch {
-            val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
-            val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-            if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
-                paramMap["company"] = company
-                paramMap["token"] = token
-                paramMap["terminalId"] = terminalId.toString()
-                httpService.post("${url}services/rest/zktecoTerminal/updateUserPIN",
-                    paramMap,
-                    null,
-                    { obj, _, _ ->
-                        callback(obj)
-                        if (obj != null) {
-                            if (obj.getBoolean("success")) {
-                                val userEntity: UserEntity =
-                                    UserEntity.parseJsonToUserEntity(obj)
-                                viewModelScope.launch(Dispatchers.IO) {
-                                    userService.insertOne(userEntity)
-                                }
-                            }
-                        }
-                    }, { _, _, _, _ ->
-                        val obj = JSONObject()
-                        obj.putOpt(
-                            "error", languageService.getText("#TimoServiceNotReachable") + " " +
-                                    languageService.getText("#ChangesReverted")
-                        )
-                        callback(obj)
-                    }
-                )
-            }
-        }
-    }
-
 
     fun assignUser(
         id: String,

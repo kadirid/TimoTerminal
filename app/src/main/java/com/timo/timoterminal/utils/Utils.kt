@@ -72,6 +72,7 @@ class Utils {
             return false
         }
 
+        // TODO Can this function be deleted? Why is it here?
         fun getMACAddress(interfaceName: String): String {
             try {
                 val interfaces: List<NetworkInterface> =
@@ -105,7 +106,7 @@ class Utils {
                             //boolean isIPv4 = InetAddressUtils.isIPv4Address(sAddr);
                             val isIPv4 = sAddr.indexOf(':') < 0
                             if (useIPv4) {
-                                if (isIPv4) return sAddr
+                                if (isIPv4) return sAddr!!
                             } else {
                                 if (!isIPv4) {
                                     val delim = sAddr.indexOf('%') // drop ip6 zone suffix
@@ -196,14 +197,6 @@ class Utils {
 
         fun getDateWithNameFromGC(gc: GregorianCalendar): String {
             return dateNameFormatter.format(gc.time)
-        }
-
-        fun parseToDBDate(date: String): String {
-            return databaseFormatter.format(dateTimeFormatter.parse(date) ?: Date())
-        }
-
-        fun parseFromDBDate(date: String): String {
-            return dateTimeFormatter.format(databaseFormatter.parse(date) ?: Date())
         }
 
         fun parseDateTime(date: String): GregorianCalendar {

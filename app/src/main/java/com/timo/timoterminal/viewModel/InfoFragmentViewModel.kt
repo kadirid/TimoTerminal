@@ -75,13 +75,14 @@ class InfoFragmentViewModel(
         return null
     }
 
-    private suspend fun getUserForLogin(login: String): UserEntity? {
-        val users = userRepository.getEntityByLogin(login)
+    private suspend fun getUserForPin(pin: String): UserEntity? {
+        val users = userRepository.getEntityByPIN(pin)
         if (users.isNotEmpty()) {
             return users[0]
         }
         return null
     }
+
 
     private suspend fun getUserEntityByCard(card: String): UserEntity? {
         val users = userRepository.getEntityByCard(card)
@@ -113,10 +114,10 @@ class InfoFragmentViewModel(
         }
     }
 
-    fun loadUserInfoByLoginAndPin(login: String, pin: String) {
+    fun loadUserInfoByPin(pin: String) {
         viewModelScope.launch {
-            val user = getUserForLogin(login)
-            if (user != null && user.pin == pin) {
+            val user = getUserForPin(pin)
+            if (user != null) {
                 soundSource.playSound(SoundSource.successSound)
                 liveUser.postValue(user)
             } else {

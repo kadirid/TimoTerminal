@@ -9,7 +9,6 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.SharedPrefService
-import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.launch
 
 class LoginFragmentViewModel(

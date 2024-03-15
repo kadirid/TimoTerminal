@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -125,7 +124,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     override fun onPause() {
-        mainActivityViewModel.showSystemUI();
+        mainActivityViewModel.showSystemUI()
         timer.cancel()
         super.onPause()
     }
@@ -135,19 +134,19 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         if (!isInit && (frag == null || !frag.isVisible))
             restartTimer()
         Utils.hideStatusAndNavbar(this)
-        mainActivityViewModel.hideSystemUI();
+        mainActivityViewModel.hideSystemUI()
         isInit = false
         super.onResume()
     }
 
     override fun finishAndRemoveTask() {
         super.finishAndRemoveTask()
-        mainActivityViewModel.showSystemUI();
+        mainActivityViewModel.showSystemUI()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mainActivityViewModel.showSystemUI();
+        mainActivityViewModel.showSystemUI()
         unregisterReceiver(batteryReceiver)
         unregisterReceiver(networkChangeReceiver)
     }
@@ -177,7 +176,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.viewModelScope.launch {
             val projectPermission = mainActivityViewModel.permission("projekt.use")
             binding.navigationRail.menu.findItem(R.id.project).isVisible =
-                projectPermission == "true"// currently no functionality
+                projectPermission == "true" && false// currently no functionality
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
             binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
@@ -277,6 +276,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     fun reloadSoundSource() {
         mainActivityViewModel.reloadSoundSource()
+    }
+
+    fun loadSoundForFP(){
+        mainActivityViewModel.loadSoundForFP()
     }
 
     // verify user if present before opening settings page

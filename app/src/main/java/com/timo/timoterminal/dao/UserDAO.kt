@@ -27,6 +27,9 @@ interface UserDAO {
     @Query("SELECT * FROM UserEntity WHERE login like :login")
     suspend fun loadEntityByLogin(login: String) : List<UserEntity>
 
+    @Query("SELECT * FROM UserEntity WHERE pin like :pin")
+    suspend fun loadEntityByPIN(pin: String) : List<UserEntity>
+
     @Query("SELECT count(*) FROM UserEntity")
     suspend fun count() : Int
 

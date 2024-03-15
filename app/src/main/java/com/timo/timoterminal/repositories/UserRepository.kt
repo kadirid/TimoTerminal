@@ -28,5 +28,7 @@ class UserRepository(private val userDAO: UserDAO) {
 
     suspend fun getEntityByLogin(login: String): List<UserEntity> = userDAO.loadEntityByLogin(login)
 
+    suspend fun getEntityByPIN(pin: String): List<UserEntity> = userDAO.loadEntityByPIN(pin)
+
     suspend fun deleteAll() = userDAO.deleteAll()
 }

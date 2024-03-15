@@ -38,7 +38,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 
-class HttpService() : KoinComponent {
+class HttpService : KoinComponent {
     private val sharedPrefService: SharedPrefService by inject()
 
     private var client: OkHttpClient = OkHttpClient().newBuilder()

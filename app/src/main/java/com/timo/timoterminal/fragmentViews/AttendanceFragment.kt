@@ -13,10 +13,8 @@ import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentAttendanceBinding
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
-import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
@@ -25,8 +23,8 @@ import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import java.util.Calendar
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import java.util.Calendar
 
 class AttendanceFragment : Fragment() {
 
@@ -36,7 +34,7 @@ class AttendanceFragment : Fragment() {
 
     private var _broadcastReceiver: BroadcastReceiver? = null
     private lateinit var binding: FragmentAttendanceBinding
-    private val viewModel : AttendanceFragmentViewModel by sharedViewModel()
+    private val viewModel: AttendanceFragmentViewModel by sharedViewModel()
     private var funcCode = -1
     private var mbSheetFingerprintCardReader: MBSheetFingerprintCardReader? = null
 
@@ -128,9 +126,10 @@ class AttendanceFragment : Fragment() {
         val bundle = Bundle()
         bundle.putInt("status", funcCode)
         if (!(mbSheetFingerprintCardReader != null
-            && mbSheetFingerprintCardReader?.dialog != null
-            && mbSheetFingerprintCardReader?.dialog?.isShowing == true
-            && mbSheetFingerprintCardReader?.isRemoving == false)) {
+                    && mbSheetFingerprintCardReader?.dialog != null
+                    && mbSheetFingerprintCardReader?.dialog?.isShowing == true
+                    && mbSheetFingerprintCardReader?.isRemoving == false)
+        ) {
 
             if (mbSheetFingerprintCardReader == null) {
                 mbSheetFingerprintCardReader = MBSheetFingerprintCardReader {
@@ -138,7 +137,10 @@ class AttendanceFragment : Fragment() {
                 }
             }
             mbSheetFingerprintCardReader!!.arguments = bundle
-            mbSheetFingerprintCardReader!!.show(parentFragmentManager, MBSheetFingerprintCardReader.TAG)
+            mbSheetFingerprintCardReader!!.show(
+                parentFragmentManager,
+                MBSheetFingerprintCardReader.TAG
+            )
         }
 
     }
@@ -214,7 +216,7 @@ class AttendanceFragment : Fragment() {
         const val TAG = "AttendanceFragmentTag"
     }
 
-    private fun notifyFailure(msg: String){
+    private fun notifyFailure(msg: String) {
         (activity as MainActivity?)?.hideLoadMask()
         soundSource.playSound(SoundSource.failedSound)
         Utils.showMessage(parentFragmentManager, msg)

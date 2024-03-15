@@ -72,8 +72,8 @@ class MBSheetFingerprintCardReaderViewModel(
         return null
     }
 
-    private suspend fun getUserEntityByLogin(login: String): UserEntity? {
-        val users = userRepository.getEntityByLogin(login)
+    private suspend fun getUserEntityByPIN(pin: String): UserEntity? {
+        val users = userRepository.getEntityByPIN(pin)
         if (users.isNotEmpty()) {
             return users[0]
         }
@@ -120,10 +120,10 @@ class MBSheetFingerprintCardReaderViewModel(
         }
     }
 
-    fun sendBookingByLogin(login: String, pin: String) {
+    fun sendBookingByPIN(pin: String) {
         viewModelScope.launch {
-            val user = getUserEntityByLogin(login)
-            if (user != null && user.pin == pin) {
+            val user = getUserEntityByPIN(pin)
+            if (user != null) {
                 val greg = Utils.getCal()
                 liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
                 sendBooking(

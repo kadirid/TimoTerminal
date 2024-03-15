@@ -49,8 +49,7 @@ class InfoFragment : Fragment() {
     }
 
     private fun setText() {
-        binding.cardImage.contentDescription = languageService.getText("#RFID")
-        binding.keyboardImage.contentDescription = languageService.getText("#RFID")
+        binding.infoIdentificationText.text = languageService.getText("#WaitIdentification")
     }
 
     override fun onResume() {
@@ -181,16 +180,15 @@ class InfoFragment : Fragment() {
         unregister()
 
         val dlgAlert: AlertDialog.Builder =
-            AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
+            AlertDialog.Builder(requireContext(), R.style.MyDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             (activity as MainActivity?)?.restartTimer()
-            val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
-            if (login.isNotEmpty() && pin.isNotEmpty()) {
+            if (pin.isNotEmpty()) {
                 (activity as MainActivity?)?.showLoadMask()
-                viewModel.loadUserInfoByLoginAndPin(login, pin)
+                viewModel.loadUserInfoByPin(pin)
             }
         }
 
@@ -206,23 +204,14 @@ class InfoFragment : Fragment() {
 
         dialogBinding.textViewDialogVerificationMessage.text =
             languageService.getText("#EnterCredentials")
-        dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
-            alertTimer.cancel()
-            alertTimer.start()
-            (activity as MainActivity?)?.restartTimer()
-        }
         dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
             (activity as MainActivity?)?.restartTimer()
         }
-        dialog.setOnShowListener {
-            dialogBinding.textInputEditTextVerificationId.isFocusable = true
-            dialogBinding.textInputEditTextVerificationId.isFocusableInTouchMode = true
-            dialogBinding.textInputEditTextVerificationId.transformationMethod = null
-            dialogBinding.textInputEditTextVerificationPin.isFocusable = true
-            dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
-        }
+        dialogBinding.textInputEditTextVerificationPin.isFocusable = true
+        dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
+        dialogBinding.textInputLayoutVerificationId.visibility = View.GONE
         dialog.setOnDismissListener {
             alertTimer.cancel()
             register()
