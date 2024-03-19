@@ -149,7 +149,7 @@ class InfoFragment : Fragment() {
                 if (it != null) {
                     unregister()
                     verifying = false
-                    viewModel.loadUserInformation(it)
+                    viewModel.newLoadUserInformation(it)
                     viewModel.liveUser.value = null
                 }
             }

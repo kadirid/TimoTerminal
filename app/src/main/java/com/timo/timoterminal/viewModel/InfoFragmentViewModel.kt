@@ -12,6 +12,7 @@ import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -24,7 +25,8 @@ class InfoFragmentViewModel(
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService,
     private val languageService: LanguageService,
-    private val soundSource: SoundSource
+    private val soundSource: SoundSource,
+    private val userService: UserService
 ) : ViewModel(), TimoRfidListener, FingerprintListener {
 
     private var isTimerRunning = true
@@ -126,45 +128,27 @@ class InfoFragmentViewModel(
         }
     }
 
-    fun loadUserInformation(user: UserEntity) {
-        viewModelScope.launch {
-            val url = getURl()
-            val company = getCompany()
-            val terminalId = getTerminalID()
-            val token = getToken()
-            if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
-                httpService.get(
-                    "${url}services/rest/zktecoTerminal/info",
-                    mapOf(
-                        Pair("card", user.card),
-                        Pair("firma", company),
-                        Pair("terminalId", terminalId.toString()),
-                        Pair("token", token)
-                    ),
-                    null,
-                    { obj, _, _ ->
-                        if (obj != null) {
-                            if (obj.getBoolean("success")) {
-                                val res = obj.getString("message")
-                                val bundle = Bundle()
-                                bundle.putString("res", res)
-                                bundle.putString("card", user.card)
-                                liveInfoSuccess.postValue(bundle)
-                                timer.start()
-                            } else {
-                                liveMessage.postValue(obj.getString("message"))
-                            }
-                            liveHideMask.postValue(true)
-                        }
-                    }, { _, _, _, _ ->
-                        liveHideMask.postValue(true)
-                        soundSource.playSound(SoundSource.failedSound)
-                        liveErrorMessage.postValue(
-                            languageService.getText("#TimoServiceNotReachable")
-                        )
-                    }
-                )
+    fun newLoadUserInformation(user: UserEntity) {
+        userService.loadUserInformation(
+            viewModelScope, user,
+            { success, errMmessage, it ->
+                if (success) {
+                    val bundle = Bundle()
+                    bundle.putParcelable("res", it)
+                    bundle.putString("card", user.card)
+                    liveInfoSuccess.postValue(bundle)
+                    timer.start()
+                } else {
+                    liveMessage.postValue(errMmessage)
+                }
+                liveHideMask.postValue(true)
             }
+        ) { _, _, _, _ ->
+            liveHideMask.postValue(true)
+            soundSource.playSound(SoundSource.failedSound)
+            liveErrorMessage.postValue(
+                languageService.getText("#TimoServiceNotReachable")
+            )
         }
     }
 

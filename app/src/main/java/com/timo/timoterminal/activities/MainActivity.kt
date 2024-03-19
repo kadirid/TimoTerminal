@@ -386,11 +386,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         runOnUiThread {
             supportFragmentManager.commit {
                 replace(
-                    R.id.fragment_container_view,
-                    AttendanceFragment(),
-                    AttendanceFragment.TAG
+                    R.id.fragment_container_view, AttendanceFragment()
                 )
             }
+            binding.navigationRail.selectedItemId = R.id.attendance
         }
     }
 
