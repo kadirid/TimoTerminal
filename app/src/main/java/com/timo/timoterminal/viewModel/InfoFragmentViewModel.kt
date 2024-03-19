@@ -128,7 +128,7 @@ class InfoFragmentViewModel(
         }
     }
 
-    fun newLoadUserInformation(user: UserEntity) {
+    fun loadUserInformation(user: UserEntity) {
         userService.loadUserInformation(
             viewModelScope, user,
             { success, errMmessage, it ->
