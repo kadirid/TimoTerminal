@@ -45,6 +45,7 @@
         android:layout_marginVertical="20dp"
         android:layout_marginEnd="10dp"
         android:background="@drawable/rounded_container_16dp"
+        android:backgroundTint="?attr/colorBackgroundFloating"
         android:gravity="center"
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@id/textview_second_close"
@@ -121,6 +122,7 @@
         android:layout_marginVertical="20dp"
         android:layout_marginStart="10dp"
         android:background="@drawable/rounded_container_16dp"
+        android:backgroundTint="?attr/colorBackgroundFloating"
         app:layout_constraintBottom_toTopOf="@id/textview_second_close"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/layout_linear_time_information"
@@ -128,6 +130,7 @@
 
         <TextView
             android:id="@+id/text_view_curret_leave"
+            android:layout_marginVertical="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="25sp"
@@ -142,7 +145,9 @@
             android:gravity="center"
             android:orientation="vertical">
 
+
             <TextView
+                android:visibility="gone"
                 android:id="@+id/textview_vacation_entitlement"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
