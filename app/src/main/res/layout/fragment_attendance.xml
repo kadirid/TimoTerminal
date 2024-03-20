@@ -125,6 +125,7 @@
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="48dp"
+            app:iconTint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"  />
@@ -140,6 +141,7 @@
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="48dp"
+            app:iconTint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -154,6 +156,7 @@
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="48dp"
+            app:iconTint="@color/white"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/button_kommen"
