@@ -1,6 +1,13 @@
 <resources>
+    <attr name="colorSurface" format="reference" />
+    <attr name="colorSurfaceContainerHighest" format="reference" />
+
     <declare-styleable name="FullscreenAttrs">
         <attr name="fullscreenBackgroundColor" format="color" />
         <attr name="fullscreenTextColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="Gauge">
+        <attr name="percentage" format="float" />
     </declare-styleable>
 </resources>

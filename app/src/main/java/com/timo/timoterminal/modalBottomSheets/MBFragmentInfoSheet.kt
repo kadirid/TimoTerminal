@@ -3,6 +3,7 @@ package com.timo.timoterminal.modalBottomSheets
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.DialogInterface
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,26 +11,28 @@ import android.view.ViewGroup
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.color.MaterialColors
 import com.timo.timoterminal.R
+import com.timo.timoterminal.components.Gauge.GaugeAnimation
 import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.serviceUtils.UserInformation
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import java.util.GregorianCalendar
 
 class MBFragmentInfoSheet : BottomSheetDialogFragment() {
-    private val languageService:LanguageService by inject()
+    private val languageService: LanguageService by inject()
 
     private lateinit var binding: FragmentInfoMessageSheetItemBinding
 
     val viewModel by sharedViewModel<InfoFragmentViewModel>()
     private var card: String = ""
     private var res: UserInformation? = null;
+
     companion object {
         const val TAG = "MBFragmentInfoSheet"
     }
@@ -44,7 +47,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         res = arguments?.getParcelable<UserInformation>("res")!!
         card = arguments?.getString("card") ?: ""
 
-        if (res!=null) setText(res!!)
+        if (res != null) setText(res!!)
 
         viewModel.viewModelScope.launch {
             viewModel.liveDismissSheet.value = false
@@ -105,14 +108,40 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                 "${getText("#CheckOut")}: ${res.gehen}"
             binding.textviewTimeOvertime.text =
                 "${getText("PDFSOLLIST#spalteGzGleitzeit")}: ${res.overtime}"
-            binding.textviewVacationEntitlement.text =
-                "${getText("ALLGEMEIN#Anspruch")}: ${res.vacation}"
-            binding.textviewVacationTaken.text =
-                "${getText("ALLGEMEIN#Genommen")}: ${res.gVacation}"
-            binding.textviewVacationRequested.text =
-                "${getText("ALLGEMEIN#Beantragt")}: ${res.bVacation}"
-            binding.textviewVacationRemaining.text =
-                "${getText("#Remaining")}: ${res.rVacation}"
+
+            //Populate right side of the sheet
+            binding.textviewVacationEntitlement.text = getText("ALLGEMEIN#Anspruch")
+            binding.textviewVacationEntitlementValue.text = res.vacation
+
+            binding.textviewVacationTaken.text = getText("ALLGEMEIN#Genommen")
+            binding.textviewVacationTakenValue.text = res.gVacation
+            val gVacation = res.gVacation.replace(",", ".").toFloat()
+
+            binding.textviewVacationRequested.text = getText("ALLGEMEIN#Beantragt")
+            binding.textviewVacationRequestedValue.text = res.bVacation
+            val bVacation = res.bVacation.replace(",", ".").toFloat()
+
+            binding.textviewVacationRemaining.text = getText("#Remaining")
+            binding.textviewVacationRemainingValue.text = res.rVacation
+            val rVacation = res.rVacation.replace(",", ".").toFloat()
+
+
+            val gaugeAnimator = GaugeAnimation(binding.gaugeVacation, 80f).apply {
+                onAnimationEnd = {
+                    val anim = GaugeAnimation(binding.gaugeVacation, 40f);
+                    binding.gaugeVacation.startAnimation(anim);
+                }
+            }
+            binding.gaugeVacation.startAnimation(gaugeAnimator);
+            val map = LinkedHashMap<Float, Int>()
+            map[bVacation] = Color.rgb(255, 165, 0)
+            map[gVacation] = Color.rgb(0, 255, 128)
+            map[rVacation] = MaterialColors.getColor(
+                requireContext(),
+                R.attr.colorSurfaceContainerHighest,
+                resources.getColor(R.color.black)
+            )
+            binding.gaugeVacation.setData(map)
         }
     }
 
