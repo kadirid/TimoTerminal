@@ -13,11 +13,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.color.MaterialColors
 import com.timo.timoterminal.R
-import com.timo.timoterminal.components.Gauge.GaugeAnimation
 import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.service.serviceUtils.UserInformation
+import com.timo.timoterminal.service.serviceUtils.classes.UserInformation
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.BGData
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -97,17 +97,34 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                 diff /= 60
                 ist += diff
             }
-            binding.textviewTimeTarget.text = "${getText("#Target")}: ${res.soll}"
-            binding.textviewTimeActual.text =
-                "${getText("ALLGEMEIN#Ist")}: ${Utils.convertTime(ist)}"
+            binding.textviewTimeTarget.text = getText("#Target")
+            binding.textviewTimeTargetValue.text = res.soll
+            val targetMinutes = Utils.parseTimeToMinutes(res.soll, "HH:mm");
+
+            binding.textviewTimeActual.text = getText("ALLGEMEIN#Ist")
+            binding.textviewTimeActualValue.text = Utils.convertTime(ist)
+            val actualMinutes = ist
+
+
+            val listSollIst = ArrayList<BGData>()
+            listSollIst.add(BGData(actualMinutes.toFloat(), Color.rgb(0, 255, 128)))
+            listSollIst.add(BGData((targetMinutes - actualMinutes).toFloat(), MaterialColors.getColor(
+                requireContext(),
+                R.attr.colorSurfaceContainerHighest,
+                resources.getColor(R.color.black)
+            )))
+            binding.gaugeTime.setData(listSollIst)
+
+
             binding.textviewTimeStartOfWork.text =
                 "${getText("#CheckIn")}: ${res.kommen}"
             binding.textviewTimeBreakTotal.text =
                 "${getText("ALLGEMEIN#Pause")}: ${res.pause}"
             binding.textviewTimeEndOfWork.text =
                 "${getText("#CheckOut")}: ${res.gehen}"
-            binding.textviewTimeOvertime.text =
-                "${getText("PDFSOLLIST#spalteGzGleitzeit")}: ${res.overtime}"
+
+            binding.textviewTimeOvertime.text =getText("PDFSOLLIST#spalteGzGleitzeit")
+            binding.textviewTimeOvertimeValue.text =res.overtime
 
             //Populate right side of the sheet
             binding.textviewVacationEntitlement.text = getText("ALLGEMEIN#Anspruch")
@@ -125,23 +142,40 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             binding.textviewVacationRemainingValue.text = res.rVacation
             val rVacation = res.rVacation.replace(",", ".").toFloat()
 
+            val list = ArrayList<BGData>()
 
-            val gaugeAnimator = GaugeAnimation(binding.gaugeVacation, 80f).apply {
-                onAnimationEnd = {
-                    val anim = GaugeAnimation(binding.gaugeVacation, 40f);
-                    binding.gaugeVacation.startAnimation(anim);
-                }
-            }
-            binding.gaugeVacation.startAnimation(gaugeAnimator);
-            val map = LinkedHashMap<Float, Int>()
-            map[bVacation] = Color.rgb(255, 165, 0)
-            map[gVacation] = Color.rgb(0, 255, 128)
-            map[rVacation] = MaterialColors.getColor(
-                requireContext(),
-                R.attr.colorSurfaceContainerHighest,
-                resources.getColor(R.color.black)
+            list.add(BGData(gVacation, Color.rgb(0, 255, 128)))
+            list.add(BGData(bVacation, Color.rgb(255, 165, 0)))
+            list.add(
+                BGData(
+                    rVacation, MaterialColors.getColor(
+                        requireContext(),
+                        R.attr.colorSurfaceContainerHighest,
+                        resources.getColor(R.color.black)
+                    )
+                )
             )
-            binding.gaugeVacation.setData(map)
+
+            binding.gaugeVacation.setData(list)
+
+            val list2 = ArrayList<BGData>()
+
+            list2.add(BGData(40f, Color.rgb(0, 255, 128)))
+            list2.add(BGData(30f, Color.rgb(255, 165, 0))
+            )
+            list2.add(
+                BGData(
+                    20f, MaterialColors.getColor(
+                        requireContext(),
+                        R.attr.colorSurfaceContainerHighest,
+                        resources.getColor(R.color.black)
+                    )
+                )
+            )
+            //list2.add(BGData(10f, Color.rgb(255, 165, 0)))
+
+            binding.attendanceBarplotView.setData(list2)
+
         }
     }
 

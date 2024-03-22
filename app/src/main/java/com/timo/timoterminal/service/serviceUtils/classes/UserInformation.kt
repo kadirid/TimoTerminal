@@ -1,4 +1,4 @@
-package com.timo.timoterminal.service.serviceUtils
+package com.timo.timoterminal.service.serviceUtils.classes
 
 import android.os.Parcel
 import android.os.Parcelable
@@ -20,7 +20,8 @@ data class UserInformation(
     val vacation: String,
     val gVacation: String,
     val bVacation: String,
-    val rVacation: String
+    val rVacation: String,
+    val buchung: ArrayList<Buchung>
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
@@ -35,7 +36,10 @@ data class UserInformation(
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
-        parcel.readString()!!
+        parcel.readString()!!,
+        ArrayList<Buchung>().apply {
+            parcel.readList(this, Buchung::class.java.classLoader)
+        }
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -52,6 +56,7 @@ data class UserInformation(
         parcel.writeString(gVacation)
         parcel.writeString(bVacation)
         parcel.writeString(rVacation)
+        parcel.writeList(buchung)
     }
 
     override fun describeContents(): Int {
@@ -74,6 +79,7 @@ data class UserInformation(
             val ist = jsonObject.getString("ist")
             val zeitTyp = jsonObject.getInt("zeitTyp")
 
+
             val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             var zeitLB = Date();
             try {
@@ -90,6 +96,11 @@ data class UserInformation(
             val gVacation = jsonObject.getString("gVacation")
             val bVacation = jsonObject.getString("bVacation")
             val rVacation = jsonObject.getString("rVacation")
+            val buchung = jsonObject.getJSONArray("bookings").let { i ->
+                (0 until i.length()).map { i.getJSONObject(it) }.map {
+                    Buchung.convertJsonToObject(it)
+                }.toCollection(ArrayList())}
+
             return UserInformation(
                 user,
                 soll,
@@ -103,7 +114,8 @@ data class UserInformation(
                 vacation,
                 gVacation,
                 bVacation,
-                rVacation
+                rVacation,
+                buchung
             )
         }
     }

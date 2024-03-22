@@ -4,7 +4,7 @@ import android.content.Context
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.UserRepository
-import com.timo.timoterminal.service.serviceUtils.UserInformation
+import com.timo.timoterminal.service.serviceUtils.classes.UserInformation
 import com.timo.timoterminal.utils.classes.ResponseToJSON
 import com.zkteco.android.core.sdk.service.FingerprintService
 import kotlinx.coroutines.CoroutineScope

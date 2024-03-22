@@ -64,60 +64,135 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Aktueller Tag" />
 
+        <com.timo.timoterminal.components.Barplot.Barplot
+            android:id="@+id/attendance_barplot_view"
+            android:layout_width="250dp"
+            android:layout_height="15dp"
+            android:layout_marginVertical="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_view_current_day" />
+
         <LinearLayout
+            android:id="@+id/linear_time_information_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="30dp"
             android:gravity="center"
-            android:orientation="vertical">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/attendance_barplot_view"
+            android:orientation="horizontal">
 
-            <TextView
-                android:visibility="gone"
-                android:id="@+id/textview_time_target"
+            <LinearLayout
+                android:id="@+id/linear_time_information"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="25sp"
-                tools:text="1"/>
-
-            <TextView
-                android:visibility="gone"
-                android:id="@+id/textview_time_actual"
+                android:layout_weight="0.75"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/textview_time_target"
+                        android:layout_width="wrap_content"
+                        android:textColor="?attr/colorOutline"
+                        android:textSize="22sp"
+                        android:layout_height="wrap_content"
+                        tools:text="Ist"/>
+                    <TextView
+                        android:id="@+id/textview_time_target_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="25sp"
+                        tools:text="1"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/textview_time_actual"
+                        android:layout_width="wrap_content"
+                        android:textColor="?attr/colorOutline"
+                        android:textSize="22sp"
+                        android:layout_height="wrap_content"
+                        tools:text="Soll"/>
+                    <TextView
+                        android:id="@+id/textview_time_actual_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="25sp"
+                        tools:text="1"/>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/frame_time_gauge"
+                app:layout_constraintTop_toTopOf="@id/linear_time_information"
+                app:layout_constraintBottom_toBottomOf="@id/linear_time_information"
+                app:layout_constraintStart_toEndOf="@id/linear_time_information"
+                app:layout_constraintEnd_toEndOf="parent"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="25sp"
-                tools:text="2" />
+                android:gravity="center_horizontal"
+                android:layout_weight="1"
+                android:layout_height="85dp">
 
-            <TextView
-                android:visibility="gone"
-                android:id="@+id/textview_time_startOfWork"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="25sp"
-                tools:text="3" />
+                <com.timo.timoterminal.components.Gauge.Gauge
+                    android:id="@+id/gauge_time"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp" />
+            </LinearLayout>
 
-            <TextView
-                android:visibility="gone"
-                android:id="@+id/textview_time_breakTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="25sp"
-                tools:text="4" />
+        </LinearLayout>
 
-            <TextView
-                android:visibility="gone"
-                android:id="@+id/textview_time_endOfWork"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="25sp"
-                tools:text="5" />
 
+        <TextView
+            android:id="@+id/textview_time_startOfWork"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:visibility="gone"
+            tools:text="3" />
+
+        <TextView
+            android:id="@+id/textview_time_breakTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:visibility="gone"
+            tools:text="4" />
+
+        <TextView
+            android:id="@+id/textview_time_endOfWork"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:visibility="gone"
+            tools:text="5" />
+
+        <LinearLayout
+            app:layout_constraintTop_toBottomOf="@id/linear_time_information_container"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:paddingHorizontal="30dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
             <TextView
-                android:visibility="gone"
                 android:id="@+id/textview_time_overtime"
+                android:layout_width="0dp"
+                android:textColor="?attr/colorOutline"
+                android:textSize="22sp"
+                android:layout_height="wrap_content"
+                tools:text="Ist" android:layout_weight=" 1"/>
+            <TextView
+                android:id="@+id/textview_time_overtime_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="25sp"
                 tools:text="6" />
-
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -136,7 +211,6 @@
         app:layout_constraintTop_toBottomOf="@id/text_view_rfid">
 
 
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -145,9 +219,9 @@
 
             <TextView
                 android:id="@+id/text_view_curret_leave"
-                android:layout_marginVertical="20dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginVertical="20dp"
                 android:textSize="25sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -157,6 +231,7 @@
             <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="85dp">
+
                 <com.timo.timoterminal.components.Gauge.Gauge
                     android:id="@+id/gauge_vacation"
                     android:layout_width="150dp"
@@ -166,85 +241,106 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="30dp"
                 android:layout_marginVertical="10dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingHorizontal="30dp">
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="start"
                     android:orientation="vertical">
+
                     <TextView
                         android:id="@+id/textview_vacation_taken"
                         android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:textColor="?attr/colorOutline"
                         android:textSize="22sp"
-                        android:layout_height="wrap_content"
-                        tools:text="Genommen"/>
+                        tools:text="Genommen" />
+
                     <TextView
                         android:id="@+id/textview_vacation_taken_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="25sp"
-                        tools:text="1"/>
+                        tools:text="1" />
                 </LinearLayout>
-                <View android:layout_height="1dp"  android:layout_width="0dp" android:layout_weight="1"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:gravity="end"
                     android:orientation="vertical">
+
                     <TextView
                         android:id="@+id/textview_vacation_entitlement"
                         android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:textColor="?attr/colorOutline"
                         android:textSize="22sp"
-                        android:layout_height="wrap_content"
-                        tools:text="Anspruch"/>
+                        tools:text="Anspruch" />
+
                     <TextView
                         android:id="@+id/textview_vacation_entitlement_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="25sp"
-                        tools:text="2"/>
+                        tools:text="2" />
                 </LinearLayout>
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="30dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingHorizontal="30dp">
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <TextView
                         android:id="@+id/textview_vacation_requested"
                         android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:textColor="?attr/colorOutline"
                         android:textSize="22sp"
-                        android:layout_height="wrap_content"
-                        tools:text="Title"/>
+                        tools:text="Title" />
+
                     <TextView
                         android:id="@+id/textview_vacation_requested_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="25sp"
-                        android:text="hi"/>
+                        android:text="hi"
+                        android:textSize="25sp" />
                 </LinearLayout>
-                <View android:layout_height="1dp"  android:layout_width="0dp" android:layout_weight="1"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:gravity="end"
                     android:orientation="vertical">
+
                     <TextView
                         android:id="@+id/textview_vacation_remaining"
                         android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:textColor="?attr/colorOutline"
                         android:textSize="22sp"
-                        android:layout_height="wrap_content"
                         tools:text="Title" />
+
                     <TextView
                         android:id="@+id/textview_vacation_remaining_value"
                         android:layout_width="wrap_content"

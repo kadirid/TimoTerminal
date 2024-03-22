@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import com.google.android.material.color.MaterialColors
 import com.timo.timoterminal.R
+import com.timo.timoterminal.utils.classes.BGData
 
 class Gauge(
     context: Context,
@@ -16,7 +17,7 @@ class Gauge(
 ) : View(context, attrs) {
 
     private var ta: TypedArray = context.obtainStyledAttributes(attrs, R.styleable.Gauge)
-    private var data : LinkedHashMap<Float, Int> = LinkedHashMap()
+    private var data : ArrayList<BGData> = ArrayList()
     var arcAngle: Float = (ta.getFloat(R.styleable.Gauge_percentage, 0f) / 100) * 180f
     var startAngle = 180f
 
@@ -77,7 +78,7 @@ class Gauge(
      * This Method sets the data and the colors for the gauge. Animation is working for one color only.
      * @param data HashMap<Float, Int> - The data for the gauge. The key is the percentage and the value is the color.
      */
-    fun setData(data : LinkedHashMap<Float, Int>) {
+    fun setData(data : ArrayList<BGData>) {
         //we are not allowed to draw anything outside the onDraw method
         this.data = data
         invalidate()
@@ -87,12 +88,12 @@ class Gauge(
         super.onDraw(canvas)
         canvas.drawArc(rect, 180f, 180f, false, paint)
         if (data.isNotEmpty()) {
-            val sum = data.keys.sum()
+            val sum = data.map { it.data }.sum();
             var lastThreshold = 0f
             var index = 0
-            data.entries.reversed().forEach {
-                pPaint.color = it.value
-                val angle = (it.key / sum) * 180f
+            data.reversed().forEach {
+                pPaint.color = it.color
+                val angle = (it.data / sum) * 180f
                 canvas.drawArc(rect, lastThreshold, -angle, false, pPaint)
                 lastThreshold -= angle
                 index++

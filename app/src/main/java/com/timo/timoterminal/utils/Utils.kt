@@ -32,6 +32,7 @@ import java.net.NetworkInterface
 import java.nio.charset.StandardCharsets.UTF_8
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Collections
 import java.util.Date
@@ -324,6 +325,20 @@ class Utils {
                 val leftSpacer = parent.getChildAt(1)
                 leftSpacer.visibility = View.GONE
             }
+        }
+
+        /**
+         * Parses HH:mm time to minutes
+         */
+        fun parseTimeToMinutes(time: String, parseFormat: String): Int {
+            val format = SimpleDateFormat(parseFormat, Locale.getDefault())
+            val date = format.parse(time)
+            if (date != null) {
+                val hours = date.hours
+                val minutes = date.minutes
+                return hours * 60 + minutes
+            }
+            return 0
         }
     }
 }
