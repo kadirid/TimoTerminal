@@ -262,6 +262,7 @@
                 android:background="@drawable/square_button_background"
                 android:textAllCaps="false"
                 android:textSize="32sp"
+                android:visibility="gone"
                 app:backgroundTint="#006589"
                 app:icon="@drawable/baseline_close_24"
                 app:iconGravity="textStart"
@@ -270,7 +271,8 @@
                 app:iconTint="#FFFFFF"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintStart_toStartOf="parent"
+                tools:visibility="visible"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

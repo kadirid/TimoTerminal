@@ -12,11 +12,11 @@ import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.SharedPrefService
 
 class SoundSource(val sharedPrefService: SharedPrefService, val context: Context) {
-    private val soundPool : SoundPool = SoundPool.Builder().setMaxStreams(1).build()
+    private val soundPool: SoundPool = SoundPool.Builder().setMaxStreams(1).build()
     private val map = HashMap<Int, Int>()
     private val soundThread = HandlerThread("soundThread")
     private var poolNo = 0
-    private var handler : Handler
+    private var handler: Handler
 
     init {
         if (!soundThread.isAlive) soundThread.start()
@@ -26,11 +26,13 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
     }
 
     fun playSound(soundId: Int) {
-        handler.post {
-            if (map[soundId] != null && map[soundId] != -1) {
-                soundPool.play(map[soundId]!!, 0.5f, 0.5f, 1, 0, 1f)
-            } else {
-                Log.d("Sound missed", soundId.toString())
+        if (sharedPrefService.getBoolean(SharedPreferenceKeys.SOUND_ACTIVITY, true)) {
+            handler.post {
+                if (map[soundId] != null && map[soundId] != -1) {
+                    soundPool.play(map[soundId]!!, 0.5f, 0.5f, 1, 0, 1f)
+                } else {
+                    Log.d("Sound missed", soundId.toString())
+                }
             }
         }
     }
@@ -101,7 +103,7 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
         }
     }
 
-    fun loadForFP() {
+    fun loadForFP(finger: Int = -1) {
         handler.post {
             if (isLoaded(fingerSaved)) {
                 return@post
@@ -116,38 +118,62 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
                 map[placeSameFingerAgain] = soundPool.load(
                     context, R.raw.de_please_place_the_same_finger_on_the_scanner_again, 1
                 )
-                map[placeLeftIndexFinger] = soundPool.load(
-                    context, R.raw.de_please_place_your_left_index_finger_on_the_scanner, 1
-                )
-                map[placeLeftLittleFinger] = soundPool.load(
-                    context, R.raw.de_please_place_your_left_little_finger_on_the_scanner, 1
-                )
-                map[placeLeftMiddleFinger] = soundPool.load(
-                    context, R.raw.de_please_place_your_left_middle_finger_on_the_scanner, 1
-                )
-                map[placeLeftRingFinger] = soundPool.load(
-                    context, R.raw.de_please_place_your_left_ring_finger_on_the_scanner, 1
-                )
-                map[placeLeftThumb] =
-                    soundPool.load(context, R.raw.de_please_place_your_left_thumb_on_the_scanner, 1)
-                map[placeRightIndexFinger] = soundPool.load(
-                    context, R.raw.de_please_place_your_right_index_finger_on_the_scanner, 1
-                )
-                map[placeRightLittleFinger] = soundPool.load(
-                    context, R.raw.de_please_place_your_right_little_finger_on_the_scanner, 1
-                )
-                map[placeRightMiddleFinger] = soundPool.load(
-                    context, R.raw.de_please_place_your_right_middle_finger_on_the_scanner, 1
-                )
-                map[placeRightRingFinger] = soundPool.load(
-                    context, R.raw.de_please_place_your_right_ring_finger_on_the_scanner, 1
-                )
-                map[placeRightThumb] =
-                    soundPool.load(
-                        context,
-                        R.raw.de_please_place_your_right_thumb_on_the_scanner,
-                        1
+                if (finger == 3 || finger == -1) {
+                    map[placeLeftIndexFinger] = soundPool.load(
+                        context, R.raw.de_please_place_your_left_index_finger_on_the_scanner, 1
                     )
+                }
+                if (finger == 0 || finger == -1) {
+                    map[placeLeftLittleFinger] = soundPool.load(
+                        context, R.raw.de_please_place_your_left_little_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 2 || finger == -1) {
+                    map[placeLeftMiddleFinger] = soundPool.load(
+                        context, R.raw.de_please_place_your_left_middle_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 1 || finger == -1) {
+                    map[placeLeftRingFinger] = soundPool.load(
+                        context, R.raw.de_please_place_your_left_ring_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 4 || finger == -1) {
+                    map[placeLeftThumb] =
+                        soundPool.load(
+                            context,
+                            R.raw.de_please_place_your_left_thumb_on_the_scanner,
+                            1
+                        )
+                }
+                if (finger == 6 || finger == -1) {
+                    map[placeRightIndexFinger] = soundPool.load(
+                        context, R.raw.de_please_place_your_right_index_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 9 || finger == -1) {
+                    map[placeRightLittleFinger] = soundPool.load(
+                        context, R.raw.de_please_place_your_right_little_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 7 || finger == -1) {
+                    map[placeRightMiddleFinger] = soundPool.load(
+                        context, R.raw.de_please_place_your_right_middle_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 8 || finger == -1) {
+                    map[placeRightRingFinger] = soundPool.load(
+                        context, R.raw.de_please_place_your_right_ring_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 5 || finger == -1) {
+                    map[placeRightThumb] =
+                        soundPool.load(
+                            context,
+                            R.raw.de_please_place_your_right_thumb_on_the_scanner,
+                            1
+                        )
+                }
                 map[selectFinger] = soundPool.load(context, R.raw.de_please_select_finger, 1)
                 map[takeFingerAway] =
                     soundPool.load(context, R.raw.de_please_take_your_finger_away, 1)
@@ -161,38 +187,62 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
                 map[placeSameFingerAgain] = soundPool.load(
                     context, R.raw.en_please_place_the_same_finger_on_the_scanner_again, 1
                 )
-                map[placeLeftIndexFinger] = soundPool.load(
-                    context, R.raw.en_please_place_your_left_index_finger_on_the_scanner, 1
-                )
-                map[placeLeftLittleFinger] = soundPool.load(
-                    context, R.raw.en_please_place_your_left_little_finger_on_the_scanner, 1
-                )
-                map[placeLeftMiddleFinger] = soundPool.load(
-                    context, R.raw.en_please_place_your_left_middle_finger_on_the_scanner, 1
-                )
-                map[placeLeftRingFinger] = soundPool.load(
-                    context, R.raw.en_please_place_your_left_ring_finger_on_the_scanner, 1
-                )
-                map[placeLeftThumb] =
-                    soundPool.load(context, R.raw.en_please_place_your_left_thumb_on_the_scanner, 1)
-                map[placeRightIndexFinger] = soundPool.load(
-                    context, R.raw.en_please_place_your_right_index_finger_on_the_scanner, 1
-                )
-                map[placeRightLittleFinger] = soundPool.load(
-                    context, R.raw.en_please_place_your_right_little_finger_on_the_scanner, 1
-                )
-                map[placeRightMiddleFinger] = soundPool.load(
-                    context, R.raw.en_please_place_your_right_middle_finger_on_the_scanner, 1
-                )
-                map[placeRightRingFinger] = soundPool.load(
-                    context, R.raw.en_please_place_your_right_ring_finger_on_the_scanner, 1
-                )
-                map[placeRightThumb] =
-                    soundPool.load(
-                        context,
-                        R.raw.en_please_place_your_right_thumb_on_the_scanner,
-                        1
+                if (finger == 3 || finger == -1) {
+                    map[placeLeftIndexFinger] = soundPool.load(
+                        context, R.raw.en_please_place_your_left_index_finger_on_the_scanner, 1
                     )
+                }
+                if (finger == 0 || finger == -1) {
+                    map[placeLeftLittleFinger] = soundPool.load(
+                        context, R.raw.en_please_place_your_left_little_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 2 || finger == -1) {
+                    map[placeLeftMiddleFinger] = soundPool.load(
+                        context, R.raw.en_please_place_your_left_middle_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 1 || finger == -1) {
+                    map[placeLeftRingFinger] = soundPool.load(
+                        context, R.raw.en_please_place_your_left_ring_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 4 || finger == -1) {
+                    map[placeLeftThumb] =
+                        soundPool.load(
+                            context,
+                            R.raw.en_please_place_your_left_thumb_on_the_scanner,
+                            1
+                        )
+                }
+                if (finger == 6 || finger == -1) {
+                    map[placeRightIndexFinger] = soundPool.load(
+                        context, R.raw.en_please_place_your_right_index_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 9 || finger == -1) {
+                    map[placeRightLittleFinger] = soundPool.load(
+                        context, R.raw.en_please_place_your_right_little_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 7 || finger == -1) {
+                    map[placeRightMiddleFinger] = soundPool.load(
+                        context, R.raw.en_please_place_your_right_middle_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 8 || finger == -1) {
+                    map[placeRightRingFinger] = soundPool.load(
+                        context, R.raw.en_please_place_your_right_ring_finger_on_the_scanner, 1
+                    )
+                }
+                if (finger == 5 || finger == -1) {
+                    map[placeRightThumb] =
+                        soundPool.load(
+                            context,
+                            R.raw.en_please_place_your_right_thumb_on_the_scanner,
+                            1
+                        )
+                }
                 map[selectFinger] = soundPool.load(context, R.raw.en_please_select_finger, 1)
                 map[takeFingerAway] =
                     soundPool.load(context, R.raw.en_please_take_your_finger_away, 1)
@@ -209,7 +259,7 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
         const val successSound = 0
         const val failedSound = 1
         const val authenticationFailed = 2// ok
-        const val enterPIN = 3
+//        const val enterPIN = 3
         const val fingerSaved = 4// ok
         const val loginFailed = 6// ok
         const val loginSuccessful = 7// ok
@@ -229,8 +279,8 @@ class SoundSource(val sharedPrefService: SharedPrefService, val context: Context
         const val selectFinger = 20// ok
         const val takeFingerAway = 21// ok
         const val takeFingerAwayAndPutItOnAgain = 22// ok
-        const val savedSuccessfully = 23
-        const val savingError = 24
+//        const val savedSuccessfully = 23
+//        const val savingError = 24
     }
 
     fun reloadForLanguage() {

@@ -51,6 +51,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
 
     private val templates = mutableListOf<String>()
     private var enrollCount: Int = 0
+    private var nDismiss: Boolean = true
 
     private var id: String? = null
     private var editor: String? = null
@@ -65,7 +66,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
         timer.cancel()
         timer = Timer("dismissRemoteRegisterSheet", false)
         timer.schedule(if (isFP) 20000L else 10000L) {
-            dismiss()
+            this@MBRemoteRegisterSheet.dismiss()
         }
     }
 
@@ -109,7 +110,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
                 binding.actionText.text = languageService.getText("#FingerOnReader")
             } else {
                 binding.fingerprintImage.visibility = View.GONE
-                binding.actionText.text = languageService.getText("#FingerOnReader")
+                binding.actionText.text = languageService.getText("#RFIDScanner")
             }
         }
     }
@@ -161,7 +162,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
             }
             val white = activity?.resources?.getColorStateList(R.color.white, null)
 
-            when(finger){
+            when (finger) {
                 0 -> image = binding.fingerSelectArrow0
                 1 -> image = binding.fingerSelectArrow1
                 2 -> image = binding.fingerSelectArrow2
@@ -229,7 +230,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
             soundSource.playSound(SoundSource.takeFingerAway)
             // This function returns the merged template, which is the template saved by the FP algorithm.
             FingerprintService.enroll(enrollingKey, templates).run {
-                Log.d(javaClass.simpleName, "Enrolled template $this")
+                Log.d("MBRemoteRegisterSheet", "Enrolled template $this")
                 showLoadMask()
                 viewModel.saveFP(id, finger, this) { error ->
                     if (error.isEmpty()) {
@@ -243,7 +244,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
                     hideLoadMask()
                     val timer2 = Timer("remoteRegisterAfterUpdateDismiss", false)
                     timer2.schedule(5000) {
-                        dismiss()
+                        this@MBRemoteRegisterSheet.dismiss()
                     }
                     FingerprintService.unregister()
                 }
@@ -314,7 +315,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
                 activity?.runOnUiThread {
                     val valueAnimator = ValueAnimator.ofInt(
                         binding.remoteRegisterBottomSheet.measuredHeight,
-                        binding.remoteRegisterBottomSheet.measuredHeight + if(isFP) 300 else 30
+                        binding.remoteRegisterBottomSheet.measuredHeight + if (isFP) 300 else 30
                     )
                     valueAnimator.duration = 500L
                     valueAnimator.addUpdateListener {
@@ -322,6 +323,24 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
                         val layoutParams = binding.remoteRegisterBottomSheet.layoutParams
                         layoutParams.height = animatedValue
                         binding.remoteRegisterBottomSheet.layoutParams = layoutParams
+                    }
+                    valueAnimator.doOnEnd {
+                        val sound = when (finger) {
+                            0 -> SoundSource.placeLeftLittleFinger
+                            1 -> SoundSource.placeLeftRingFinger
+                            2 -> SoundSource.placeLeftMiddleFinger
+                            3 -> SoundSource.placeLeftIndexFinger
+                            4 -> SoundSource.placeLeftThumb
+                            5 -> SoundSource.placeRightThumb
+                            6 -> SoundSource.placeRightIndexFinger
+                            7 -> SoundSource.placeRightMiddleFinger
+                            8 -> SoundSource.placeRightRingFinger
+                            9 -> SoundSource.placeRightLittleFinger
+                            else -> -1
+                        }
+                        if (sound != -1)
+                            soundSource.playSound(sound)
+                        binding.buttonClose.visibility = if(isFP) View.VISIBLE else View.GONE
                     }
                     valueAnimator.start()
                 }
@@ -331,11 +350,12 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
+        nDismiss = false
         RfidService.unregister()
         FingerprintService.unregister()
         val frag = parentFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
         if (frag == null || !frag.isVisible) {
-            (activity as MainActivity?)?.restartTimer()
+            (activity as MainActivity?)?.showAttendanceFragment()
         } else {
             (frag as AttendanceFragment).onResume()
         }
@@ -356,8 +376,10 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
     }
 
     override fun onPause() {
-        RfidService.unregister()
-        FingerprintService.unregister()
+        if (nDismiss) {
+            RfidService.unregister()
+            FingerprintService.unregister()
+        }
         timer.cancel()
 
         super.onPause()
@@ -378,7 +400,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
     private fun afterUpdate(success: Boolean, message: String) {
         val timer2 = Timer("remoteRegisterAfterUpdateDismiss", false)
         timer2.schedule(5000) {
-            dismiss()
+            this@MBRemoteRegisterSheet.dismiss()
         }
 
         activity?.runOnUiThread {

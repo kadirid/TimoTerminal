@@ -11,4 +11,5 @@ enum class SharedPreferenceKeys {
     LANGUAGE,
     TIMEZONE,
     UI_VISIBLE,
+    SOUND_ACTIVITY
 }

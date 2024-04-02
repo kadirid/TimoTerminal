@@ -164,9 +164,9 @@ class MainActivityViewModel(
         }
     }
 
-    fun loadSoundForFP() {
+    fun loadSoundForFP(finger: Int) {
         viewModelScope.launch {
-            soundSource.loadForFP()
+            soundSource.loadForFP(finger)
         }
     }
 }

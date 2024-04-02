@@ -27,7 +27,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonReboot"
             style="@style/SettingsViewButtons"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="12dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/button_user_setting"
             tools:text="Reboot Terminal" />
@@ -35,7 +35,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonTerminalBooking"
             style="@style/SettingsViewButtons"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="12dp"
             tools:text="Local Entries"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/buttonReboot"/>
@@ -43,18 +43,18 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonActualizeTerminal"
             style="@style/SettingsViewButtons"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="12dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/buttonTerminalBooking"
             tools:text="Actualize Terminal" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonLauncher"
+            android:id="@+id/buttonSound"
             style="@style/SettingsViewButtons"
-            android:layout_marginTop="20dp"
-            app:layout_constraintTop_toBottomOf="@id/buttonActualizeTerminal"
+            android:layout_marginTop="12dp"
             app:layout_constraintStart_toStartOf="parent"
-            tools:text="Launcher" />
+            app:layout_constraintTop_toBottomOf="@id/buttonActualizeTerminal"
+            tools:text="Toggle Sound" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonWifi"
@@ -88,17 +88,24 @@
             app:layout_constraintTop_toTopOf="@id/buttonActualizeTerminal"
             tools:text="Reset Terminal" />
 
-        <!-- marginStart is set programmatically if it is needed -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonLogout"
             style="@style/SettingsViewButtons"
-            android:layout_marginTop="20dp"
             android:backgroundTint="@color/black"
+            android:layout_marginStart="20dp"
             tools:text="Renew Login"
-            app:layout_constraintStart_toEndOf="@id/buttonLauncher"
+            app:layout_constraintStart_toEndOf="@id/buttonSound"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonActualizeTerminal"
-            tools:layout_marginStart="20dp"/>
+            app:layout_constraintTop_toTopOf="@id/buttonSound"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonLauncher"
+            style="@style/SettingsViewButtons"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/buttonLogout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Launcher" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -23,7 +23,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
-import com.timo.timoterminal.fragmentViews.AttendanceFragment
+import com.timo.timoterminal.fragmentViews.UserSettingsFragment
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
@@ -51,6 +51,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     private val soundSource: SoundSource by inject()
 
     private val templates = mutableListOf<String>()
+    private var nDismiss: Boolean = true
 
     private var image: ImageView? = null
     private var id: String? = null
@@ -199,7 +200,6 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
             if (isFP) {
                 binding.cardImage.visibility = View.GONE
                 binding.fingerSelectContainer.visibility = View.VISIBLE
-                binding.buttonClose.visibility = View.VISIBLE
                 checkForFP()
             } else {
                 binding.fingerprintImage.visibility = View.GONE
@@ -295,8 +295,10 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     }
 
     override fun onPause() {
-        RfidService.unregister()
-        FingerprintService.unregister()
+        if (nDismiss) {
+            RfidService.unregister()
+            FingerprintService.unregister()
+        }
         timer?.cancel()
 
         super.onPause()
@@ -467,7 +469,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
                 activity?.runOnUiThread {
                     val valueAnimator = ValueAnimator.ofInt(
                         binding.scanBottomSheet.measuredHeight,
-                        binding.scanBottomSheet.measuredHeight + if (isFP) 300 else 30
+                        binding.scanBottomSheet.measuredHeight + if (isFP) 300 else 0
                     )
                     valueAnimator.duration = 500L
                     valueAnimator.addUpdateListener {
@@ -475,6 +477,9 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
                         val layoutParams = binding.scanBottomSheet.layoutParams
                         layoutParams.height = animatedValue
                         binding.scanBottomSheet.layoutParams = layoutParams
+                    }
+                    valueAnimator.doOnEnd {
+                        binding.buttonClose.visibility = if (isFP) View.VISIBLE else View.GONE
                     }
                     valueAnimator.start()
                 }
@@ -484,14 +489,14 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
+        nDismiss = false
         RfidService.unregister()
         FingerprintService.unregister()
-        val frag = parentFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
-        if (frag == null || !frag.isVisible) {
-            (activity as MainActivity?)?.restartTimer()
-        } else {
-            (frag as AttendanceFragment).onResume()
+        val frag = parentFragmentManager.findFragmentByTag(UserSettingsFragment.TAG)
+        if (frag != null && frag.isVisible) {
+            (frag as UserSettingsFragment).onResume()
         }
+        (activity as MainActivity?)?.restartTimer()
     }
 
     private fun afterUpdate(success: Boolean, message: String) {

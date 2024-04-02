@@ -191,9 +191,9 @@ class AttendanceFragment : Fragment() {
                                     notifyFailure(msg)
                                 }
                             }
-                            (activity as MainActivity?)?.hideLoadMask()
+                            (activity as MainActivity?)?.hideLoadMask(false)
                         }, { e, res, context, output ->
-                            (activity as MainActivity?)?.hideLoadMask()
+                            (activity as MainActivity?)?.hideLoadMask(false)
                             HttpService.handleGenericRequestError(
                                 e,
                                 res,
@@ -217,13 +217,13 @@ class AttendanceFragment : Fragment() {
     }
 
     private fun notifyFailure(msg: String) {
-        (activity as MainActivity?)?.hideLoadMask()
+        (activity as MainActivity?)?.hideLoadMask(false)
         soundSource.playSound(SoundSource.failedSound)
         Utils.showMessage(parentFragmentManager, msg)
     }
 
     private fun notifyVerificationFailed(msg: String) {
-        (activity as MainActivity?)?.hideLoadMask()
+        (activity as MainActivity?)?.hideLoadMask(false)
         soundSource.playSound(SoundSource.authenticationFailed)
         Utils.showMessage(parentFragmentManager, msg)
     }

@@ -115,7 +115,7 @@ class HeartbeatService : KoinComponent {
             for (i in 0 until array.length()) {
                 val cmdObj = array.getJSONObject(i)
                 val command = cmdObj.optString("command")
-                Log.d("Commands", command)
+                Log.d("HeartbeatService", command)
                 val id = cmdObj.optString("unique")
                 if (id.isNotEmpty()) {
                     if (command == "updateAllUser") {
@@ -153,14 +153,17 @@ class HeartbeatService : KoinComponent {
             if (updateAllUser.isNotEmpty()) {
                 userService.loadUsersFromServer(scope, updateAllUser)
             } else {
+                for (no in deleteFP) {
+                    val ids = no.first.split(":")
+                    if (ids.size == 2) {
+                        userService.deleteFP(ids[0], ids[1].toInt(), no.second)
+                    }
+                }
                 for (no in updateIds) {
                     userService.loadUserFromServer(scope, no.first, no.second)
                 }
                 for (no in deleteIds) {
                     userService.deleteUser(no.first, no.second)
-                }
-                for (no in deleteFP) {
-                    userService.deleteFPForUser(no.first, no.second)
                 }
             }
             if (loadPermissions.isNotEmpty()) {
@@ -180,9 +183,9 @@ class HeartbeatService : KoinComponent {
             }
             if (enrollCard.first.isNotEmpty()) {
                 activity.cancelTimer()
-                activity.runOnUiThread {
-                    val ids = enrollCard.first.split(":")
-                    if (ids.size == 2) {
+                val ids = enrollCard.first.split(":")
+                if (ids.size == 2) {
+                    activity.runOnUiThread {
                         val frag =
                             activity.supportFragmentManager.findFragmentByTag(MBRemoteRegisterSheet.TAG)
                         if (frag == null || !frag.isVisible) {
@@ -199,22 +202,21 @@ class HeartbeatService : KoinComponent {
                 }
             }
             if (enrollFinger.first.isNotEmpty()) {
-                activity.cancelTimer()
-                activity.loadSoundForFP()
-                activity.runOnUiThread {
-                    val ids = enrollFinger.first.split(":")
-                    if (ids.size == 3) {
+                val ids = enrollFinger.first.split(":")
+                if (ids.size == 3) {
+                    activity.cancelTimer()
+                    activity.loadSoundForFP(ids[2].substring(1, ids[2].length).toInt())
+                    activity.runOnUiThread {
                         val frag =
                             activity.supportFragmentManager.findFragmentByTag(MBRemoteRegisterSheet.TAG)
                         if (frag == null || !frag.isVisible) {
-                            val sheet =
-                                MBRemoteRegisterSheet.newInstance(
-                                    ids[0].substring(1, ids[0].length),
-                                    ids[1].substring(1, ids[1].length),
-                                    true,
-                                    ids[2].substring(1, ids[2].length).toInt(),
-                                    commandId = enrollFinger.second
-                                )
+                            val sheet = MBRemoteRegisterSheet.newInstance(
+                                ids[0].substring(1, ids[0].length),
+                                ids[1].substring(1, ids[1].length),
+                                true,
+                                ids[2].substring(1, ids[2].length).toInt(),
+                                commandId = enrollFinger.second
+                            )
                             sheet.show(activity.supportFragmentManager, MBRemoteRegisterSheet.TAG)
                         }
                     }

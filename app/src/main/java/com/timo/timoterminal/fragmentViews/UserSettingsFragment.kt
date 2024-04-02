@@ -297,6 +297,8 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
     }
 
     companion object {
+        const val TAG = "UserSettingsFragmentTag"
+
         fun newInstance(userId: Long) =
             UserSettingsFragment().apply {
                 arguments = Bundle().apply {
