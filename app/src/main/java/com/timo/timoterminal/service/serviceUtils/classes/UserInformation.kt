@@ -21,7 +21,7 @@ data class UserInformation(
     val gVacation: String,
     val bVacation: String,
     val rVacation: String,
-    val buchung: ArrayList<Buchung>
+    val event: ArrayList<Event>
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
@@ -37,8 +37,8 @@ data class UserInformation(
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
-        ArrayList<Buchung>().apply {
-            parcel.readList(this, Buchung::class.java.classLoader)
+        ArrayList<Event>().apply {
+            parcel.readList(this, Event::class.java.classLoader)
         }
     )
 
@@ -56,7 +56,7 @@ data class UserInformation(
         parcel.writeString(gVacation)
         parcel.writeString(bVacation)
         parcel.writeString(rVacation)
-        parcel.writeList(buchung)
+        parcel.writeList(event)
     }
 
     override fun describeContents(): Int {
@@ -96,9 +96,9 @@ data class UserInformation(
             val gVacation = jsonObject.getString("gVacation")
             val bVacation = jsonObject.getString("bVacation")
             val rVacation = jsonObject.getString("rVacation")
-            val buchung = jsonObject.getJSONArray("bookings").let { i ->
+            val events = jsonObject.getJSONArray("events").let { i ->
                 (0 until i.length()).map { i.getJSONObject(it) }.map {
-                    Buchung.convertJsonToObject(it)
+                    Event.convertJsonToObject(it)
                 }.toCollection(ArrayList())}
 
             return UserInformation(
@@ -115,7 +115,7 @@ data class UserInformation(
                 gVacation,
                 bVacation,
                 rVacation,
-                buchung
+                events
             )
         }
     }

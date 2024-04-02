@@ -14,6 +14,7 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
+import java.util.Date
 
 class UserService(
     private val httpService: HttpService,
@@ -187,10 +188,12 @@ class UserService(
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
         if (!company.isNullOrEmpty() && terminalId > 0 && !token.isNullOrEmpty()) {
             val params = HashMap<String, String>();
-            params["card"] = user.card;
-            params["firma"] = company;
-            params["terminalId"] = terminalId.toString();
-            params["token"] = token;
+            params["card"] = user.card
+            params["firma"] = company
+            params["terminalId"] = terminalId.toString()
+            params["token"] = token
+            params ["from"] = Date().time.toString()
+            params ["to"] = Date().time.toString()
             return httpService.get(
                 "${url}services/rest/zktecoTerminal/info",
                 params,
