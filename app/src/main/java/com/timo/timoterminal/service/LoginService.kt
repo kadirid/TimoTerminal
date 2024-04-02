@@ -333,9 +333,6 @@ class LoginService(
     }
 
     fun resetTerminal(context: Context, coroutineScope: CoroutineScope) {
-        sharedPrefService.removeAllCreds()
-        val logoutIntent = Intent(context, LoginActivity::class.java)
-        logoutIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         userService.deleteAllUsers(coroutineScope)
         languageService.deleteAll(coroutineScope)
         coroutineScope.launch {
@@ -351,7 +348,7 @@ class LoginService(
         helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='UserEntity';")
         helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingBUEntity';")
         helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingEntity';")
-        context.startActivity(logoutIntent)
+        logout(context)
     }
 
     private suspend fun insertOrUpdateConfigEntities(list: ArrayList<ConfigEntity>) {

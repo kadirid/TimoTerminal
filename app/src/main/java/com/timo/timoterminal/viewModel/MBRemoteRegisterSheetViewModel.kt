@@ -99,6 +99,12 @@ class MBRemoteRegisterSheetViewModel(
                             FingerprintService.delete("$user|$finger")
                         }
                     )
+                }else{
+                    callback(
+                        languageService.getText("#TimoServiceNotReachable") + " " +
+                                languageService.getText("#ChangesReverted")
+                    )
+                    FingerprintService.delete("$user|$finger")
                 }
             }
         }

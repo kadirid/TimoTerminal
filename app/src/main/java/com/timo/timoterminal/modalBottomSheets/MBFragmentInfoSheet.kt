@@ -31,7 +31,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
 
     val viewModel by sharedViewModel<InfoFragmentViewModel>()
     private var card: String = ""
-    private var res: UserInformation? = null;
+    private var res: UserInformation? = null
 
     companion object {
         const val TAG = "MBFragmentInfoSheet"
@@ -44,7 +44,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
     ): View {
         binding = FragmentInfoMessageSheetItemBinding.inflate(inflater, container, false)
 
-        res = arguments?.getParcelable<UserInformation>("res")!!
+        res = arguments?.getParcelable("res")!!
         card = arguments?.getString("card") ?: ""
 
         if (res != null) setText(res!!)
@@ -90,7 +90,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             ) {
                 val gcDate = Utils.getCal()
                 val greg = GregorianCalendar()
-                greg.time = res.zeitLB;
+                greg.time = res.zeitLB
 
                 var diff = gcDate.timeInMillis - greg.timeInMillis
                 diff /= 1000
@@ -99,7 +99,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             }
             binding.textviewTimeTarget.text = getText("#Target")
             binding.textviewTimeTargetValue.text = res.soll
-            val targetMinutes = Utils.parseTimeToMinutes(res.soll, "HH:mm");
+            val targetMinutes = Utils.parseTimeToMinutes(res.soll, "HH:mm")
 
             binding.textviewTimeActual.text = getText("ALLGEMEIN#Ist")
             binding.textviewTimeActualValue.text = Utils.convertTime(ist)
@@ -111,7 +111,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             listSollIst.add(BGData((targetMinutes - actualMinutes).toFloat(), MaterialColors.getColor(
                 requireContext(),
                 R.attr.colorSurfaceContainerHighest,
-                resources.getColor(R.color.black)
+                resources.getColor(R.color.black,null)
             )))
             binding.gaugeTime.setData(listSollIst)
 
@@ -151,7 +151,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                     rVacation, MaterialColors.getColor(
                         requireContext(),
                         R.attr.colorSurfaceContainerHighest,
-                        resources.getColor(R.color.black)
+                        resources.getColor(R.color.black,null)
                     )
                 )
             )
@@ -168,7 +168,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                     20f, MaterialColors.getColor(
                         requireContext(),
                         R.attr.colorSurfaceContainerHighest,
-                        resources.getColor(R.color.black)
+                        resources.getColor(R.color.black,null)
                     )
                 )
             )

@@ -32,7 +32,6 @@ import java.net.NetworkInterface
 import java.nio.charset.StandardCharsets.UTF_8
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
-import java.time.LocalTime
 import java.util.Calendar
 import java.util.Collections
 import java.util.Date
@@ -105,12 +104,12 @@ class Utils {
                         if (!addr.isLoopbackAddress) {
                             val sAddr = addr.hostAddress
                             //boolean isIPv4 = InetAddressUtils.isIPv4Address(sAddr);
-                            val isIPv4 = sAddr.indexOf(':') < 0
+                            val isIPv4 = (sAddr?.indexOf(':') ?: -1) < 0
                             if (useIPv4) {
                                 if (isIPv4) return sAddr!!
                             } else {
                                 if (!isIPv4) {
-                                    val delim = sAddr.indexOf('%') // drop ip6 zone suffix
+                                    val delim = sAddr!!.indexOf('%')// drop ip6 zone suffix
                                     return if (delim < 0) sAddr.uppercase(Locale.getDefault()) else sAddr.substring(
                                         0,
                                         delim

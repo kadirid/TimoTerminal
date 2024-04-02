@@ -36,6 +36,7 @@ class SettingsFragment : Fragment() {
     private val heartbeatService: HeartbeatService by inject()
     private val viewModel: SettingsFragmentViewModel by viewModel()
     private var userId: Long = -1
+    private var active = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +71,12 @@ class SettingsFragment : Fragment() {
             binding.buttonReboot.text = languageService.getText("#RebootTerminal")
             binding.buttonTerminalBooking.text = languageService.getText("TERMINAL#Booking list")
             binding.buttonLogout.text = languageService.getText("#RenewLogin", "Logout")
+            active = viewModel.getSoundActive()
+            binding.buttonSound.text =
+                if (active)
+                    languageService.getText("#DeactivateSound")
+                else
+                    languageService.getText("#ActivateSound")
         }
     }
 
@@ -78,23 +85,41 @@ class SettingsFragment : Fragment() {
             binding.fragmentSettingRootLayout.setOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
             }
-
             binding.buttonUserSetting.setSafeOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
                 parentFragmentManager.commit {
-                    replace(R.id.fragment_container_view, UserSettingsFragment.newInstance(userId))
+                    replace(
+                        R.id.fragment_container_view,
+                        UserSettingsFragment.newInstance(userId),
+                        UserSettingsFragment.TAG
+                    )
                 }
                 viewModel.loadSound()
             }
             binding.buttonReboot.setSafeOnClickListener {
                 requireActivity().sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
             }
-            binding.buttonLogout.visibility = if (userId < 0) View.VISIBLE else View.GONE
-            if (userId == -2L) {
-                val param = binding.buttonLogout.layoutParams as ViewGroup.MarginLayoutParams
-                param.setMargins(20, 20, 0, 0)
-                binding.buttonLogout.layoutParams = param
+            binding.buttonSound.visibility = if (userId < 0) View.VISIBLE else View.GONE
+            binding.buttonSound.setSafeOnClickListener {
+                (activity as MainActivity?)?.restartTimer()
+                viewModel.viewModelScope.launch {
+                    active = !active
+                    viewModel.setSoundActive(active)
+                    binding.buttonSound.text =
+                        if (active)
+                            languageService.getText("#DeactivateSound")
+                        else
+                            languageService.getText("#ActivateSound")
+                    Utils.showMessage(
+                        parentFragmentManager,
+                        if (active)
+                            languageService.getText("#SoundWasActivated")
+                        else
+                            languageService.getText("#SoundWasDeactivated")
+                    )
+                }
             }
+            binding.buttonLogout.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonLogout.setSafeOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
                 val dlgAlert: AlertDialog.Builder =
@@ -142,7 +167,10 @@ class SettingsFragment : Fragment() {
             }
             binding.buttonActualizeTerminal.setSafeOnClickListener {
                 viewModel.actualizeTerminal(requireContext())
-                Utils.showMessage(parentFragmentManager, languageService.getText("#TerminalUpdating"))
+                Utils.showMessage(
+                    parentFragmentManager,
+                    languageService.getText("#TerminalUpdating")
+                )
             }
             binding.buttonResetTerminal.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonResetTerminal.setSafeOnClickListener {
@@ -158,7 +186,7 @@ class SettingsFragment : Fragment() {
                     )
                 ) { dia, _ -> dia.dismiss() }
                 dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok", "OK")) { _, _ ->
-                    viewModel.resetTerminal(requireContext())
+                    confirmAgain()
                 }
                 val dialog = dlgAlert.create()
                 Utils.hideNavInDialog(dialog)
@@ -204,6 +232,31 @@ class SettingsFragment : Fragment() {
                 dialog.window?.setLayout(680, 244)
             }
         }
+    }
+
+    private fun confirmAgain() {
+        (activity as MainActivity?)?.restartTimer()
+        val dlgAlert: AlertDialog.Builder =
+            AlertDialog.Builder(requireContext(), R.style.MyDialog)
+        dlgAlert.setMessage(languageService.getText("#DeleteDataResetTerminal"))
+        dlgAlert.setTitle(languageService.getText("#Attention"))
+        dlgAlert.setNegativeButton(
+            languageService.getText(
+                "BUTTON#Gen_Cancel",
+                "Cancel"
+            )
+        ) { dia, _ -> dia.dismiss() }
+        dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok", "OK")) { _, _ ->
+            viewModel.resetTerminal(requireContext())
+        }
+        val dialog = dlgAlert.create()
+        Utils.hideNavInDialog(dialog)
+        dialog.setOnShowListener {
+            val textView = dialog.findViewById<TextView>(android.R.id.message)
+            textView?.textSize = 40f
+        }
+        dialog.show()
+        dialog.window?.setLayout(680, 417)
     }
 
     companion object {

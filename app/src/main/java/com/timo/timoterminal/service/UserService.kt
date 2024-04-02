@@ -147,8 +147,8 @@ class UserService(
                 { obj, _, _ ->
                     //Save it persistently offline
                     if (obj != null) {
-                        val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
                         scope.launch {
+                            val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
                             userRepository.insertOne(userEntity)
                             if (userEntity.assignedToTerminal) {
                                 getFPForUser(url, { }, userId, company, terminalId, token)
@@ -181,7 +181,7 @@ class UserService(
         user: UserEntity,
         successCallback: (success: Boolean, message: String, objResponse: UserInformation?) -> Unit?,
         errorCallback: ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit?)
-    ) : Unit {
+    ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
@@ -202,8 +202,8 @@ class UserService(
                     if (obj != null) {
                         if (obj.getBoolean("success")) {
                             val res = obj.getString("message")
-                            val responseObj = UserInformation.convertJSONToObject(res);
-                            successCallback(true, "",  responseObj)
+                            val responseObj = UserInformation.convertJSONToObject(res)
+                            successCallback(true, "", responseObj)
                         } else {
                             successCallback(false, obj.getString("message"), null)
                         }
@@ -213,63 +213,70 @@ class UserService(
         }
     }
 
-suspend fun deleteUser(userId: String, unique: String = "") {
-    val list = userRepository.getEntity(userId.toLong())
-    if (list.isNotEmpty()) {
-        userRepository.delete(list[0])
-        deleteFPForUser(userId)
-    }
-    if (unique.isNotEmpty()) {
-        httpService.responseForCommand(unique)
-    }
-}
-
-fun deleteFPForUser(userId: String, unique: String = "") {
-    FingerprintService.delete("$userId|0")
-    FingerprintService.delete("$userId|1")
-    FingerprintService.delete("$userId|2")
-    FingerprintService.delete("$userId|3")
-    FingerprintService.delete("$userId|4")
-    FingerprintService.delete("$userId|5")
-    FingerprintService.delete("$userId|6")
-    FingerprintService.delete("$userId|7")
-    FingerprintService.delete("$userId|8")
-    FingerprintService.delete("$userId|9")
-    if (unique.isNotEmpty()) {
-        httpService.responseForCommand(unique)
-    }
-}
-
-private fun processFPArray(arr: JSONArray?) {
-    if (arr != null && arr.length() > 0) {
-        for (c in 0 until arr.length()) {
-            val obj = arr.getJSONObject(c)
-            processFPObj(obj)
+    suspend fun deleteUser(userId: String, unique: String = "") {
+        val list = userRepository.getEntity(userId.toLong())
+        if (list.isNotEmpty()) {
+            userRepository.delete(list[0])
+            deleteFPForUser(userId)
+        }
+        if (unique.isNotEmpty()) {
+            httpService.responseForCommand(unique)
         }
     }
-}
 
-private fun processFPObj(obj: JSONObject) {
-    val user = obj.optString("user", "")
-    if (user.isNotEmpty()) {
-        for (i in 0..9) {
-            val name = "fp$i"
-            val template = obj.optString(name)
-            if (template.isNotEmpty()) {
-                saveFPinDB(template, i, user)
-            } else {
-                FingerprintService.delete("$user|$i")
+    private fun deleteFPForUser(userId: String, unique: String = "") {
+        FingerprintService.delete("$userId|0")
+        FingerprintService.delete("$userId|1")
+        FingerprintService.delete("$userId|2")
+        FingerprintService.delete("$userId|3")
+        FingerprintService.delete("$userId|4")
+        FingerprintService.delete("$userId|5")
+        FingerprintService.delete("$userId|6")
+        FingerprintService.delete("$userId|7")
+        FingerprintService.delete("$userId|8")
+        FingerprintService.delete("$userId|9")
+        if (unique.isNotEmpty()) {
+            httpService.responseForCommand(unique)
+        }
+    }
+
+    fun deleteFP(userId: String, finger: Int, unique: String = "") {
+        FingerprintService.delete("$userId|$finger")
+        if (unique.isNotEmpty()) {
+            httpService.responseForCommand(unique)
+        }
+    }
+
+    private fun processFPArray(arr: JSONArray?) {
+        if (arr != null && arr.length() > 0) {
+            for (c in 0 until arr.length()) {
+                val obj = arr.getJSONObject(c)
+                processFPObj(obj)
             }
         }
     }
-}
 
-private fun saveFPinDB(template: String, finger: Int, id: String) {
-    val key = "$id|$finger"
-    FingerprintService.getTemplate(key)?.let {//Already registered
-        return
+    private fun processFPObj(obj: JSONObject) {
+        val user = obj.optString("user", "")
+        if (user.isNotEmpty()) {
+            for (i in 0..9) {
+                val name = "fp$i"
+                val template = obj.optString(name)
+                if (template.isNotEmpty()) {
+                    saveFPinDB(template, i, user)
+                } else {
+                    FingerprintService.delete("$user|$i")
+                }
+            }
+        }
     }
-    FingerprintService.load(key, template)
-}
+
+    private fun saveFPinDB(template: String, finger: Int, id: String) {
+        val key = "$id|$finger"
+        FingerprintService.getTemplate(key)?.let {//Already registered
+            return
+        }
+        FingerprintService.load(key, template)
+    }
 
 }

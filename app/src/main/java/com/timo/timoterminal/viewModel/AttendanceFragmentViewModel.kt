@@ -96,12 +96,11 @@ class AttendanceFragmentViewModel(
         width: Int,
         height: Int
     ) {
-        Log.d("FP", fingerprint)
         // get Key associated to the fingerprint
         viewModelScope.launch {
             FingerprintService.identify(template)?.run {
-            Log.d("FP Key", this)
-            val id = this.substring(0, this.length - 2).toLong()
+                Log.d("FP Key", this)
+                val id = this.substring(0, this.length - 2).toLong()
                 val user = getUser(id)
                 if (user != null) {
                     liveUserCard.postValue(Pair(user.card, 2))

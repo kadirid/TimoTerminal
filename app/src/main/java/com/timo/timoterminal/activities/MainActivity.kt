@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -179,9 +178,9 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private fun initNavbarListener() {
         // use loaded permission to hide project menu entry as example
         mainActivityViewModel.viewModelScope.launch {
-            val projectPermission = mainActivityViewModel.permission("projekt.use")
+//            val projectPermission = mainActivityViewModel.permission("projekt.use")
             binding.navigationRail.menu.findItem(R.id.project).isVisible =
-                projectPermission == "true" && false// currently no functionality
+                false// projectPermission == "true" // currently no functionality
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
             binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
@@ -272,8 +271,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
     }
 
-    fun hideLoadMask() {
-        restartTimer()
+    fun hideLoadMask(restartTimer:Boolean = true) {
+        if(restartTimer) {
+            restartTimer()
+        }
         runOnUiThread {
             binding.layoutLoadMaks.visibility = View.GONE
         }
@@ -283,8 +284,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.reloadSoundSource()
     }
 
-    fun loadSoundForFP(){
-        mainActivityViewModel.loadSoundForFP()
+    fun loadSoundForFP(finger: Int){
+        mainActivityViewModel.loadSoundForFP(finger)
     }
 
     // verify user if present before opening settings page
@@ -387,11 +388,11 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
     }
 
-    private fun showAttendanceFragment() {
+    fun showAttendanceFragment() {
         runOnUiThread {
             supportFragmentManager.commit {
                 replace(
-                    R.id.fragment_container_view, AttendanceFragment()
+                    R.id.fragment_container_view, AttendanceFragment(), AttendanceFragment.TAG
                 )
             }
             binding.navigationRail.selectedItemId = R.id.attendance
