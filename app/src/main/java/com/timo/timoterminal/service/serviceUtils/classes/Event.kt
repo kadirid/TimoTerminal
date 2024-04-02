@@ -9,10 +9,10 @@ class Event(
     private var login_firma: String? = null,
     private var Id: String? = null,
     private var Name: String? = null,
-    private var StartDate: Date? = null,
-    private var EndDate: Date? = null,
-    private var StartDateOriginal: Date? = null,
-    private var EndDateOriginal: Date? = null,
+    var StartDate: Date? = null,
+    var EndDate: Date? = null,
+    var StartDateOriginal: Date? = null,
+    var EndDateOriginal: Date? = null,
     private var ResourceId: String? = null,
     private var Resizable: Boolean = false,
     private var Draggable: Boolean = false,
@@ -30,7 +30,7 @@ class Event(
 
     //Kapa Felder
     private var kapaEdit: Boolean = false,
-    private var capaColor: String? = null,
+    var capaColor: String? = null,
     private var capaDescription: String? = null,
 
     //Prüfung ob Element gelöscht werden kann
@@ -52,7 +52,7 @@ class Event(
     private var urlaubId: Int = 0,
 
     //Arbeitszeit Felder
-    private var arbeitszeitId: Int = 0,
+    var arbeitszeitId: Int = 0,
 
     //Checklisten Felder
     private var checklistId: Int = 0,
@@ -63,9 +63,9 @@ class Event(
     private var opportunityId: Int = 0,
     private var opportunityCustomerConvert: Boolean = false,
 
-    private var buchungType: Int = 0,
+    var buchungType: Int = 0,
 
-    private var considerAsWorkingTime: Boolean = false,
+    var considerAsWorkingTime: Boolean = false,
     private var projectDesc: String? = null,
 
     private var projectName: String? = null,

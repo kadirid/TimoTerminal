@@ -339,5 +339,16 @@ class Utils {
             }
             return 0
         }
+
+        fun getTimeInMilliseconds(date: Date): Long {
+            val calendar = Calendar.getInstance().apply {
+                time = date
+            }
+
+            val hours = calendar.get(Calendar.HOUR_OF_DAY)
+            val minutes = calendar.get(Calendar.MINUTE)
+
+            return (hours * 60 * 60 * 1000 + minutes * 60 * 1000).toLong()
+        }
     }
 }
