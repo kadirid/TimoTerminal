@@ -2,7 +2,9 @@ package com.timo.timoterminal.service.serviceUtils.classes
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.timo.timoterminal.utils.Utils
 import org.json.JSONObject
+import java.util.Calendar
 import java.util.Date
 
 class Event(
@@ -229,5 +231,112 @@ class Event(
                 json.optString("customerName")
             )
         }
+
+        /**
+         * This method helps us to split Events, which are happening between 2 or more days
+         * For example a Event which starts at 12 on 01.01 and ends at 8 am on 02.01 is split in
+         * two events : 12 - 23:59 on 01.01 and 00:00 - 08:00 on 02.01
+         * @param e : Event
+         */
+        fun splitEventToDaily(e: Event) : ArrayList<Event> {
+            val outputEventArr = ArrayList<Event>();
+            val datesBetweenStartAndEnd = Utils.daysBetween(e.StartDate!!, e.EndDate!!)
+            var i = 0
+            while (i <= datesBetweenStartAndEnd) {
+                val event = e.clone();
+                when (i) {
+                    0 -> {
+                        val specifiedDate = Calendar.getInstance().apply {
+                            time = event.StartDate!!
+                        }
+                        specifiedDate.set(Calendar.HOUR_OF_DAY, 23)
+                        specifiedDate.set(Calendar.MINUTE, 59)
+                        specifiedDate.set(Calendar.SECOND, 59)
+                        event.EndDate = specifiedDate.time;
+                        outputEventArr.add(event)
+                    }
+                    datesBetweenStartAndEnd -> {
+                        val specifiedDate = Calendar.getInstance().apply {
+                            time = event.EndDate!!
+                        }
+                        specifiedDate.set(Calendar.HOUR_OF_DAY, 0)
+                        specifiedDate.set(Calendar.MINUTE, 0)
+                        specifiedDate.set(Calendar.SECOND, 0)
+                        event.StartDate = specifiedDate.time;
+                        outputEventArr.add(event)
+                    }
+                    else -> {
+                        val specifiedStartDate = Calendar.getInstance().apply {
+                            time = event.StartDate!!
+                        }
+                        // add days
+                        specifiedStartDate.add(Calendar.DAY_OF_MONTH, 1)
+                        specifiedStartDate.set(Calendar.HOUR_OF_DAY, 0)
+                        specifiedStartDate.set(Calendar.MINUTE, 0)
+                        specifiedStartDate.set(Calendar.SECOND, 0)
+                        event.StartDate = specifiedStartDate.time
+                        val specifiedEndDate = Calendar.getInstance().apply {
+                            time = event.StartDate!!
+                        }
+                        specifiedEndDate.add(Calendar.DAY_OF_MONTH, 1)
+                        specifiedEndDate.set(Calendar.HOUR_OF_DAY, 23)
+                        specifiedEndDate.set(Calendar.MINUTE, 59)
+                        specifiedEndDate.set(Calendar.SECOND, 59)
+                        event.EndDate = specifiedEndDate.time
+                        outputEventArr.add(event)
+                    }
+                }
+                i++;
+            }
+            return outputEventArr
+        }
+    }
+    fun clone(): Event {
+        return Event(
+            this.login_firma,
+            this.Id,
+            this.Name,
+            this.StartDate,
+            this.EndDate,
+            this.StartDateOriginal,
+            this.EndDateOriginal,
+            this.ResourceId,
+            this.Resizable,
+            this.Draggable,
+            this.clickable,
+            this.taskId,
+            this.projectId,
+            this.style,
+            this.bgColor,
+            this.type,
+            this.hours,
+            this.eventText,
+            this.tooltipText,
+            this.eventType,
+            this.ticketNo,
+            this.kapaEdit,
+            this.capaColor,
+            this.capaDescription,
+            this.deleteElement,
+            this.terminId,
+            this.appointmentBegend,
+            this.ticketId,
+            this.ticketEdit,
+            this.antragId,
+            this.antragGenehmigen,
+            this.urlaubId,
+            this.arbeitszeitId,
+            this.checklistId,
+            this.checklistDone,
+            this.checklistOpen,
+            this.opportunityId,
+            this.opportunityCustomerConvert,
+            this.buchungType,
+            this.considerAsWorkingTime,
+            this.projectDesc,
+            this.projectName,
+            this.taskName,
+            this.customerName
+        )
     }
 }

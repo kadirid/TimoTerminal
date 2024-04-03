@@ -37,6 +37,7 @@ import java.util.Collections
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
+import kotlin.math.abs
 
 
 class Utils {
@@ -349,6 +350,51 @@ class Utils {
             val minutes = calendar.get(Calendar.MINUTE)
 
             return (hours * 60 * 60 * 1000 + minutes * 60 * 1000).toLong()
+        }
+
+        fun isToday(date: Date): Boolean {
+            val today = Calendar.getInstance()
+            val specifiedDate = Calendar.getInstance().apply {
+                time = date
+            }
+
+            return today.get(Calendar.YEAR) == specifiedDate.get(Calendar.YEAR) &&
+                    today.get(Calendar.MONTH) == specifiedDate.get(Calendar.MONTH) &&
+                    today.get(Calendar.DAY_OF_MONTH) == specifiedDate.get(Calendar.DAY_OF_MONTH)
+        }
+
+        fun isSameDay(date1: Date, date2: Date): Boolean {
+            val cal1 = Calendar.getInstance().apply {
+                time = date1
+            }
+            val cal2 = Calendar.getInstance().apply {
+                time = date2
+            }
+
+            return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                    cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+                    cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
+        }
+
+        fun daysBetween(date1: Date, date2: Date): Int {
+            val cal1 = Calendar.getInstance().apply {
+                time = date1
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val cal2 = Calendar.getInstance().apply {
+                time = date2
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val msDiff = cal2.timeInMillis - cal1.timeInMillis
+            val daysDiff = abs(msDiff / (24 * 60 * 60 * 1000))
+            return daysDiff.toInt()
         }
     }
 }

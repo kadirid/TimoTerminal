@@ -179,6 +179,7 @@ class UserService(
     fun loadUserInformation(
         scope: CoroutineScope,
         user: UserEntity,
+        from: Date,
         successCallback: (success: Boolean, message: String, objResponse: UserInformation?) -> Unit?,
         errorCallback: ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit?)
     ) {
@@ -192,6 +193,7 @@ class UserService(
             params["firma"] = company
             params["terminalId"] = terminalId.toString()
             params["token"] = token
+            params["from"] = from.time.toString()
             return httpService.get(
                 "${url}services/rest/zktecoTerminal/info",
                 params,

@@ -18,6 +18,7 @@ import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import kotlinx.coroutines.launch
+import java.util.Date
 
 
 class InfoFragmentViewModel(
@@ -128,9 +129,13 @@ class InfoFragmentViewModel(
         }
     }
 
-    fun loadUserInformation(user: UserEntity) {
+    fun loadUserInformation(user: UserEntity, from: Date?) {
+        var date = Date()
+        if (from != null) {
+            date = from
+        }
         userService.loadUserInformation(
-            viewModelScope, user,
+            viewModelScope, user, date,
             { success, errMmessage, it ->
                 if (success) {
                     val bundle = Bundle()

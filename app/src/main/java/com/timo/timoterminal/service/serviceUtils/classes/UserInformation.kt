@@ -77,12 +77,11 @@ data class UserInformation(
             val user = jsonObject.getString("user")
             val soll = jsonObject.getString("soll")
             val ist = jsonObject.getString("ist")
-            val zeitTyp = jsonObject.getInt("zeitTyp")
-
-
             val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            var zeitTyp = -1;
             var zeitLB = Date();
             try {
+                zeitTyp = jsonObject.getInt("zeitTyp")
                 zeitLB = formatter.parse(jsonObject.getString("zeitLB"))!!
             } catch (e : Exception) {
                 e.printStackTrace()

@@ -38,4 +38,5 @@
     <string name="fill_out_fields">Please fill in all fields!</string>
     <string name="account_locked">Account locked!</string>
     <string name="please_choose_language_and_timezone">Please choose language and timezone</string>
+    <string name="rfid">RFID</string>
 </resources>

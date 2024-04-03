@@ -24,6 +24,7 @@ import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import java.util.Date
 
 class InfoFragment : Fragment() {
 
@@ -149,7 +150,7 @@ class InfoFragment : Fragment() {
                 if (it != null) {
                     unregister()
                     verifying = false
-                    viewModel.loadUserInformation(it)
+                    viewModel.loadUserInformation(it, null)
                     viewModel.liveUser.value = null
                 }
             }

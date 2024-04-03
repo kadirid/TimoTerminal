@@ -15,6 +15,7 @@ import com.google.android.material.color.MaterialColors
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.service.serviceUtils.classes.Event
 import com.timo.timoterminal.service.serviceUtils.classes.UserInformation
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.BGData
@@ -83,8 +84,8 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             binding.textViewCurrentDay.text = languageService.getText("ALLGEMEIN#Aktueller Tag")
             binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
 
-            binding.textViewInformation.text = getText("#ActualInformation") + " RFID: $card"
-            binding.textViewRfid.text = res.user
+            binding.textViewInformationValue.text = card
+            binding.textViewName.text = res.user
             var ist = res.ist.toDouble()
             if (res.zeitTyp in listOf(1, 4, 6) && res.zeitLB.toString().isNotEmpty()
             ) {
@@ -135,56 +136,47 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             binding.textviewVacationRemaining.text = getText("#Remaining")
             binding.textviewVacationRemainingValue.text = res.rVacation
             val rVacation = res.rVacation.replace(",", ".").toFloat()
+            if (rVacation < 0f ) {
+                binding.textviewVacationRemainingValue.setTextColor(Color.RED)
+            }
 
             val list = ArrayList<BGData>()
 
             list.add(BGData(gVacation, Color.rgb(0, 255, 128)))
             list.add(BGData(bVacation, Color.rgb(255, 165, 0)))
-            list.add(
-                BGData(
-                    rVacation, MaterialColors.getColor(
-                        requireContext(),
-                        R.attr.colorSurfaceContainerHighest,
-                        resources.getColor(R.color.black,null)
+            if (rVacation > 0 ) {
+                list.add(
+                    BGData(
+                        rVacation, MaterialColors.getColor(
+                            requireContext(),
+                            R.attr.colorSurfaceContainerHighest,
+                            resources.getColor(R.color.black,null)
+                        )
                     )
                 )
-            )
+            }
             binding.gaugeVacation.setData(list)
 
-            val list2 = ArrayList<BGData>()
-            val msPerDay = 86400000
-            var timethreshold = 0f
-            res.event.forEach {
-                run {
-                    if (it.buchungType > 0) {
-                        val startDate = Utils.getTimeInMilliseconds(it.StartDate!!)
-                        val endDate = Utils.getTimeInMilliseconds(it.EndDate!!)
-                        if (startDate >= timethreshold) {
-                            list2.add(BGData(startDate - timethreshold, MaterialColors.getColor(
-                                requireContext(),
-                                R.attr.colorSurfaceContainerHighest,
-                                resources.getColor(R.color.black,null)
-                            )))
-                            timethreshold = endDate.toFloat()
-                        }
-                        list2.add(BGData((endDate - startDate).toFloat(), Color.parseColor(it.capaColor)))
-                        timethreshold = endDate.toFloat()
-                    }
+            //Before visualizing the events in the bar, we need to separate bookings to each day, so
+            // we can determine what events we have to show today. We receive Events from 2 Days till
+            // today..
+            val evs = ArrayList<Event>()
+            res.event.sortedWith { a, b ->
+                when {
+                    a.StartDate!!.before(b.StartDate) -> -1
+                    b.StartDate!!.before(a.StartDate) -> 1
+                    else -> 0
+                }
+            }.forEach {
+                if (Utils.isSameDay(it.StartDate!!, it.EndDate!!)) {
+                    evs.add(it)
+                } else {
+                    val ev = Event.splitEventToDaily(it)
+                    evs.addAll(ev)
                 }
             }
-
-            if (timethreshold < msPerDay) {
-                list2.add(
-                    BGData(msPerDay - timethreshold,MaterialColors.getColor(
-                        requireContext(),
-                        R.attr.colorSurfaceContainerHighest,
-                        resources.getColor(R.color.black,null)
-                    ) ))
-            }
-
-            //list2.add(BGData(10f, Color.rgb(255, 165, 0)))
-
-            binding.attendanceBarplotView.setData(list2)
+            val todayEvs = evs.filter { Utils.isToday(it.StartDate!!) && it.StartDate != it.EndDate }
+            loadAttendanceBar(ArrayList(todayEvs))
 
         }
     }
@@ -208,4 +200,41 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
     }
 
     private fun getText(key: String) = languageService.getText(key)
+
+    private fun loadAttendanceBar(events: ArrayList<Event>) {
+        val list2 = ArrayList<BGData>()
+        val msPerDay = 86400000
+        var timethreshold = 0f
+        events.forEach {
+            run {
+                if (it.buchungType > 0) {
+                    val startDate = Utils.getTimeInMilliseconds(it.StartDate!!)
+                    val endDate = Utils.getTimeInMilliseconds(it.EndDate!!)
+                    if (startDate > timethreshold) {
+                        list2.add(BGData(startDate - timethreshold, MaterialColors.getColor(
+                            requireContext(),
+                            R.attr.colorSurfaceContainerHighest,
+                            resources.getColor(R.color.black,null)
+                        )))
+                        timethreshold = endDate.toFloat()
+                    }
+                    list2.add(BGData((endDate - startDate).toFloat(), Color.parseColor(it.capaColor)))
+                    timethreshold = endDate.toFloat()
+                }
+            }
+        }
+
+        if (timethreshold < msPerDay) {
+            list2.add(
+                BGData(msPerDay - timethreshold,MaterialColors.getColor(
+                    requireContext(),
+                    R.attr.colorSurfaceContainerHighest,
+                    resources.getColor(R.color.black,null)
+                ) ))
+        }
+
+        //list2.add(BGData(10f, Color.rgb(255, 165, 0)))
+
+        binding.attendanceBarplotView.setData(list2)
+    }
 }

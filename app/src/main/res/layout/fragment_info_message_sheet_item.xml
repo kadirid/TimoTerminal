@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/linear_text_container"
     style="?attr/bottomSheetDialogTheme"
-    android:layout_width="830dp"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="13dp"
-    android:layout_marginBottom="26dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
@@ -18,31 +18,61 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
+    <LinearLayout
         android:id="@+id/text_view_Information"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
+        android:layout_marginTop="30dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/info_drag_handle"
-        tools:text="Aktuelle Informationen RFID: 550650110" />
+        android:orientation="horizontal">
+        <LinearLayout
+            android:id="@+id/card_image"
+            android:layout_width="110dp"
+            android:padding="15dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/rfid_card">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/smart_card"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/text_view_rfid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="@string/rfid" />
+            <TextView
+                android:id="@+id/text_view_Information_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                tools:text="550650110" />
+        </LinearLayout>
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/text_view_rfid"
+        android:id="@+id/text_view_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
+        android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_view_Information"
+        android:layout_marginTop="45dp"
+        app:layout_constraintBottom_toTopOf="@id/text_view_Information"
         tools:text="Herr Vorname Admin" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_linear_time_information"
         android:layout_width="410dp"
-        android:layout_height="320dp"
-        android:layout_marginVertical="20dp"
+        android:layout_height="340dp"
         android:layout_marginEnd="10dp"
         android:background="@drawable/rounded_container_16dp"
         android:backgroundTint="?attr/colorBackgroundFloating"
@@ -51,7 +81,7 @@
         app:layout_constraintBottom_toTopOf="@id/textview_second_close"
         app:layout_constraintEnd_toStartOf="@id/layout_linear_vacation_information"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_view_rfid">
+        app:layout_constraintTop_toBottomOf="@id/text_view_Information">
 
         <LinearLayout
             android:id="@+id/text_view_current_day_container"
@@ -69,7 +99,7 @@
                 android:background="@drawable/round_chevron_left_24"
                 android:backgroundTint="?attr/colorOnSurface"
                 android:visibility="gone"
-                />
+                android:contentDescription="TODO" />
 
             <TextView
                 android:layout_weight="1"
@@ -139,7 +169,8 @@
             android:paddingHorizontal="30dp"
             android:paddingTop="30dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/attendance_barplot_view_container">
+            app:layout_constraintTop_toBottomOf="@id/attendance_barplot_view_container"
+            android:baselineAligned="false">
 
             <LinearLayout
                 android:id="@+id/linear_time_information"
@@ -244,22 +275,25 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_linear_vacation_information"
         android:layout_width="410dp"
-        android:layout_height="320dp"
+        android:layout_height="340dp"
         android:layout_marginVertical="20dp"
         android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/rounded_container_16dp"
         android:backgroundTint="?attr/colorBackgroundFloating"
         app:layout_constraintBottom_toTopOf="@id/textview_second_close"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_view_Information"
         app:layout_constraintStart_toEndOf="@id/layout_linear_time_information"
-        app:layout_constraintTop_toBottomOf="@id/text_view_rfid">
+        app:layout_constraintEnd_toEndOf="parent">
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            tools:layout_editor_absoluteX="126dp"
+            tools:layout_editor_absoluteY="0dp">
 
             <TextView
                 android:id="@+id/text_view_curret_leave"
@@ -362,8 +396,8 @@
                         android:id="@+id/textview_vacation_requested_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="hi"
-                        android:textSize="25sp" />
+                        android:textSize="25sp"
+                        tools:text="hi" />
                 </LinearLayout>
 
                 <View
@@ -402,10 +436,9 @@
         android:id="@+id/textview_second_close"
         android:layout_width="wrap_content"
         android:layout_height="20dp"
-        android:layout_marginTop="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_linear_vacation_information"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:text="10" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
