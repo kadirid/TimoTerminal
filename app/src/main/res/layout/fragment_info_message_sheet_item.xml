@@ -68,6 +68,7 @@
                 android:layout_height="40dp"
                 android:background="@drawable/round_chevron_left_24"
                 android:backgroundTint="?attr/colorOnSurface"
+                android:visibility="gone"
                 />
 
             <TextView
@@ -84,6 +85,7 @@
                 android:layout_height="40dp"
                 android:background="@drawable/round_chevron_right_24"
                 android:backgroundTint="?attr/colorOnSurface"
+                android:visibility="gone"
                 />
         </LinearLayout>
 

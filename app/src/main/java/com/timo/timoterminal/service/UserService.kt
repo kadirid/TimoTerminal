@@ -192,8 +192,6 @@ class UserService(
             params["firma"] = company
             params["terminalId"] = terminalId.toString()
             params["token"] = token
-            params ["from"] = Date().time.toString()
-            params ["to"] = Date().time.toString()
             return httpService.get(
                 "${url}services/rest/zktecoTerminal/info",
                 params,
