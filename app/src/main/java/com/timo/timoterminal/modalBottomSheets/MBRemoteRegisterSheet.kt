@@ -315,7 +315,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
                 activity?.runOnUiThread {
                     val valueAnimator = ValueAnimator.ofInt(
                         binding.remoteRegisterBottomSheet.measuredHeight,
-                        binding.remoteRegisterBottomSheet.measuredHeight + if (isFP) 300 else 30
+                        binding.remoteRegisterBottomSheet.measuredHeight + if (isFP) 300 else 0
                     )
                     valueAnimator.duration = 500L
                     valueAnimator.addUpdateListener {
@@ -412,7 +412,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
             binding.textViewRemoteRegisterMessage.text = message
             val valueAnimator = ValueAnimator.ofInt(
                 binding.remoteRegisterBottomSheet.measuredHeight,
-                binding.remoteRegisterBottomSheet.measuredHeight + 50
+                binding.remoteRegisterBottomSheet.measuredHeight + 80
             )
             valueAnimator.duration = 500L
             valueAnimator.addUpdateListener {

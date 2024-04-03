@@ -3,7 +3,9 @@ package com.timo.timoterminal.service
 import android.content.Intent
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Looper
 import android.util.Log
+import androidx.core.os.postDelayed
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
@@ -189,14 +191,19 @@ class HeartbeatService : KoinComponent {
                         val frag =
                             activity.supportFragmentManager.findFragmentByTag(MBRemoteRegisterSheet.TAG)
                         if (frag == null || !frag.isVisible) {
-                            val sheet =
-                                MBRemoteRegisterSheet.newInstance(
-                                    ids[0].substring(1, ids[0].length),
-                                    ids[1].substring(1, ids[1].length),
-                                    false,
-                                    commandId = enrollCard.second
+                            Handler(Looper.getMainLooper()).postDelayed(3000) {
+                                val sheet =
+                                    MBRemoteRegisterSheet.newInstance(
+                                        ids[0].substring(1, ids[0].length),
+                                        ids[1].substring(1, ids[1].length),
+                                        false,
+                                        commandId = enrollCard.second
+                                    )
+                                sheet.show(
+                                    activity.supportFragmentManager,
+                                    MBRemoteRegisterSheet.TAG
                                 )
-                            sheet.show(activity.supportFragmentManager, MBRemoteRegisterSheet.TAG)
+                            }
                         }
                     }
                 }
@@ -210,14 +217,19 @@ class HeartbeatService : KoinComponent {
                         val frag =
                             activity.supportFragmentManager.findFragmentByTag(MBRemoteRegisterSheet.TAG)
                         if (frag == null || !frag.isVisible) {
-                            val sheet = MBRemoteRegisterSheet.newInstance(
-                                ids[0].substring(1, ids[0].length),
-                                ids[1].substring(1, ids[1].length),
-                                true,
-                                ids[2].substring(1, ids[2].length).toInt(),
-                                commandId = enrollFinger.second
-                            )
-                            sheet.show(activity.supportFragmentManager, MBRemoteRegisterSheet.TAG)
+                            Handler(Looper.getMainLooper()).postDelayed(3000) {
+                                val sheet = MBRemoteRegisterSheet.newInstance(
+                                    ids[0].substring(1, ids[0].length),
+                                    ids[1].substring(1, ids[1].length),
+                                    true,
+                                    ids[2].substring(1, ids[2].length).toInt(),
+                                    commandId = enrollFinger.second
+                                )
+                                sheet.show(
+                                    activity.supportFragmentManager,
+                                    MBRemoteRegisterSheet.TAG
+                                )
+                            }
                         }
                     }
                 }
