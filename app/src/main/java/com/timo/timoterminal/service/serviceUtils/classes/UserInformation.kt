@@ -77,15 +77,17 @@ data class UserInformation(
             val user = jsonObject.getString("user")
             val soll = jsonObject.getString("soll")
             val ist = jsonObject.getString("ist")
-            val zeitTyp = jsonObject.getInt("zeitTyp")
+            val zeitTyp = if (jsonObject.has("zeitTyp")) jsonObject.getInt("zeitTyp") else -1
 
 
             val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             var zeitLB = Date();
-            try {
-                zeitLB = formatter.parse(jsonObject.getString("zeitLB"))!!
-            } catch (e : Exception) {
-                e.printStackTrace()
+            if(jsonObject.has("zeitLB")) {
+                try {
+                    zeitLB = formatter.parse(jsonObject.getString("zeitLB"))!!
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
 
             val kommen = jsonObject.getString("kommen")
@@ -99,7 +101,8 @@ data class UserInformation(
             val events = jsonObject.getJSONArray("events").let { i ->
                 (0 until i.length()).map { i.getJSONObject(it) }.map {
                     Event.convertJsonToObject(it)
-                }.toCollection(ArrayList())}
+                }.toCollection(ArrayList())
+            }
 
             return UserInformation(
                 user,
