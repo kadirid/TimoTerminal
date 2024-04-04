@@ -80,7 +80,7 @@ data class UserInformation(
             val zeitTyp = if (jsonObject.has("zeitTyp")) jsonObject.getInt("zeitTyp") else -1
 
 
-            val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
             var zeitLB = Date();
             if(jsonObject.has("zeitLB")) {
                 try {

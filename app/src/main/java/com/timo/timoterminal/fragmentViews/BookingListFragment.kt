@@ -1,10 +1,10 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentBookingListBinding
@@ -33,6 +33,7 @@ class BookingListFragment : Fragment() {
 
         setAdapter()
         setListener()
+        binding.fragmentBookingListEmptyListTextView.text = languageService.getText("#NoEntriesForBookedTimes")
 
         return binding.root
     }
@@ -48,14 +49,17 @@ class BookingListFragment : Fragment() {
 
     private fun setAdapter() {
         adapter = BookingBUEntityAdapter(
-            emptyList(), emptyMap(), emptyMap(),object: BookingBUEntityAdapter.OnItemClickListener{
+            emptyList(),
+            emptyMap(),
+            emptyMap(),
+            object : BookingBUEntityAdapter.OnItemClickListener {
                 override fun onItemClick(entity: BookingBUEntity) {}
             })
         binding.viewRecyclerBuBookingAll.adapter = adapter
         bookingListFragmentViewModel.viewModelScope.launch {
             val userEntities = userRepository.getAllAsList()
-            val userMap = HashMap<String,String>()
-            for(user in userEntities){
+            val userMap = HashMap<String, String>()
+            for (user in userEntities) {
                 userMap[user.card] = user.name()
             }
             val statusMap = HashMap<Int, String>()
@@ -70,7 +74,11 @@ class BookingListFragment : Fragment() {
                             // do stuff here
                         }
                     })
-                    binding.viewRecyclerBuBookingAll.adapter = adapter
+                binding.viewRecyclerBuBookingAll.adapter = adapter
+                if(it.isNotEmpty()){
+                    binding.fragmentBookingListNestedScrollView.visibility = View.VISIBLE
+                    binding.fragmentBookingListEmptyListTextView.visibility = View.GONE
+                }
             }
         }
     }

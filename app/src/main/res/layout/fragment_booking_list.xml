@@ -2,12 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_booking_list_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/fragment_booking_list_root_layout"
-    tools:padding="60dp"
+    tools:context=".fragmentViews.BookingListFragment"
     tools:layout_marginStart="200dp"
-    tools:context=".fragmentViews.BookingListFragment">
+    tools:padding="60dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
@@ -21,11 +21,12 @@
             android:id="@+id/fragment_booking_list_nested_scroll_view"
             android:layout_width="700dp"
             android:layout_height="match_parent"
+            android:visibility="gone"
             app:layout_behavior="@string/searchbar_scrolling_view_behavior"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toTopOf="parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/view_recycler_bu_booking_all"
@@ -35,6 +36,18 @@
                 tools:listitem="@layout/item_bu_booking" />
 
         </androidx.core.widget.NestedScrollView>
+
+        <TextView
+            android:id="@+id/fragment_booking_list_empty_list_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:textSize="50sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="There are currently no entries for booked times" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
