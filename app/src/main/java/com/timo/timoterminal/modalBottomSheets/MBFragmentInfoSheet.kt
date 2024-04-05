@@ -110,16 +110,20 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             val listSollIst = ArrayList<BGData>()
             listSollIst.add(BGData(actualMinutes.toFloat(), Color.rgb(0, 255, 128)))
             if (targetMinutes - actualMinutes > 0) {
-                listSollIst.add(BGData((targetMinutes - actualMinutes).toFloat(), MaterialColors.getColor(
-                    requireContext(),
-                    R.attr.colorSurfaceContainerHighest,
-                    resources.getColor(R.color.black,null)
-                )))
+                listSollIst.add(
+                    BGData(
+                        (targetMinutes - actualMinutes).toFloat(), MaterialColors.getColor(
+                            requireContext(),
+                            R.attr.colorSurfaceContainerHighest,
+                            resources.getColor(R.color.black, null)
+                        )
+                    )
+                )
             }
             binding.gaugeTime.setData(listSollIst)
 
-            binding.textviewTimeOvertime.text =getText("PDFSOLLIST#spalteGzGleitzeit")
-            binding.textviewTimeOvertimeValue.text =res.overtime
+            binding.textviewTimeOvertime.text = getText("PDFSOLLIST#spalteGzGleitzeit")
+            binding.textviewTimeOvertimeValue.text = res.overtime
 
             //Populate right side of the sheet
             binding.textviewVacationEntitlement.text = getText("ALLGEMEIN#Anspruch")
@@ -136,21 +140,25 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             binding.textviewVacationRemaining.text = getText("#Remaining")
             binding.textviewVacationRemainingValue.text = res.rVacation
             val rVacation = res.rVacation.replace(",", ".").toFloat()
-            if (rVacation < 0f ) {
+            if (rVacation < 0f) {
                 binding.textviewVacationRemainingValue.setTextColor(Color.RED)
             }
 
             val list = ArrayList<BGData>()
 
-            list.add(BGData(gVacation, Color.rgb(0, 255, 128)))
-            list.add(BGData(bVacation, Color.rgb(255, 165, 0)))
-            if (rVacation > 0 ) {
+            if (gVacation > 0) {
+                list.add(BGData(gVacation, Color.rgb(0, 255, 128)))
+            }
+            if (bVacation > 0) {
+                list.add(BGData(bVacation, Color.rgb(255, 165, 0)))
+            }
+            if (rVacation > 0) {
                 list.add(
                     BGData(
                         rVacation, MaterialColors.getColor(
                             requireContext(),
                             R.attr.colorSurfaceContainerHighest,
-                            resources.getColor(R.color.black,null)
+                            resources.getColor(R.color.black, null)
                         )
                     )
                 )
@@ -175,7 +183,8 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                     evs.addAll(ev)
                 }
             }
-            val todayEvs = evs.filter { Utils.isToday(it.StartDate!!) && it.StartDate != it.EndDate }
+            val todayEvs =
+                evs.filter { Utils.isToday(it.StartDate!!) && it.StartDate != it.EndDate }
             loadAttendanceBar(ArrayList(todayEvs))
 
         }
@@ -211,14 +220,23 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                     val startDate = Utils.getTimeInMilliseconds(it.StartDate!!)
                     val endDate = Utils.getTimeInMilliseconds(it.EndDate!!)
                     if (startDate > timethreshold) {
-                        list2.add(BGData(startDate - timethreshold, MaterialColors.getColor(
-                            requireContext(),
-                            R.attr.colorSurfaceContainerHighest,
-                            resources.getColor(R.color.black,null)
-                        )))
+                        list2.add(
+                            BGData(
+                                startDate - timethreshold, MaterialColors.getColor(
+                                    requireContext(),
+                                    R.attr.colorSurfaceContainerHighest,
+                                    resources.getColor(R.color.black, null)
+                                )
+                            )
+                        )
                         timethreshold = endDate.toFloat()
                     }
-                    list2.add(BGData((endDate - startDate).toFloat(), Color.parseColor(it.capaColor)))
+                    list2.add(
+                        BGData(
+                            (endDate - startDate).toFloat(),
+                            Color.parseColor(it.capaColor)
+                        )
+                    )
                     timethreshold = endDate.toFloat()
                 }
             }
@@ -226,11 +244,14 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
 
         if (timethreshold < msPerDay) {
             list2.add(
-                BGData(msPerDay - timethreshold,MaterialColors.getColor(
-                    requireContext(),
-                    R.attr.colorSurfaceContainerHighest,
-                    resources.getColor(R.color.black,null)
-                ) ))
+                BGData(
+                    msPerDay - timethreshold, MaterialColors.getColor(
+                        requireContext(),
+                        R.attr.colorSurfaceContainerHighest,
+                        resources.getColor(R.color.black, null)
+                    )
+                )
+            )
         }
 
         //list2.add(BGData(10f, Color.rgb(255, 165, 0)))

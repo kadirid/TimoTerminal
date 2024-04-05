@@ -148,10 +148,12 @@ class UserService(
                     //Save it persistently offline
                     if (obj != null) {
                         scope.launch {
-                            val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
-                            userRepository.insertOne(userEntity)
-                            if (userEntity.assignedToTerminal) {
-                                getFPForUser(url, { }, userId, company, terminalId, token)
+                            if(obj.has("id")) {
+                                val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
+                                userRepository.insertOne(userEntity)
+                                if (userEntity.assignedToTerminal) {
+                                    getFPForUser(url, { }, userId, company, terminalId, token)
+                                }
                             }
                             if (unique.isNotEmpty()) {
                                 httpService.responseForCommand(unique)
