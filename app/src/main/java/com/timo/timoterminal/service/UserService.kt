@@ -190,7 +190,7 @@ class UserService(
         val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
         if (!company.isNullOrEmpty() && terminalId > 0 && !token.isNullOrEmpty()) {
-            val params = HashMap<String, String>();
+            val params = HashMap<String, String>()
             params["card"] = user.card
             params["firma"] = company
             params["terminalId"] = terminalId.toString()

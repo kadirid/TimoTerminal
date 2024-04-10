@@ -44,6 +44,7 @@ class LoginFragment : Fragment() {
     private val viewModel: LoginFragmentViewModel =
         LoginFragmentViewModel(loginService, settingsService, languageService, sharedPrefService)
     private lateinit var binding: FragmentLoginBinding
+    private var first = true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -121,49 +122,74 @@ class LoginFragment : Fragment() {
 
     private fun showLogin() {
         // INIT ANIMATION
-        val animSet = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out_move_up)
-        val fadeInAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+        if(first) {
+            val animSet = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out_move_up)
+            val fadeInAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
 
-        animSet.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(p0: Animation?) {
-            }
-
-            override fun onAnimationEnd(p0: Animation?) {
-                binding.dropdownMenuLayoutLanguage.visibility = View.GONE
-                binding.dropdownMenuLayoutTimezone.visibility = View.GONE
-
-                binding.textInputLayoutLoginCompany.startAnimation(fadeInAnimation)
-                binding.textInputLayoutLoginCompany.visibility = View.VISIBLE
-
-                binding.textInputLayoutLoginPassword.startAnimation(fadeInAnimation)
-                binding.textInputLayoutLoginPassword.visibility = View.VISIBLE
-
-                binding.textInputLayoutLoginUser.startAnimation(fadeInAnimation)
-                binding.textInputLayoutLoginUser.visibility = View.VISIBLE
-
-                val locale =
-                    Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
-                viewModel.viewModelScope.launch {
-                    soundSource.loadForLogin(locale.language)
+            animSet.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(p0: Animation?) {
                 }
-                val config = Configuration()
-                config.setLocale(locale)
-                val context = activity?.baseContext?.createConfigurationContext(config)
-                binding.buttonSubmit.text = context?.getText(R.string.login)
-                binding.linearTitleContainerText.text =
-                    context?.getText(R.string.please_enter_timo_login_data)
-                binding.textInputLayoutLoginCompany.hint = context?.getText(R.string.company)
-                binding.textInputLayoutLoginPassword.hint = context?.getText(R.string.password)
-                binding.textInputLayoutLoginUser.hint = context?.getText(R.string.loginname)
-                initLoginButton()
-            }
 
-            override fun onAnimationRepeat(p0: Animation?) {
+                override fun onAnimationEnd(p0: Animation?) {
+                    binding.dropdownMenuLayoutLanguage.visibility = View.GONE
+                    binding.dropdownMenuLayoutTimezone.visibility = View.GONE
+
+                    binding.textInputLayoutLoginCompany.startAnimation(fadeInAnimation)
+                    binding.textInputLayoutLoginCompany.visibility = View.VISIBLE
+
+                    binding.textInputLayoutLoginPassword.startAnimation(fadeInAnimation)
+                    binding.textInputLayoutLoginPassword.visibility = View.VISIBLE
+
+                    binding.textInputLayoutLoginUser.startAnimation(fadeInAnimation)
+                    binding.textInputLayoutLoginUser.visibility = View.VISIBLE
+
+                    val locale =
+                        Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
+                    viewModel.viewModelScope.launch {
+                        soundSource.loadForLogin(locale.language)
+                    }
+                    val config = Configuration()
+                    config.setLocale(locale)
+                    val context = activity?.baseContext?.createConfigurationContext(config)
+                    binding.buttonSubmit.text = context?.getText(R.string.login)
+                    binding.linearTitleContainerText.text =
+                        context?.getText(R.string.please_enter_timo_login_data)
+                    binding.textInputLayoutLoginCompany.hint = context?.getText(R.string.company)
+                    binding.textInputLayoutLoginPassword.hint = context?.getText(R.string.password)
+                    binding.textInputLayoutLoginUser.hint = context?.getText(R.string.loginname)
+                    initLoginButton()
+                }
+
+                override fun onAnimationRepeat(p0: Animation?) {
+                }
+            })
+            activity?.runOnUiThread {
+                binding.dropdownMenuLayoutLanguage.startAnimation(animSet)
+                binding.dropdownMenuLayoutTimezone.startAnimation(animSet)
             }
-        })
-        activity?.runOnUiThread {
-            binding.dropdownMenuLayoutLanguage.startAnimation(animSet)
-            binding.dropdownMenuLayoutTimezone.startAnimation(animSet)
+            first = false
+        }else{
+            binding.dropdownMenuLayoutLanguage.visibility = View.GONE
+            binding.dropdownMenuLayoutTimezone.visibility = View.GONE
+            binding.textInputLayoutLoginCompany.visibility = View.VISIBLE
+            binding.textInputLayoutLoginPassword.visibility = View.VISIBLE
+            binding.textInputLayoutLoginUser.visibility = View.VISIBLE
+
+            val locale =
+                Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
+            viewModel.viewModelScope.launch {
+                soundSource.loadForLogin(locale.language)
+            }
+            val config = Configuration()
+            config.setLocale(locale)
+            val context = activity?.baseContext?.createConfigurationContext(config)
+            binding.buttonSubmit.text = context?.getText(R.string.login)
+            binding.linearTitleContainerText.text =
+                context?.getText(R.string.please_enter_timo_login_data)
+            binding.textInputLayoutLoginCompany.hint = context?.getText(R.string.company)
+            binding.textInputLayoutLoginPassword.hint = context?.getText(R.string.password)
+            binding.textInputLayoutLoginUser.hint = context?.getText(R.string.loginname)
+            initLoginButton()
         }
     }
 

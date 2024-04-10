@@ -182,7 +182,7 @@
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="0dp"
-            app:layout_constraintBottom_toTopOf="@id/button_user_load"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/user_info_container" />
 
@@ -196,7 +196,7 @@
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="60dp"
-            app:layout_constraintBottom_toTopOf="@id/button_user_load"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/button_delete_fingerprint"
             app:layout_constraintStart_toEndOf="@id/button_rfid"
             app:layout_constraintTop_toBottomOf="@id/user_info_container" />
@@ -212,19 +212,9 @@
             app:iconPadding="0dp"
             app:iconSize="60dp"
             app:iconTint="#FF8080"
-            app:layout_constraintBottom_toTopOf="@id/button_user_load"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/user_info_container" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_user_load"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Load User"
-            app:layout_constraintBottom_toBottomOf="@id/layout_form"
-            app:layout_constraintEnd_toEndOf="@id/layout_form"
-            app:layout_constraintStart_toStartOf="@id/layout_form" />
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -24,7 +24,6 @@ import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import java.util.Date
 
 class InfoFragment : Fragment() {
 
@@ -149,21 +148,14 @@ class InfoFragment : Fragment() {
             viewModel.liveUser.observe(viewLifecycleOwner) {
                 if (it != null) {
                     unregister()
-                    verifying = false
-                    viewModel.loadUserInformation(it, null)
-                    viewModel.liveUser.value = null
-                }
-            }
-            viewModel.liveInfoSuccess.value = Bundle()
-            viewModel.liveInfoSuccess.observe(viewLifecycleOwner) {
-                if (!it.getString("card").isNullOrBlank()) {
                     val sheet = MBFragmentInfoSheet()
-                    sheet.arguments = it
                     sheet.show(
                         parentFragmentManager,
                         MBFragmentInfoSheet.TAG
                     )
-                    viewModel.liveInfoSuccess.value = Bundle()
+                    verifying = false
+                    viewModel.loadUserInformation(it, null)
+                    viewModel.liveUser.value = null
                 }
             }
             viewModel.liveErrorMessage.value = ""
@@ -195,7 +187,7 @@ class InfoFragment : Fragment() {
 
         val dialog = dlgAlert.create()
         Utils.hideNavInDialog(dialog)
-        val alertTimer = object : CountDownTimer(10000, 500) {
+        val alertTimer = object : CountDownTimer(10000, 5000) {
             override fun onTick(millisUntilFinished: Long) {}
 
             override fun onFinish() {

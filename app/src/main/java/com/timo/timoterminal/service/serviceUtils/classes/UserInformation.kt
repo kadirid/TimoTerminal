@@ -1,7 +1,5 @@
 package com.timo.timoterminal.service.serviceUtils.classes
 
-import android.os.Parcel
-import android.os.Parcelable
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -22,56 +20,10 @@ data class UserInformation(
     val bVacation: String,
     val rVacation: String,
     val event: ArrayList<Event>
-) : Parcelable {
-    constructor(parcel: Parcel) : this(
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readInt(),
-        Date(parcel.readLong()),
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
-        ArrayList<Event>().apply {
-            parcel.readList(this, Event::class.java.classLoader)
-        }
-    )
+)  {
+    var card: String = ""
 
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(user)
-        parcel.writeString(soll)
-        parcel.writeString(ist)
-        parcel.writeInt(zeitTyp)
-        parcel.writeLong(zeitLB.time)
-        parcel.writeString(kommen)
-        parcel.writeString(pause)
-        parcel.writeString(gehen)
-        parcel.writeString(overtime)
-        parcel.writeString(vacation)
-        parcel.writeString(gVacation)
-        parcel.writeString(bVacation)
-        parcel.writeString(rVacation)
-        parcel.writeList(event)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<UserInformation> {
-        override fun createFromParcel(parcel: Parcel): UserInformation {
-            return UserInformation(parcel)
-        }
-
-        override fun newArray(size: Int): Array<UserInformation?> {
-            return arrayOfNulls(size)
-        }
-
+    companion object  {
         fun convertJSONToObject(json: String): UserInformation {
             val jsonObject = JSONObject(json)
             val user = jsonObject.getString("user")
@@ -80,9 +32,9 @@ data class UserInformation(
             val zeitTyp = if (jsonObject.has("zeitTyp")) jsonObject.getInt("zeitTyp") else -1
 
 
-            val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
-            var zeitLB = Date();
-            if(jsonObject.has("zeitLB")) {
+            val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+            var zeitLB = Date()
+            if (jsonObject.has("zeitLB")) {
                 try {
                     zeitLB = formatter.parse(jsonObject.getString("zeitLB"))!!
                 } catch (e: Exception) {

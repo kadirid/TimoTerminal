@@ -128,7 +128,6 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     override fun onPause() {
-        mainActivityViewModel.showSystemUI()
         timer.cancel()
         super.onPause()
     }
@@ -138,19 +137,12 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         if (!isInit && (frag == null || !frag.isVisible))
             restartTimer()
         Utils.hideStatusAndNavbar(this)
-        mainActivityViewModel.hideSystemUI()
         isInit = false
         super.onResume()
     }
 
-    override fun finishAndRemoveTask() {
-        super.finishAndRemoveTask()
-        mainActivityViewModel.showSystemUI()
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        mainActivityViewModel.showSystemUI()
         unregisterReceiver(batteryReceiver)
         unregisterReceiver(networkChangeReceiver)
     }

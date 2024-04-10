@@ -1,6 +1,5 @@
 package com.timo.timoterminal.modalBottomSheets
 
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.DialogInterface
 import android.graphics.Color
@@ -31,8 +30,6 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
     private lateinit var binding: FragmentInfoMessageSheetItemBinding
 
     val viewModel by sharedViewModel<InfoFragmentViewModel>()
-    private var card: String = ""
-    private var res: UserInformation? = null
 
     companion object {
         const val TAG = "MBFragmentInfoSheet"
@@ -44,11 +41,6 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentInfoMessageSheetItemBinding.inflate(inflater, container, false)
-
-        res = arguments?.getParcelable("res")!!
-        card = arguments?.getString("card") ?: ""
-
-        if (res != null) setText(res!!)
 
         viewModel.viewModelScope.launch {
             viewModel.liveDismissSheet.value = false
@@ -65,6 +57,15 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                     viewModel.liveShowSeconds.value = ""
                 }
             }
+            viewModel.liveInfoSuccess.value = null
+            viewModel.liveInfoSuccess.observe(viewLifecycleOwner) {
+                if (it != null) {
+
+                    setText(it)
+
+                    viewModel.liveInfoSuccess.value = null
+                }
+            }
         }
 
         return binding.root
@@ -78,13 +79,12 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         super.onResume()
     }
 
-    @SuppressLint("SetTextI18n")
     private fun setText(res: UserInformation) {
         viewModel.viewModelScope.launch {
             binding.textViewCurrentDay.text = languageService.getText("ALLGEMEIN#Aktueller Tag")
             binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
 
-            binding.textViewInformationValue.text = card
+            binding.textViewInformationValue.text = res.card
             binding.textViewName.text = res.user
             var ist = res.ist.toDouble()
             if (res.zeitTyp in listOf(1, 4, 6) && res.zeitLB.toString().isNotEmpty()
@@ -229,7 +229,6 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                                 )
                             )
                         )
-                        timethreshold = endDate.toFloat()
                     }
                     list2.add(
                         BGData(

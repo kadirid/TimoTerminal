@@ -1,18 +1,15 @@
 package com.timo.timoterminal.viewModel
 
-import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.entityClasses.UserEntity
-import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.UserRepository
-import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
+import com.timo.timoterminal.service.serviceUtils.classes.UserInformation
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -23,8 +20,6 @@ import java.util.Date
 
 class InfoFragmentViewModel(
     private val userRepository: UserRepository,
-    private val sharedPrefService: SharedPrefService,
-    private val httpService: HttpService,
     private val languageService: LanguageService,
     private val soundSource: SoundSource,
     private val userService: UserService
@@ -50,25 +45,9 @@ class InfoFragmentViewModel(
     val liveMessage: MutableLiveData<String> = MutableLiveData()
     val liveErrorMessage: MutableLiveData<String> = MutableLiveData()
     val liveUser: MutableLiveData<UserEntity?> = MutableLiveData()
-    val liveInfoSuccess: MutableLiveData<Bundle> = MutableLiveData()
+    val liveInfoSuccess: MutableLiveData<UserInformation> = MutableLiveData()
     val liveDismissSheet: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowSeconds: MutableLiveData<String> = MutableLiveData()
-
-    private fun getCompany(): String? {
-        return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-    }
-
-    private fun getURl(): String? {
-        return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-    }
-
-    private fun getTerminalID(): Int {
-        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-    }
-
-    private fun getToken(): String {
-        return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
-    }
 
     private suspend fun getUserEntityById(id: Long): UserEntity? {
         val users = userRepository.getEntity(id)
@@ -136,15 +115,13 @@ class InfoFragmentViewModel(
         }
         userService.loadUserInformation(
             viewModelScope, user, date,
-            { success, errMmessage, it ->
+            { success, errMessage, it ->
                 if (success) {
-                    val bundle = Bundle()
-                    bundle.putParcelable("res", it)
-                    bundle.putString("card", user.card)
-                    liveInfoSuccess.postValue(bundle)
+                    it?.card = user.card
+                    liveInfoSuccess.postValue(it)
                     timer.start()
                 } else {
-                    liveMessage.postValue(errMmessage)
+                    liveMessage.postValue(errMessage)
                 }
                 liveHideMask.postValue(true)
             }

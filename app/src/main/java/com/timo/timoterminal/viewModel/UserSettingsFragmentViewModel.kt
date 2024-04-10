@@ -19,11 +19,6 @@ class UserSettingsFragmentViewModel(
     suspend fun getAllAsList() = userService.getAllAsList()
     fun getAll() = userService.getAllEntities
 
-    fun loadUserFromServer() {
-        //Get User from Server
-        userService.loadUsersFromServer(viewModelScope)
-    }
-
     fun assignUser(
         id: String,
         editor: Long,

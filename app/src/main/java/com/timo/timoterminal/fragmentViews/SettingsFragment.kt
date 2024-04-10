@@ -37,6 +37,7 @@ class SettingsFragment : Fragment() {
     private val viewModel: SettingsFragmentViewModel by viewModel()
     private var userId: Long = -1
     private var active = true
+    private var first = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +57,15 @@ class SettingsFragment : Fragment() {
         setText()
 
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if(!first) {
+            (requireActivity() as MainActivity).getViewModel().hideSystemUI()
+        }
+        first = false
     }
 
     private fun setText() {
@@ -153,16 +163,19 @@ class SettingsFragment : Fragment() {
             }
             binding.buttonWifi.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonWifi.setSafeOnClickListener {
+                (requireActivity() as MainActivity).getViewModel().showSystemUI()
                 val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
                 startActivity(intent)
             }
             binding.buttonMobileNetwork.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonMobileNetwork.setSafeOnClickListener {
+                (requireActivity() as MainActivity).getViewModel().showSystemUI()
                 val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
                 startActivity(intent)
             }
             binding.buttonEthernet.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonEthernet.setSafeOnClickListener {
+                (requireActivity() as MainActivity).getViewModel().showSystemUI()
                 hardwareSource.openAndroidEthernetSettings()
             }
             binding.buttonActualizeTerminal.setSafeOnClickListener {
@@ -212,6 +225,7 @@ class SettingsFragment : Fragment() {
                 dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                     val code = passCodeEditText.text.toString()
                     if (code == "TimoTimo1") {
+                        (requireActivity() as MainActivity).getViewModel().showSystemUI()
                         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
                         startActivity(intent)
                     }

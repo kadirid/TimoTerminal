@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
+import android.util.Log
 import androidx.core.os.postDelayed
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.databinding.ActivityNoInternetNetworkSettingsBinding
@@ -33,9 +34,8 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
         setupOnClickListeners()
 
         Handler(this.mainLooper).postDelayed(200) {
-            loginActivityViewModel.viewModelScope.launch {
-                hardwareSource.showSystemUI()
-            }
+            Log.d("NoInternetNetworkSettingsActivity","showSystemUI")
+            hardwareSource.showSystemUI()
         }
     }
 
@@ -45,6 +45,10 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
             loginActivityViewModel.viewModelScope.launch {
                 if (Utils.isOnline(this@NoInternetNetworkSettingsActivity)) {
                     finish()
+                    Handler(this@NoInternetNetworkSettingsActivity.mainLooper).postDelayed(900) {
+                        Log.d("NoInternetNetworkSettingsActivity","hideSystemUi")
+                        hardwareSource.hideSystemUI()
+                    }
                 }
             }
         }
@@ -56,6 +60,10 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
             loginActivityViewModel.viewModelScope.launch {
                 if (Utils.isOnline(this@NoInternetNetworkSettingsActivity)) {
                     finish()
+                    Handler(this@NoInternetNetworkSettingsActivity.mainLooper).postDelayed(900) {
+                        Log.d("NoInternetNetworkSettingsActivity", "hideSystemUi")
+                        hardwareSource.hideSystemUI()
+                    }
                 }
             }
         }

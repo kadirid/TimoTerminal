@@ -4,13 +4,11 @@ import androidx.room.Room
 import com.timo.timoterminal.database.BookingBUDatabase
 import com.timo.timoterminal.database.BookingDatabase
 import com.timo.timoterminal.database.ConfigDatabase
-import com.timo.timoterminal.database.DemoDatabase
 import com.timo.timoterminal.database.LanguageDatabase
 import com.timo.timoterminal.database.UserDatabase
 import com.timo.timoterminal.repositories.BookingBURepository
 import com.timo.timoterminal.repositories.BookingRepository
 import com.timo.timoterminal.repositories.ConfigRepository
-import com.timo.timoterminal.repositories.DemoRepository
 import com.timo.timoterminal.repositories.LanguageRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.BookingService
@@ -43,14 +41,6 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 var appModule = module {
-
-    single {
-        Room.databaseBuilder(
-            androidContext(),
-            DemoDatabase::class.java,
-            "demo_entity"
-        ).build()
-    }
 
     single {
         Room.databaseBuilder(
@@ -92,14 +82,12 @@ var appModule = module {
         ).build()
     }
 
-    single { get<DemoDatabase>().demoDao() }
     single { get<UserDatabase>().userDao() }
     single { get<ConfigDatabase>().configDao() }
     single { get<LanguageDatabase>().languageDao() }
     single { get<BookingDatabase>().bookingDao() }
     single { get<BookingBUDatabase>().bookingBUDao() }
 
-    single { DemoRepository(get()) }
     single { UserRepository(get()) }
     single { ConfigRepository(get()) }
     single { LanguageRepository(get()) }
@@ -121,12 +109,12 @@ var appModule = module {
 
 
     viewModel { MainActivityViewModel(get(), get(), get(), get()) }
+    viewModel { InfoFragmentViewModel(get(), get(), get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBUserWaitSheetViewModel(get(), get(), get(), get()) }
     viewModel { SettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { AttendanceFragmentViewModel(get(), get(), get(), get()) }
-    viewModel { InfoFragmentViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBRemoteRegisterSheetViewModel(get(), get(), get(), get()) }
     viewModel { MBSheetFingerprintCardReaderViewModel(get(), get(), get(), get(), get(), get()) }
@@ -134,7 +122,7 @@ var appModule = module {
     worker(named<HeartbeatWorker>()) {
         HeartbeatWorker(
             context = androidContext(),
-            workerParameters = get(),
+            workerParameters = get()
         )
     }
 

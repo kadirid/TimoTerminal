@@ -185,11 +185,6 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
 
     private fun setUpOnClickListeners() {
         userSettingsFragmentViewModel.viewModelScope.launch {
-            binding.buttonUserLoad.setOnClickListener {
-                userSettingsFragmentViewModel.loadUserFromServer()
-                (activity as MainActivity?)?.restartTimer()
-            }
-
             binding.buttonRfid.setSafeOnClickListener {
                 val call = fun() {
                     (activity as MainActivity?)?.hideLoadMask()
