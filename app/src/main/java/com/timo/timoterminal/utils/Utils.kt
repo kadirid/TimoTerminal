@@ -2,11 +2,19 @@ package com.timo.timoterminal.utils
 
 import android.app.Activity
 import android.app.Dialog
+import android.app.DownloadManager
+import android.app.DownloadManager.*
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
@@ -20,6 +28,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.timo.timoterminal.R
@@ -395,6 +405,54 @@ class Utils {
             val msDiff = cal2.timeInMillis - cal1.timeInMillis
             val daysDiff = abs(msDiff / (24 * 60 * 60 * 1000))
             return daysDiff.toInt()
+        }
+
+        fun downloadAndInstallApk(context: Context, activity: Activity, apkUrl: String) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!context.packageManager.canRequestPackageInstalls()) {
+                    // Guide the user to enable "Unknown sources" in device settings
+                    return
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.REQUEST_INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE ),
+                        1
+                    )
+                    return
+                }
+            }
+            val request = Request(Uri.parse(apkUrl))
+                .setTitle("APK Download")
+                .setDescription("Downloading APK file.")
+                .setNotificationVisibility(Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "app.apk")
+
+            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val downloadId = downloadManager.enqueue(request)
+
+            val onDownloadComplete = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    val downloadedFileId = intent.getLongExtra(EXTRA_DOWNLOAD_ID, -1)
+                    if (downloadedFileId == downloadId) {
+                        val downloadedFileUri = downloadManager.getUriForDownloadedFile(downloadedFileId)
+                        installApk(context, downloadedFileUri)
+                    }
+                }
+            }
+
+            context.registerReceiver(onDownloadComplete, IntentFilter(ACTION_DOWNLOAD_COMPLETE))
+        }
+
+        fun installApk(context: Context, apkUri: Uri) {
+            val intent = Intent(Intent.ACTION_INSTALL_PACKAGE)
+            intent.data = apkUri
+            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            context.startActivity(intent)
         }
     }
 }

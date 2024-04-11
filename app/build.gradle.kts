@@ -6,7 +6,7 @@ plugins {
 }
 android {
     namespace = "com.timo.timoterminal"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.timo.timoterminal"

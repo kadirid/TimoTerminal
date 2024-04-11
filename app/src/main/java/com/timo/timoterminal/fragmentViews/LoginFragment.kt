@@ -79,11 +79,14 @@ class LoginFragment : Fragment() {
                 val company = propertyService.getProperties().getProperty("company")
                 val username = propertyService.getProperties().getProperty("username")
                 val password = propertyService.getProperties().getProperty("password")
-//                binding.customUrl.setText(url)
                 binding.customUrl.visibility = View.VISIBLE
-//                binding.textInputEditTextLoginCompany.setText(if (!company.isNullOrEmpty()) company else "")
-//                binding.textInputEditTextLoginUser.setText(if (!username.isNullOrEmpty()) username else "")
-//                binding.textInputEditTextLoginPassword.setText(if (!password.isNullOrEmpty()) password else "")
+                val fillLoginFields = propertyService.getProperties().getProperty("fillLoginFields").equals("true")
+                if (fillLoginFields) {
+                    binding.customUrl.setText(url)
+                    binding.textInputEditTextLoginCompany.setText(if (!company.isNullOrEmpty()) company else "")
+                    binding.textInputEditTextLoginUser.setText(if (!username.isNullOrEmpty()) username else "")
+                    binding.textInputEditTextLoginPassword.setText(if (!password.isNullOrEmpty()) password else "")
+                }
            }
         }
     }
