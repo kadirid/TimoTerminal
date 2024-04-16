@@ -11,17 +11,17 @@ data class ConfigEntity(
     @ColumnInfo(name = "value") var value: String
 ) {
     @PrimaryKey(autoGenerate = true)
-    var id : Long? = null
+    var id: Long? = null
 
     override fun equals(other: Any?): Boolean {
+        if (other == null) return false
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (javaClass != other.javaClass) return false
 
         other as ConfigEntity
 
         if (name != other.name) return false
         if (type != other.type) return false
-        if (value != other.value) return false
 
         return true
     }

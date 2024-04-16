@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import org.json.JSONObject
 
+//@Entity(primaryKeys = ["keyname","language"]) wouldn't a composite key like in language database be more correct?
 @Entity
 class LanguageEntity(
     @ColumnInfo(name = "keyname") val keyname: String,
@@ -15,8 +16,9 @@ class LanguageEntity(
     var id : Long? = null
 
     override fun equals(other: Any?): Boolean {
+        if (other == null) return false
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (javaClass != other.javaClass) return false
 
         other as LanguageEntity
 

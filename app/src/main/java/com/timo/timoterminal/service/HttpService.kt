@@ -18,6 +18,7 @@ import com.timo.timoterminal.service.serviceUtils.ProgressListener
 import com.timo.timoterminal.service.serviceUtils.ProgressResponseBody
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.ResponseToJSON
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import mcv.facepass.BuildConfig
 import okhttp3.Call
 import okhttp3.Callback
@@ -40,6 +41,7 @@ import java.util.concurrent.TimeUnit
 
 class HttpService : KoinComponent {
     private val sharedPrefService: SharedPrefService by inject()
+    private val hardware: IHardwareSource by inject()
 
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .readTimeout(30, TimeUnit.SECONDS)
@@ -306,15 +308,14 @@ class HttpService : KoinComponent {
     fun responseForCommand(unique: String) {
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
-        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
-        if (company.isNotEmpty() && terminalId > 0 && token.isNotEmpty() && unique.isNotEmpty()) {
+        if (company.isNotEmpty() && token.isNotEmpty() && unique.isNotEmpty()) {
             post(
                 "${url}services/rest/zktecoTerminal/doneCommand",
                 mapOf(
                     Pair("company", company),
-                    Pair("terminalId", "$terminalId"),
+                    Pair("terminalSN", hardware.serialNumber()),
                     Pair("token", token),
                     Pair("unique", unique)
                 ), null, { _, _, _ -> }, { _, _, _, _ -> })

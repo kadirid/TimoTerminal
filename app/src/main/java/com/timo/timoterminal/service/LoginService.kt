@@ -280,14 +280,12 @@ class LoginService(
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-        val terminalID = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-        validateLogin(company, token, terminalID, context, url, callback)
+        validateLogin(company, token, context, url, callback)
     }
 
     private fun validateLogin(
         company: String?,
         token: String?,
-        terminalID: Int,
         context: Context?,
         url: String?,
         callback: () -> Unit
@@ -298,7 +296,7 @@ class LoginService(
             val parameterMap = HashMap<String, String>()
             parameterMap["company"] = company!!
             parameterMap["token"] = token!!
-            parameterMap["terminalId"] = terminalID.toString()
+            parameterMap["terminalSN"] = hardware.serialNumber()
             httpService.post(
                 "${url}services/rest/zktecoTerminal/validateLogin",
                 parameterMap,

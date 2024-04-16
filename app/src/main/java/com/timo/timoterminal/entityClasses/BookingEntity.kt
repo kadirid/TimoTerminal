@@ -19,8 +19,9 @@ open class BookingEntity(
     }
 
     override fun equals(other: Any?): Boolean {
+        if (other == null) return false
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (javaClass != other.javaClass) return false
 
         other as BookingEntity
 

@@ -48,8 +48,9 @@ class UserEntity(
     fun name(): String = "$firstName $lastName"
 
     override fun equals(other: Any?): Boolean {
+        if (other == null) return false
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (javaClass != other.javaClass) return false
 
         other as UserEntity
 
@@ -63,18 +64,16 @@ class UserEntity(
         return true
     }
 
-    // TODO("Rework with missing fields")
     override fun hashCode(): Int {
         var result = id.hashCode()
         result = 31 * result + lastName.hashCode()
         result = 31 * result + card.hashCode()
         result = 31 * result + pin.hashCode()
+        result = 31 * result + firstName.hashCode()
+        result = 31 * result + login.hashCode()
+        result = 31 * result + hireDate.hashCode()
+        result = 31 * result + seeMenu.hashCode()
+        result = 31 * result + assignedToTerminal.hashCode()
         return result
-    }
-
-    fun setId(sid: String?) {
-        if (!sid.isNullOrEmpty()) {
-            id = sid.toLong()
-        }
     }
 }

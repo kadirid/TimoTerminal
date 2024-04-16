@@ -20,7 +20,6 @@
     <string name="login">Login</string>
     <string name="save_settings">Save Settings</string>
     <string name="save">Save</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="wilkommen_bei_timo">Welcome to TimO®</string>
     <string name="info_intial_ethernet_settigns">Could not access internet\nPlease verify settings.</string>
     <string name="ethernet_settings">Ethernet Settings</string>

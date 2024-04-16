@@ -117,7 +117,7 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
                         val queriedList = userSettingsFragmentViewModel.getAllAsList().filter {
                             it.lastName.toLowerCase(Locale.current).contains(s) ||
                                     it.firstName.toLowerCase(Locale.current).contains(s) ||
-                                    s.toString() == it.card
+                                    s.toString() == it.card || s.toString() == it.id.toString()
                         }
                         binding.viewRecyclerUserFilter.adapter = UserEntityAdaptor(queriedList,
                             object : OnItemClickListener {
@@ -269,11 +269,13 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
         width: Int,
         height: Int
     ) {
-        Log.d("FP", fingerprint)
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
             Log.d("FP Key", this)
-            // TODO("maybe use this (Key of Fingerprint) to get User to show")
+            val id = this.substring(0, this.length - 2)
+            (activity as MainActivity?)?.restartTimer()
+            binding.searchView.show()
+            binding.searchView.setText(id)
         }
     }
 
