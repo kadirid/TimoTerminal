@@ -18,6 +18,7 @@ import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 
 class MBSheetFingerprintCardReaderViewModel(
@@ -26,7 +27,8 @@ class MBSheetFingerprintCardReaderViewModel(
     private val httpService: HttpService,
     private val bookingService: BookingService,
     private val languageService: LanguageService,
-    private val soundSource: SoundSource
+    private val soundSource: SoundSource,
+    private val hardware: IHardwareSource
 ) : ViewModel(), TimoRfidListener, FingerprintListener {
 
     val liveDone: MutableLiveData<Boolean> = MutableLiveData()
@@ -45,10 +47,6 @@ class MBSheetFingerprintCardReaderViewModel(
 
     private fun getURl(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-    }
-
-    private fun getTerminalID(): Int {
-        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
     }
 
     private fun getToken(): String {
@@ -154,9 +152,8 @@ class MBSheetFingerprintCardReaderViewModel(
         viewModelScope.launch {
             val url = getURl()
             val company = getCompany()
-            val terminalId = getTerminalID()
             val token = getToken()
-            if (!company.isNullOrEmpty() && terminalId > 0 && entity.status > 0 && token.isNotEmpty()) {
+            if (!company.isNullOrEmpty() && entity.status > 0 && token.isNotEmpty()) {
                 httpService.post(
                     "${url}services/rest/zktecoTerminal/booking",
                     mapOf(
@@ -165,7 +162,7 @@ class MBSheetFingerprintCardReaderViewModel(
                         Pair("date", entity.date),
                         Pair("funcCode", entity.status.toString()),
                         Pair("inputCode", entity.inputCode.toString()),
-                        Pair("terminalId", terminalId.toString()),
+                        Pair("terminalSN", hardware.serialNumber()),
                         Pair("token", token),
                         Pair("validate", "true")
                     ),

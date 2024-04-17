@@ -7,6 +7,7 @@ import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.serviceUtils.classes.UserInformation
 import com.timo.timoterminal.utils.classes.ResponseToJSON
 import com.zkteco.android.core.sdk.service.FingerprintService
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -14,6 +15,7 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.util.Date
 
 class UserService(
@@ -21,6 +23,7 @@ class UserService(
     private val sharedPrefService: SharedPrefService,
     private val userRepository: UserRepository
 ) : KoinComponent {
+    private val hardware: IHardwareSource by inject()
 
     suspend fun getEntity(id: Long): List<UserEntity> = userRepository.getEntity(id)
 
@@ -35,13 +38,12 @@ class UserService(
             //Load from server
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
             val params = HashMap<String, String>()
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 params["company"] = company
                 params["token"] = token
-                params["terminalId"] = terminalId.toString()
+                params["terminalSN"] = hardware.serialNumber()
                 httpService.get("${url}services/rest/zktecoTerminal/loadAllUsers",
                     params,
                     null,
@@ -84,13 +86,12 @@ class UserService(
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 val paramMap = mutableMapOf(Pair("company", company))
                 paramMap["token"] = token
-                paramMap["terminalId"] = terminalId.toString()
+                paramMap["terminalSN"] = hardware.serialNumber()
                 httpService.get(
                     "${url}services/rest/zktecoTerminal/getAllFPForTerminal",
                     paramMap,
@@ -109,13 +110,12 @@ class UserService(
         callback: () -> Unit?,
         id: String,
         company: String,
-        terminalId: Int,
         token: String
     ) {
         val paramMap = mutableMapOf(Pair("company", company))
         paramMap["user"] = id
         paramMap["token"] = token
-        paramMap["terminalId"] = terminalId.toString()
+        paramMap["terminalSN"] = hardware.serialNumber()
         httpService.get(
             "${url}services/rest/zktecoTerminal/getFP",
             paramMap,
@@ -133,13 +133,12 @@ class UserService(
         //Load from server
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
         val params = HashMap<String, String>()
         if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
             params["company"] = company
             params["token"] = token
-            params["terminalId"] = terminalId.toString()
+            params["terminalSN"] = hardware.serialNumber()
             params["userId"] = userId
             httpService.get("${url}services/rest/zktecoTerminal/loadUser",
                 params,
@@ -152,7 +151,7 @@ class UserService(
                                 val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
                                 userRepository.insertOne(userEntity)
                                 if (userEntity.assignedToTerminal) {
-                                    getFPForUser(url, { }, userId, company, terminalId, token)
+                                    getFPForUser(url, { }, userId, company, token)
                                 }
                             }
                             if (unique.isNotEmpty()) {
@@ -187,13 +186,12 @@ class UserService(
     ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-        if (!company.isNullOrEmpty() && terminalId > 0 && !token.isNullOrEmpty()) {
+        if (!company.isNullOrEmpty() && !token.isNullOrEmpty()) {
             val params = HashMap<String, String>()
             params["card"] = user.card
             params["firma"] = company
-            params["terminalId"] = terminalId.toString()
+            params["terminalSN"] = hardware.serialNumber()
             params["token"] = token
             params["from"] = from.time.toString()
             return httpService.get(

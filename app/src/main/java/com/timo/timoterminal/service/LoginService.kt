@@ -216,7 +216,6 @@ class LoginService(
     ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
         if (Utils.isOnline(context)) {
@@ -225,7 +224,7 @@ class LoginService(
                     "${url}services/rest/zktecoTerminal/permission",
                     mapOf(
                         Pair("firma", company),
-                        Pair("terminalId", "$terminalId"),
+                        Pair("terminalSN", hardware.serialNumber()),
                         Pair("token", token)
                     ),
                     context,

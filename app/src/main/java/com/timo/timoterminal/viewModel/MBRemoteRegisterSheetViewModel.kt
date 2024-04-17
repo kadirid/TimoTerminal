@@ -9,6 +9,7 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
 import com.zkteco.android.core.sdk.service.FingerprintService
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -16,7 +17,8 @@ class MBRemoteRegisterSheetViewModel(
     private val userService: UserService,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService,
-    private val languageService: LanguageService
+    private val languageService: LanguageService,
+    private val hardware: IHardwareSource
 ) : ViewModel() {
 
     fun updateUser(
@@ -26,12 +28,11 @@ class MBRemoteRegisterSheetViewModel(
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 paramMap["company"] = company
                 paramMap["token"] = token
-                paramMap["terminalId"] = terminalId.toString()
+                paramMap["terminalSN"] = hardware.serialNumber()
                 httpService.post("${url}services/rest/zktecoTerminal/updateUserCard",
                     paramMap,
                     null,
@@ -75,7 +76,6 @@ class MBRemoteRegisterSheetViewModel(
 
                 val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
                 val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-                val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
                 val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
                 if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty() && user != "-1") {
@@ -84,7 +84,7 @@ class MBRemoteRegisterSheetViewModel(
                     paramMap["fingerNo"] = "$finger"
                     paramMap["company"] = company
                     paramMap["token"] = token
-                    paramMap["terminalId"] = terminalId.toString()
+                    paramMap["terminalSN"] = hardware.serialNumber()
                     httpService.post(
                         "${url}services/rest/zktecoTerminal/saveFP",
                         paramMap,
@@ -99,7 +99,7 @@ class MBRemoteRegisterSheetViewModel(
                             FingerprintService.delete("$user|$finger")
                         }
                     )
-                }else{
+                } else {
                     callback(
                         languageService.getText("#TimoServiceNotReachable") + " " +
                                 languageService.getText("#ChangesReverted")
@@ -118,7 +118,7 @@ class MBRemoteRegisterSheetViewModel(
         }
     }
 
-    fun respondForCommand(unique:String){
+    fun respondForCommand(unique: String) {
         viewModelScope.launch {
             httpService.responseForCommand(unique)
         }

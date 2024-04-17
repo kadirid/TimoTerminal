@@ -9,6 +9,7 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
 import com.zkteco.android.core.sdk.service.FingerprintService
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -16,7 +17,8 @@ class MBUserWaitSheetViewModel(
     private val userService: UserService,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService,
-    private val languageService: LanguageService
+    private val languageService: LanguageService,
+    private val hardware: IHardwareSource
 ) : ViewModel() {
 
     fun updateUser(
@@ -26,12 +28,11 @@ class MBUserWaitSheetViewModel(
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-            val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 paramMap["company"] = company
                 paramMap["token"] = token
-                paramMap["terminalId"] = terminalId.toString()
+                paramMap["terminalSN"] = hardware.serialNumber()
                 httpService.post("${url}services/rest/zktecoTerminal/updateUserCard",
                     paramMap,
                     null,
@@ -75,7 +76,6 @@ class MBUserWaitSheetViewModel(
 
                 val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
                 val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-                val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
                 val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
                 if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty() && user != "-1") {
@@ -84,7 +84,7 @@ class MBUserWaitSheetViewModel(
                     paramMap["fingerNo"] = "$finger"
                     paramMap["company"] = company
                     paramMap["token"] = token
-                    paramMap["terminalId"] = terminalId.toString()
+                    paramMap["terminalSN"] = hardware.serialNumber()
                     httpService.post(
                         "${url}services/rest/zktecoTerminal/saveFP",
                         paramMap,
@@ -115,7 +115,6 @@ class MBUserWaitSheetViewModel(
 
                 val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
                 val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-                val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, 0)
                 val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
                 if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty() && user != "-1") {
@@ -123,7 +122,7 @@ class MBUserWaitSheetViewModel(
                     paramMap["fingerNo"] = "$finger"
                     paramMap["company"] = company
                     paramMap["token"] = token
-                    paramMap["terminalId"] = terminalId.toString()
+                    paramMap["terminalSN"] = hardware.serialNumber()
                     httpService.post(
                         "${url}services/rest/zktecoTerminal/delFP",
                         paramMap,

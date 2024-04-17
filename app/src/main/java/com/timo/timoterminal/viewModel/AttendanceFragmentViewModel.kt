@@ -36,10 +36,6 @@ class AttendanceFragmentViewModel(
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
     }
 
-    fun getTerminalID(): Int {
-        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-    }
-
     fun getToken(): String {
         return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
     }

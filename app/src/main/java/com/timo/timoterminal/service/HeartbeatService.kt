@@ -12,6 +12,7 @@ import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.modalBottomSheets.MBRemoteRegisterSheet
 import com.timo.timoterminal.utils.Utils
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -29,6 +30,7 @@ class HeartbeatService : KoinComponent {
     private val loginService: LoginService by inject()
     private val bookingService: BookingService by inject()
     private val httpService: HttpService by inject()
+    private val hardware: IHardwareSource by inject()
     private lateinit var handler: Handler
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .retryOnConnectionFailure(false)
@@ -42,10 +44,6 @@ class HeartbeatService : KoinComponent {
 
     private fun getURl(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-    }
-
-    private fun getTerminalID(): Int {
-        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
     }
 
     private fun getToken(): String {
@@ -62,17 +60,16 @@ class HeartbeatService : KoinComponent {
             handler.postDelayed(runnable!!, 30000L)
             val url = getURl()
             val company = getCompany()
-            val terminalId = getTerminalID()
             val token = getToken()
             val date = Utils.getDateTimeFromGC(Utils.getCal())
-            if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
+            if (!company.isNullOrEmpty() && token.isNotEmpty()) {
                 httpService.postWithClient(
                     client,
                     "${url}services/rest/zktecoTerminal/heartbeat",
                     mapOf(
                         Pair("firma", company),
                         Pair("date", date),
-                        Pair("terminalId", terminalId.toString()),
+                        Pair("terminalSN", hardware.serialNumber()),
                         Pair("token", token)
                     ),
                     null,
@@ -96,12 +93,14 @@ class HeartbeatService : KoinComponent {
 
     private fun handelHeartBeatResponse(obj: JSONObject, activity: MainActivity) {
         val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
-        if (!obj.isNull("timezone") && !timezone.equals(obj.getString("timezone"))) {
+        if (obj.has("timezone") && !obj.isNull("timezone") && !timezone.equals(obj.getString("timezone"))) {
             settingsService.setTimeZone(activity, obj.getString("timezone")) {}
             Utils.updateLocale()
         }
-        val tTime = Utils.parseDBDateTime(obj.getString("time"))
-        Utils.setCal(tTime)
+        if (obj.has("time") && !obj.isNull("time")) {
+            val tTime = Utils.parseDBDateTime(obj.getString("time"))
+            Utils.setCal(tTime)
+        }
         var updateAllUser = ""
         var loadPermissions = ""
         var loadLanguage = ""
@@ -112,6 +111,7 @@ class HeartbeatService : KoinComponent {
         val deleteIds = arrayListOf<Pair<String, String>>()
         val deleteFP = arrayListOf<Pair<String, String>>()
         var lang = Pair("", "")
+        var url = ""
         if (!obj.isNull("commands") && obj.getJSONArray("commands").length() > 0) {
             val array = obj.getJSONArray("commands")
             for (i in 0 until array.length()) {
@@ -141,109 +141,127 @@ class HeartbeatService : KoinComponent {
                     } else if (command.startsWith("changeLanguage:")) {
                         lang = Pair(command.substring(15, command.length), id)
                     }
+                } else if (command.startsWith("updateUrl:")) {
+                    url = command.substring(10, command.length)
                 }
             }
         }
         val scope = activity.getViewModel().viewModelScope
         scope.launch {
-            val color = activity.resources?.getColorStateList(R.color.green, null)
-            if (activity.getBinding().serverConnectionIcon.imageTintList != color) {
-                activity.runOnUiThread {
-                    activity.getBinding().serverConnectionIcon.imageTintList = color
+            if(url.isNotEmpty()){
+                val data = url.split(":;:")
+                val editor = sharedPrefService.getEditor()
+                if(data[1] != getCompany()){
+                    editor.putString(SharedPreferenceKeys.COMPANY.name, data[1])
                 }
-            }
-            if (updateAllUser.isNotEmpty()) {
-                userService.loadUsersFromServer(scope, updateAllUser)
-            } else {
-                for (no in deleteFP) {
-                    val ids = no.first.split(":")
-                    if (ids.size == 2) {
-                        userService.deleteFP(ids[0], ids[1].toInt(), no.second)
+                if(data[0] != getURl()){
+                    editor.putString(SharedPreferenceKeys.SERVER_URL.name, data[0])
+                }
+                editor.apply()
+            }else {
+                val color = activity.resources?.getColorStateList(R.color.green, null)
+                if (activity.getBinding().serverConnectionIcon.imageTintList != color) {
+                    activity.runOnUiThread {
+                        activity.getBinding().serverConnectionIcon.imageTintList = color
                     }
                 }
-                for (no in updateIds) {
-                    userService.loadUserFromServer(scope, no.first, no.second)
+                if (updateAllUser.isNotEmpty()) {
+                    userService.loadUsersFromServer(scope, updateAllUser)
+                } else {
+                    for (no in deleteFP) {
+                        val ids = no.first.split(":")
+                        if (ids.size == 2) {
+                            userService.deleteFP(ids[0], ids[1].toInt(), no.second)
+                        }
+                    }
+                    for (no in updateIds) {
+                        userService.loadUserFromServer(scope, no.first, no.second)
+                    }
+                    for (no in deleteIds) {
+                        userService.deleteUser(no.first, no.second)
+                    }
                 }
-                for (no in deleteIds) {
-                    userService.deleteUser(no.first, no.second)
+                if (loadPermissions.isNotEmpty()) {
+                    loginService.loadPermissions(
+                        scope,
+                        activity
+                    ) { worked -> if (worked) httpService.responseForCommand(loadPermissions) }
                 }
-            }
-            if (loadPermissions.isNotEmpty()) {
-                loginService.loadPermissions(
-                    scope,
-                    activity
-                ) { worked -> if (worked) httpService.responseForCommand(loadPermissions) }
-            }
-            if (loadLanguage.isNotEmpty()) {
-                languageService.requestLanguageFromServer(scope, activity, loadLanguage)
-            }
-            if (lang.first.isNotEmpty()) {
-                settingsService.changeLanguage(activity, lang.first, lang.second)
-                activity.setText()
-                activity.reloadSoundSource()
-                Utils.updateLocale()
-            }
-            if (enrollCard.first.isNotEmpty()) {
-                activity.cancelTimer()
-                val ids = enrollCard.first.split(":")
-                if (ids.size == 2) {
-                    activity.runOnUiThread {
-                        val frag =
-                            activity.supportFragmentManager.findFragmentByTag(MBRemoteRegisterSheet.TAG)
-                        if (frag == null || !frag.isVisible) {
-                            Handler(Looper.getMainLooper()).postDelayed(3000) {
-                                val sheet =
-                                    MBRemoteRegisterSheet.newInstance(
+                if (loadLanguage.isNotEmpty()) {
+                    languageService.requestLanguageFromServer(scope, activity, loadLanguage)
+                }
+                if (lang.first.isNotEmpty()) {
+                    settingsService.changeLanguage(activity, lang.first, lang.second)
+                    activity.setText()
+                    activity.reloadSoundSource()
+                    Utils.updateLocale()
+                }
+                if (enrollCard.first.isNotEmpty()) {
+                    activity.cancelTimer()
+                    val ids = enrollCard.first.split(":")
+                    if (ids.size == 2) {
+                        activity.runOnUiThread {
+                            val frag =
+                                activity.supportFragmentManager.findFragmentByTag(
+                                    MBRemoteRegisterSheet.TAG
+                                )
+                            if (frag == null || !frag.isVisible) {
+                                Handler(Looper.getMainLooper()).postDelayed(3000) {
+                                    val sheet =
+                                        MBRemoteRegisterSheet.newInstance(
+                                            ids[0].substring(1, ids[0].length),
+                                            ids[1].substring(1, ids[1].length),
+                                            false,
+                                            commandId = enrollCard.second
+                                        )
+                                    sheet.show(
+                                        activity.supportFragmentManager,
+                                        MBRemoteRegisterSheet.TAG
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                if (enrollFinger.first.isNotEmpty()) {
+                    val ids = enrollFinger.first.split(":")
+                    if (ids.size == 3) {
+                        activity.cancelTimer()
+                        activity.loadSoundForFP(ids[2].substring(1, ids[2].length).toInt())
+                        activity.runOnUiThread {
+                            val frag =
+                                activity.supportFragmentManager.findFragmentByTag(
+                                    MBRemoteRegisterSheet.TAG
+                                )
+                            if (frag == null || !frag.isVisible) {
+                                Handler(Looper.getMainLooper()).postDelayed(3000) {
+                                    val sheet = MBRemoteRegisterSheet.newInstance(
                                         ids[0].substring(1, ids[0].length),
                                         ids[1].substring(1, ids[1].length),
-                                        false,
-                                        commandId = enrollCard.second
+                                        true,
+                                        ids[2].substring(1, ids[2].length).toInt(),
+                                        commandId = enrollFinger.second
                                     )
-                                sheet.show(
-                                    activity.supportFragmentManager,
-                                    MBRemoteRegisterSheet.TAG
-                                )
+                                    sheet.show(
+                                        activity.supportFragmentManager,
+                                        MBRemoteRegisterSheet.TAG
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
-            if (enrollFinger.first.isNotEmpty()) {
-                val ids = enrollFinger.first.split(":")
-                if (ids.size == 3) {
-                    activity.cancelTimer()
-                    activity.loadSoundForFP(ids[2].substring(1, ids[2].length).toInt())
-                    activity.runOnUiThread {
-                        val frag =
-                            activity.supportFragmentManager.findFragmentByTag(MBRemoteRegisterSheet.TAG)
-                        if (frag == null || !frag.isVisible) {
-                            Handler(Looper.getMainLooper()).postDelayed(3000) {
-                                val sheet = MBRemoteRegisterSheet.newInstance(
-                                    ids[0].substring(1, ids[0].length),
-                                    ids[1].substring(1, ids[1].length),
-                                    true,
-                                    ids[2].substring(1, ids[2].length).toInt(),
-                                    commandId = enrollFinger.second
-                                )
-                                sheet.show(
-                                    activity.supportFragmentManager,
-                                    MBRemoteRegisterSheet.TAG
-                                )
-                            }
-                        }
+                if (rebootTerminal) {
+                    if (loadLanguage.isNotEmpty() || loadPermissions.isNotEmpty() ||
+                        updateAllUser.isNotEmpty() || updateIds.size > 0 || deleteIds.size > 0 ||
+                        deleteFP.size > 0 || lang.first.isNotEmpty()
+                    ) {
+                        delay(10000L)
                     }
+                    activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
+                } else {
+                    bookingService.sendSavedBooking(scope)
                 }
-            }
-            if (rebootTerminal) {
-                if (loadLanguage.isNotEmpty() || loadPermissions.isNotEmpty() ||
-                    updateAllUser.isNotEmpty() || updateIds.size > 0 || deleteIds.size > 0 ||
-                    deleteFP.size > 0 || lang.first.isNotEmpty()
-                ) {
-                    delay(10000L)
-                }
-                activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
-            } else {
-                bookingService.sendSavedBooking(scope)
             }
         }
     }

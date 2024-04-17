@@ -21,6 +21,7 @@ import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.service.RfidService
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -31,6 +32,7 @@ class AttendanceFragment : Fragment() {
     private val languageService: LanguageService by inject()
     private val soundSource: SoundSource by inject()
     private val httpService: HttpService by inject()
+    private val hardware: IHardwareSource by inject()
 
     private var _broadcastReceiver: BroadcastReceiver? = null
     private lateinit var binding: FragmentAttendanceBinding
@@ -162,9 +164,8 @@ class AttendanceFragment : Fragment() {
             viewModel.viewModelScope.launch {
                 val url = viewModel.getURl()
                 val company = viewModel.getCompany()
-                val terminalId = viewModel.getTerminalID()
                 val token = viewModel.getToken()
-                if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
+                if (!company.isNullOrEmpty() && token.isNotEmpty()) {
                     httpService.post(
                         "${url}services/rest/zktecoTerminal/bookingWithoutType",
                         mapOf(
@@ -172,7 +173,7 @@ class AttendanceFragment : Fragment() {
                             Pair("firma", company),
                             Pair("date", Utils.getDateTimeFromGC(Utils.getCal())),
                             Pair("inputCode", "$inputCode"),
-                            Pair("terminalId", "$terminalId"),
+                            Pair("terminalSN", hardware.serialNumber()),
                             Pair("token", token)
                         ),
                         requireContext(),

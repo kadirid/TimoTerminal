@@ -4,11 +4,13 @@ import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.BookingBURepository
 import com.timo.timoterminal.repositories.BookingRepository
+import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class BookingService(
     private val bookingRepository: BookingRepository,
@@ -16,6 +18,7 @@ class BookingService(
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService
 ) : KoinComponent {
+    private val hardware: IHardwareSource by inject()
 
     private fun getCompany(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
@@ -23,10 +26,6 @@ class BookingService(
 
     private fun getURl(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-    }
-
-    private fun getTerminalID(): Int {
-        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
     }
 
     private fun getToken(): String {
@@ -50,12 +49,11 @@ class BookingService(
         if (bookingRepository.count() > 0) {
             val url = getURl()
             val company = getCompany()
-            val terminalId = getTerminalID()
             val token = getToken()
-            if (!company.isNullOrEmpty() && terminalId > 0 && token.isNotEmpty()) {
+            if (!company.isNullOrEmpty() && token.isNotEmpty()) {
                 val bookings = bookingRepository.getAllAsList()
                 val params = JSONObject()
-                params.put("terminalId", terminalId.toString())
+                params.put("terminalSN", hardware.serialNumber())
                 params.put("token", token)
                 params.put("firma", company)
                 val arr = JSONArray()

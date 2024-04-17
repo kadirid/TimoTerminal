@@ -95,7 +95,7 @@
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
         app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
-        tools:visibility="visible">
+        tools:visibility="gone">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_input_edit_text_login_company"
@@ -112,11 +112,11 @@
         android:layout_width="600dp"
         android:layout_height="70dp"
         android:hint="@string/loginname"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/guideline"
-        tools:visibility="visible">
+        tools:visibility="invisible">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_input_edit_text_login_user"
@@ -137,7 +137,7 @@
         app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
         app:layout_constraintTop_toBottomOf="@id/text_input_layout_login_user"
         app:passwordToggleEnabled="true"
-        tools:visibility="visible">
+        tools:visibility="invisible">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_input_edit_text_login_password"
@@ -159,7 +159,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="gone">
+        tools:visibility="visible">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/dropdown_menu_language"
@@ -182,7 +182,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/dropdown_menu_layout_language"
-        tools:visibility="gone">
+        tools:visibility="visible">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/dropdown_menu_timezone"
