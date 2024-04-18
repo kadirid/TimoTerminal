@@ -38,4 +38,8 @@
     <string name="fill_out_fields">Bitte füllen Sie alle Felder aus!</string>
     <string name="account_locked">Account gesperrt!</string>
     <string name="please_choose_language_and_timezone">Bitte Sprache und Zeitzone auswählen</string>
+    <string name="rfid">RFID</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="apply">Anwenden</string>
+    <string name="enter_url_for_connection">Geben Sie die URL des TimO-Systems ein, welche für die Verbindung verwendet werden soll.</string>
 </resources>

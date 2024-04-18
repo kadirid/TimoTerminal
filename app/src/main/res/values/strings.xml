@@ -38,4 +38,7 @@
     <string name="account_locked">Account locked!</string>
     <string name="please_choose_language_and_timezone">Please choose language and timezone</string>
     <string name="rfid">RFID</string>
+    <string name="cancel">Cancel</string>
+    <string name="apply">Apply</string>
+    <string name="enter_url_for_connection">Enter the URL of the TimO system that should be used for the connection.</string>
 </resources>

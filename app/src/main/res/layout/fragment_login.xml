@@ -13,46 +13,46 @@
         android:id="@+id/guideline"
         android:layout_width="1dp"
         android:layout_height="wrap_content"
-        app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintVertical_weight="1"
-        app:layout_constraintHeight_min="125dp"
-        app:layout_constraintHeight_max="246dp"
         app:layout_constrainedHeight="true"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/block"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/block"/>
+        app:layout_constraintHeight_max="246dp"
+        app:layout_constraintHeight_min="125dp"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_weight="1" />
 
     <View
         android:id="@+id/block"
         android:layout_width="1dp"
         android:layout_height="0dp"
-        app:layout_constraintHeight_min="220dp"
         app:layout_constrainedHeight="true"
-        app:layout_constraintTop_toBottomOf="@id/guideline"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_min="220dp"
+        app:layout_constraintTop_toBottomOf="@id/guideline" />
 
     <View
         android:id="@+id/guideline2"
         android:layout_width="1dp"
         android:layout_height="wrap_content"
-        app:layout_constraintHeight_min="60dp"
-        app:layout_constraintHeight_max="213dp"
         app:layout_constrainedHeight="true"
-        app:layout_constraintTop_toBottomOf="@id/guideline"
+        app:layout_constraintBottom_toTopOf="@id/block2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/block2"/>
+        app:layout_constraintHeight_max="213dp"
+        app:layout_constraintHeight_min="60dp"
+        app:layout_constraintTop_toBottomOf="@id/guideline" />
 
     <View
         android:id="@+id/block2"
         android:layout_width="1dp"
         android:layout_height="0dp"
+        app:layout_constrainedHeight="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_max="140dp"
         app:layout_constraintHeight_min="91dp"
-        app:layout_constrainedHeight="true"
-        app:layout_constraintTop_toBottomOf="@id/guideline2"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/guideline2" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/go_to_inet_settings_button"
@@ -61,8 +61,8 @@
         android:layout_marginEnd="20dp"
         android:src="@drawable/baseline_wifi_24"
         app:fabCustomSize="80dp"
-        app:layout_constraintTop_toBottomOf="@id/guideline2"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline2" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/button_submit"
@@ -70,8 +70,8 @@
         android:layout_height="60dp"
         android:text="@string/save"
         android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/text_input_layout_login_user"
+        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
         app:layout_constraintTop_toBottomOf="@id/text_input_layout_login_password" />
 
     <EditText
@@ -87,6 +87,18 @@
         tools:text="Has to be removed later to use as url for local test"
         tools:visibility="gone" />
 
+    <ImageView
+        android:id="@+id/image_view_logo_big"
+        android:layout_width="147dp"
+        android:layout_height="147dp"
+        android:layout_marginTop="5dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/logo_nur_o_hell_blau_4096x2304"
+        app:layout_constraintBottom_toBottomOf="@id/text_input_layout_login_user"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/text_input_layout_login_user"
+        app:layout_constraintTop_toTopOf="@id/text_input_layout_login_user" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/text_input_layout_login_company"
         android:layout_width="600dp"
@@ -95,7 +107,7 @@
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
         app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
-        tools:visibility="gone">
+        tools:visibility="invisible">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_input_edit_text_login_company"
@@ -113,7 +125,7 @@
         android:layout_height="70dp"
         android:hint="@string/loginname"
         android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/image_view_logo_big"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/guideline"
         tools:visibility="invisible">
@@ -153,12 +165,12 @@
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="600dp"
         android:layout_height="70dp"
-        android:layout_marginBottom="90dp"
+        android:layout_marginBottom="5dp"
         android:hint="@string/language"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/dropdown_menu_layout_timezone"
+        app:layout_constraintEnd_toEndOf="@id/text_input_layout_login_user"
+        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
+        app:layout_constraintTop_toTopOf="@id/text_input_layout_login_user"
         tools:visibility="visible">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -177,10 +189,11 @@
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="600dp"
         android:layout_height="70dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:hint="@string/timezone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/text_input_layout_login_user"
+        app:layout_constraintEnd_toEndOf="@id/text_input_layout_login_user"
+        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
         app:layout_constraintTop_toBottomOf="@id/dropdown_menu_layout_language"
         tools:visibility="visible">
 

@@ -3,12 +3,17 @@ package com.timo.timoterminal.fragmentViews
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.provider.Settings
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ArrayAdapter
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.BuildConfig
@@ -217,6 +222,53 @@ class LoginFragment : Fragment() {
                 val goToInetSettingsActivity =
                     Intent(context, NoInternetNetworkSettingsActivity::class.java)
                 startActivity(goToInetSettingsActivity)
+            }
+
+            binding.imageViewLogoBig.setOnLongClickListener {
+                val title = "URL"
+                var message = ""
+                var positive = ""
+                var negative = ""
+
+                val locale =
+                    Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
+                val config = Configuration()
+                config.setLocale(locale)
+                val context = activity?.baseContext?.createConfigurationContext(config)
+                if (context != null) {
+                    message = context.getText(R.string.enter_url_for_connection).toString()
+                    positive = context.getText(R.string.apply).toString()
+                    negative = context.getText(R.string.cancel).toString()
+                }else{
+                    message = requireContext().getText(R.string.enter_url_for_connection).toString()
+                    negative = requireContext().getText(R.string.cancel).toString()
+                    positive = requireContext().getText(R.string.apply).toString()
+                }
+
+                val passCodeEditText = EditText(requireContext())
+                passCodeEditText.isFocusableInTouchMode = false
+                passCodeEditText.isFocusable = false
+                val dlgAlert: AlertDialog.Builder =
+                    AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
+                dlgAlert.setMessage(message)
+                dlgAlert.setTitle(title)
+                dlgAlert.setNegativeButton(negative) { dia, _ -> dia.dismiss() }
+                dlgAlert.setPositiveButton(positive) { _, _ ->
+                    val code = passCodeEditText.text
+                    binding.customUrl.text = code
+                }
+                val dialog = dlgAlert.create()
+                Utils.hideNavInDialog(dialog)
+                dialog.setView(passCodeEditText, 20, 0, 20, 0)
+                dialog.setOnShowListener {
+                    passCodeEditText.isFocusableInTouchMode = true
+                    passCodeEditText.isFocusable = true
+                    passCodeEditText.inputType = InputType.TYPE_TEXT_VARIATION_URI
+                    passCodeEditText.text = binding.customUrl.text
+                }
+                dialog.show()
+                dialog.window?.setLayout(680, 244)
+                true
             }
         }
     }

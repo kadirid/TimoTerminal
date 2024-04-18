@@ -131,15 +131,25 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
 
             binding.textviewVacationTaken.text = getText("ALLGEMEIN#Genommen")
             binding.textviewVacationTakenValue.text = res.gVacation
-            val gVacation = res.gVacation.replace(",", ".").toFloat()
+            val gVacation = if (res.gVacation.contains(":"))
+                Utils.parseTimeToFloat(res.gVacation)
+            else
+                res.gVacation.replace(",", ".").toFloat()
 
             binding.textviewVacationRequested.text = getText("ALLGEMEIN#Beantragt")
             binding.textviewVacationRequestedValue.text = res.bVacation
-            val bVacation = res.bVacation.replace(",", ".").toFloat()
+            val bVacation = if (res.bVacation.contains(":"))
+                Utils.parseTimeToFloat(res.bVacation)
+            else
+                res.bVacation.replace(",", ".").toFloat()
 
             binding.textviewVacationRemaining.text = getText("#Remaining")
             binding.textviewVacationRemainingValue.text = res.rVacation
-            val rVacation = res.rVacation.replace(",", ".").toFloat()
+            val rVacation = if (res.rVacation.contains(":"))
+                Utils.parseTimeToFloat(res.rVacation)
+            else
+                res.rVacation.replace(",", ".").toFloat()
+
             if (rVacation < 0f) {
                 binding.textviewVacationRemainingValue.setTextColor(Color.RED)
             }

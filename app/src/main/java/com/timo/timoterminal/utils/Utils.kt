@@ -308,7 +308,7 @@ class Utils {
 
         fun getCal() = calendar.clone() as GregorianCalendar
 
-        fun showErrorMessage(context: Context, msg: String){
+        fun showErrorMessage(context: Context, msg: String) {
             Handler(context.mainLooper).post {
                 val dialog = MaterialAlertDialogBuilder(context, R.style.MySingleButtonDialog)
                 dialog.setTitle(context.getString(R.string.error))
@@ -416,11 +416,18 @@ class Utils {
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.REQUEST_INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        android.Manifest.permission.REQUEST_INSTALL_PACKAGES
+                    ) != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
                     ActivityCompat.requestPermissions(
                         activity,
-                        arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE ),
+                        arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
                         1
                     )
                     return
@@ -432,14 +439,16 @@ class Utils {
                 .setNotificationVisibility(Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "app.apk")
 
-            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val downloadManager =
+                context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             val downloadId = downloadManager.enqueue(request)
 
             val onDownloadComplete = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
                     val downloadedFileId = intent.getLongExtra(EXTRA_DOWNLOAD_ID, -1)
                     if (downloadedFileId == downloadId) {
-                        val downloadedFileUri = downloadManager.getUriForDownloadedFile(downloadedFileId)
+                        val downloadedFileUri =
+                            downloadManager.getUriForDownloadedFile(downloadedFileId)
                         installApk(context, downloadedFileUri)
                     }
                 }
@@ -453,6 +462,17 @@ class Utils {
             intent.data = apkUri
             intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
             context.startActivity(intent)
+        }
+
+        // takes hh or hh:mm or hh:mm:ss
+        fun parseTimeToFloat(time: String): Float {
+            val parts = time.split(":")
+            return when (parts.size) {
+                1 -> parts[0].toFloat() * 60
+                2 -> (parts[0].toFloat() * 60) + parts[1].toFloat()
+                3 -> (parts[0].toFloat() * 60) + parts[1].toFloat() + if (parts[2].toInt() > 29) 1 else 0
+                else -> 0f
+            }
         }
     }
 }
