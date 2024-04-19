@@ -3,6 +3,7 @@ package com.timo.timoterminal.fragmentViews
 import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,7 @@ import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
-import com.timo.timoterminal.databinding.DialogVerificationBinding
+import com.timo.timoterminal.databinding.DialogSingleTextInputBinding
 import com.timo.timoterminal.databinding.FragmentInfoBinding
 import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
 import com.timo.timoterminal.modalBottomSheets.MBFragmentInfoSheet
@@ -184,7 +185,7 @@ class InfoFragment : Fragment() {
     }
 
     private fun showVerificationAlert() {
-        val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
+        val dialogBinding = DialogSingleTextInputBinding.inflate(layoutInflater)
         unregister()
 
         val dlgAlert: AlertDialog.Builder =
@@ -193,7 +194,7 @@ class InfoFragment : Fragment() {
         dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
             (activity as MainActivity?)?.restartTimer()
-            val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
+            val pin = dialogBinding.dialogTextInputEditValue.text.toString()
             if (pin.isNotEmpty()) {
                 (activity as MainActivity?)?.showLoadMask()
                 viewModel.loadUserInfoByPin(pin)
@@ -210,16 +211,19 @@ class InfoFragment : Fragment() {
             }
         }
 
-        dialogBinding.textViewDialogVerificationMessage.text =
+        dialogBinding.dialogTextViewMessage.text =
             languageService.getText("#EnterCredentials")
-        dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
+        dialogBinding.dialogTextInputEditValue.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
             (activity as MainActivity?)?.restartTimer()
         }
-        dialogBinding.textInputEditTextVerificationPin.isFocusable = true
-        dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
-        dialogBinding.textInputLayoutVerificationId.visibility = View.GONE
+        dialogBinding.dialogTextInputLayoutValue.hint =
+            requireContext().getText(R.string.user_passcode)
+        dialogBinding.dialogTextInputEditValue.isFocusable = true
+        dialogBinding.dialogTextInputEditValue.isFocusableInTouchMode = true
+        dialogBinding.dialogTextInputEditValue.inputType =
+            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
         dialog.setOnDismissListener {
             alertTimer.cancel()
             register()

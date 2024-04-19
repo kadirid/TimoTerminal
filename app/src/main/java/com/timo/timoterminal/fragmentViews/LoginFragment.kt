@@ -1,25 +1,26 @@
 package com.timo.timoterminal.fragmentViews
 
+import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.provider.Settings
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
-import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
-import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.activities.NoInternetNetworkSettingsActivity
+import com.timo.timoterminal.databinding.DialogSingleTextInputBinding
 import com.timo.timoterminal.databinding.FragmentLoginBinding
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.LanguageService
@@ -84,15 +85,16 @@ class LoginFragment : Fragment() {
                 val company = propertyService.getProperties().getProperty("company")
                 val username = propertyService.getProperties().getProperty("username")
                 val password = propertyService.getProperties().getProperty("password")
-                binding.customUrl.visibility = View.VISIBLE
-                val fillLoginFields = propertyService.getProperties().getProperty("fillLoginFields").equals("true")
+//                binding.customUrl.visibility = View.VISIBLE
+                val fillLoginFields =
+                    propertyService.getProperties().getProperty("fillLoginFields").equals("true")
                 if (fillLoginFields) {
                     binding.customUrl.setText(url)
                     binding.textInputEditTextLoginCompany.setText(if (!company.isNullOrEmpty()) company else "")
                     binding.textInputEditTextLoginUser.setText(if (!username.isNullOrEmpty()) username else "")
                     binding.textInputEditTextLoginPassword.setText(if (!password.isNullOrEmpty()) password else "")
                 }
-           }
+            }
         }
     }
 
@@ -130,7 +132,7 @@ class LoginFragment : Fragment() {
 
     private fun showLogin() {
         // INIT ANIMATION
-        if(first) {
+        if (first) {
             val animSet = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out_move_up)
             val fadeInAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
 
@@ -176,7 +178,7 @@ class LoginFragment : Fragment() {
                 binding.dropdownMenuLayoutTimezone.startAnimation(animSet)
             }
             first = false
-        }else{
+        } else {
             binding.dropdownMenuLayoutLanguage.visibility = View.GONE
             binding.dropdownMenuLayoutTimezone.visibility = View.GONE
             binding.textInputLayoutLoginCompany.visibility = View.VISIBLE
@@ -226,9 +228,9 @@ class LoginFragment : Fragment() {
 
             binding.imageViewLogoBig.setOnLongClickListener {
                 val title = "URL"
-                var message = ""
-                var positive = ""
-                var negative = ""
+                val message: String
+                val positive: String
+                val negative: String
 
                 val locale =
                     Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
@@ -239,35 +241,44 @@ class LoginFragment : Fragment() {
                     message = context.getText(R.string.enter_url_for_connection).toString()
                     positive = context.getText(R.string.apply).toString()
                     negative = context.getText(R.string.cancel).toString()
-                }else{
+                } else {
                     message = requireContext().getText(R.string.enter_url_for_connection).toString()
                     negative = requireContext().getText(R.string.cancel).toString()
                     positive = requireContext().getText(R.string.apply).toString()
                 }
 
-                val passCodeEditText = EditText(requireContext())
-                passCodeEditText.isFocusableInTouchMode = false
-                passCodeEditText.isFocusable = false
+                val dialogBinding = DialogSingleTextInputBinding.inflate(layoutInflater)
+
                 val dlgAlert: AlertDialog.Builder =
-                    AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
-                dlgAlert.setMessage(message)
-                dlgAlert.setTitle(title)
-                dlgAlert.setNegativeButton(negative) { dia, _ -> dia.dismiss() }
-                dlgAlert.setPositiveButton(positive) { _, _ ->
-                    val code = passCodeEditText.text
-                    binding.customUrl.text = code
+                    AlertDialog.Builder(requireContext(), R.style.MyDialog)
+                dlgAlert.setView(dialogBinding.root)
+                dlgAlert.setNegativeButton(negative) { dia, _ ->
+                    dialogBinding.dialogTextInputEditValue.onEditorAction(EditorInfo.IME_ACTION_DONE)
+                    val imm =
+                        requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(view?.rootView?.windowToken, 0)
+                    dia.dismiss()
                 }
+                dlgAlert.setPositiveButton(positive) { _, _ ->
+                    val code = dialogBinding.dialogTextInputEditValue.text
+                    binding.customUrl.text = code
+                    dialogBinding.dialogTextInputEditValue.onEditorAction(EditorInfo.IME_ACTION_DONE)
+                    val imm =
+                        requireContext().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(view?.rootView?.windowToken, 0)
+                }
+                dialogBinding.dialogTextViewMessage.text = message
+                dialogBinding.dialogTextInputLayoutValue.hint = title
                 val dialog = dlgAlert.create()
                 Utils.hideNavInDialog(dialog)
-                dialog.setView(passCodeEditText, 20, 0, 20, 0)
                 dialog.setOnShowListener {
-                    passCodeEditText.isFocusableInTouchMode = true
-                    passCodeEditText.isFocusable = true
-                    passCodeEditText.inputType = InputType.TYPE_TEXT_VARIATION_URI
-                    passCodeEditText.text = binding.customUrl.text
+                    dialogBinding.dialogTextInputEditValue.isFocusableInTouchMode = true
+                    dialogBinding.dialogTextInputEditValue.isFocusable = true
+                    dialogBinding.dialogTextInputEditValue.inputType =
+                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+                    dialogBinding.dialogTextInputEditValue.text = binding.customUrl.text
                 }
                 dialog.show()
-                dialog.window?.setLayout(680, 244)
                 true
             }
         }
@@ -305,7 +316,7 @@ class LoginFragment : Fragment() {
                         requireContext(),
                         context.getText(R.string.fill_out_fields).toString()
                     )
-                }else{
+                } else {
                     Utils.showErrorMessage(
                         requireContext(),
                         requireContext().getText(R.string.fill_out_fields).toString()

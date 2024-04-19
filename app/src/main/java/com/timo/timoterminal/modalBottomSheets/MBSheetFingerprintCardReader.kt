@@ -7,6 +7,7 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +19,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
-import com.timo.timoterminal.databinding.DialogVerificationBinding
+import com.timo.timoterminal.databinding.DialogSingleTextInputBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
 import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.service.LanguageService
@@ -290,14 +291,14 @@ class MBSheetFingerprintCardReader(
     }
 
     private fun showVerificationAlert() {
-        val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
+        val dialogBinding = DialogSingleTextInputBinding.inflate(layoutInflater)
         timer.cancel()
 
         val dlgAlert: AlertDialog.Builder =
             AlertDialog.Builder(requireContext(), R.style.MyDialog)
         dlgAlert.setView(dialogBinding.root)
         dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
-            val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
+            val pin = dialogBinding.dialogTextInputEditValue.text.toString()
             if (pin.isNotEmpty()) {
                 viewModel.sendBookingByPIN(pin)
             }
@@ -314,15 +315,18 @@ class MBSheetFingerprintCardReader(
             }
         }
 
-        dialogBinding.textInputEditTextVerificationPin.doOnTextChanged { _, _, _, _ ->
+        dialogBinding.dialogTextInputEditValue.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
         }
-        dialogBinding.textViewDialogVerificationMessage.text =
+        dialogBinding.dialogTextInputLayoutValue.hint =
+            requireContext().getText(R.string.user_passcode)
+        dialogBinding.dialogTextViewMessage.text =
             languageService.getText("#EnterCredentials")
-        dialogBinding.textInputLayoutVerificationId.visibility = View.GONE
-        dialogBinding.textInputEditTextVerificationPin.isFocusable = true
-        dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
+        dialogBinding.dialogTextInputEditValue.isFocusable = true
+        dialogBinding.dialogTextInputEditValue.isFocusableInTouchMode = true
+        dialogBinding.dialogTextInputEditValue.inputType =
+            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
         dialog.setOnDismissListener {
             Utils.hideNavInDialog(this.dialog)
             alertTimer.cancel()
