@@ -264,9 +264,7 @@ class Utils {
             val minOff = min % 60
             val hrs = (min - minOff) / 60
 
-            val sign = "+"
-
-            return getTimeString(hrs, sign, minOff)
+            return getTimeString(hrs, "+", minOff)
         }
 
         fun showMessage(fragMan: FragmentManager, message: String): MBMessageSheet {
@@ -308,15 +306,24 @@ class Utils {
 
         fun getCal() = calendar.clone() as GregorianCalendar
 
-        fun showErrorMessage(context: Context, msg: String) {
+        fun showErrorMessage(context: Context, msg: String, isWarning: Boolean = true) {
             Handler(context.mainLooper).post {
                 val dialog = MaterialAlertDialogBuilder(context, R.style.MySingleButtonDialog)
-                dialog.setTitle(context.getString(R.string.error))
-                dialog.setIcon(
-                    AppCompatResources.getDrawable(
-                        context, R.drawable.baseline_error_24
+                if(isWarning) {
+                    dialog.setTitle(context.getString(R.string.warning))
+                    dialog.setIcon(
+                        AppCompatResources.getDrawable(
+                            context, R.drawable.baseline_warning_24
+                        )
                     )
-                )
+                }else{
+                    dialog.setTitle(context.getString(R.string.info))
+                    dialog.setIcon(
+                        AppCompatResources.getDrawable(
+                            context, R.drawable.baseline_info_24
+                        )
+                    )
+                }
                 dialog.setMessage(msg)
                 dialog.setPositiveButton("OK") { dia, _ ->
                     dia.dismiss()

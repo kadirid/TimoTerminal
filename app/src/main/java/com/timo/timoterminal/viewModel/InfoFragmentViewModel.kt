@@ -121,6 +121,7 @@ class InfoFragmentViewModel(
                     liveInfoSuccess.postValue(it)
                     timer.start()
                 } else {
+                    liveDismissSheet.postValue(true)
                     liveMessage.postValue(errMessage)
                 }
                 liveHideMask.postValue(true)

@@ -42,6 +42,8 @@
             android:background="@drawable/rounded_container_16dp"
             android:backgroundTint="?attr/colorSurfaceContainerHighest"
             android:hint="@string/choose_worker"
+            android:inputType="textFilter"
+            android:privateImeOptions="nm"
             app:elevation="0dp" />
 
         <com.google.android.material.search.SearchView
@@ -49,6 +51,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="@string/choose_worker"
+            android:inputType="textFilter"
+            android:privateImeOptions="nm"
             app:layout_anchor="@+id/search_bar"
             app:layout_anchorGravity="top|center">
 

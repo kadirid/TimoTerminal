@@ -11,7 +11,7 @@
     <string name="rfid_card">RFID-Karte</string>
     <string name="wait_for_ident">Warte auf Identifizierung …</string>
     <string name="choose_worker">Mitarbeiter auswählen</string>
-    <string name="error">Fehler</string>
+    <string name="warning">Warnung</string>
     <string name="unknown_error">Unbekannter Fehler</string>
     <string name="language">Sprache</string>
     <string name="timezone">Zeitzone</string>
@@ -42,4 +42,5 @@
     <string name="cancel">Abbrechen</string>
     <string name="apply">Anwenden</string>
     <string name="enter_url_for_connection">Geben Sie die URL des TimO-Systems ein, welche für die Verbindung verwendet werden soll.</string>
+    <string name="invalid_value">Ungültiger Wert</string>
 </resources>

@@ -2,6 +2,7 @@ package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
@@ -96,6 +97,10 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
                 languageService.getText("MITARBEITER#Einstellungsdatum")
             binding.searchBar.hint = languageService.getText("#SearchEmployee")
             binding.searchView.hint = languageService.getText("#SearchEmployee")
+
+            binding.searchView.editText.inputType =
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_FILTER
+            binding.searchView.editText.privateImeOptions = "nm"
         }
     }
 

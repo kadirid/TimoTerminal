@@ -217,6 +217,9 @@ class SettingsFragment : Fragment() {
                 val passCodeEditText = EditText(requireContext())
                 passCodeEditText.isFocusableInTouchMode = false
                 passCodeEditText.isFocusable = false
+                passCodeEditText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_FILTER
+                passCodeEditText.privateImeOptions = "nm"
+
                 val dlgAlert: AlertDialog.Builder =
                     AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
                 dlgAlert.setMessage(languageService.getText("#PleaseEnterCode"))

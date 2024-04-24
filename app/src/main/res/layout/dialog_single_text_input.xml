@@ -29,9 +29,10 @@
             android:layout_height="match_parent"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:inputType="text"
-            android:textSize="38sp"
             android:imeOptions="actionDone"
+            android:inputType="textFilter"
+            android:privateImeOptions="nm"
+            android:textSize="38sp"
             tools:text="Login name" />
 
     </com.google.android.material.textfield.TextInputLayout>

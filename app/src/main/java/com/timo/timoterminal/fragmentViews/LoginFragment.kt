@@ -206,16 +206,38 @@ class LoginFragment : Fragment() {
     private fun initButtonListener() {
         viewModel.viewModelScope.launch {
             binding.buttonSubmit.setSafeOnClickListener {
-                val lang = binding.dropdownMenuLanguage.text.toString()
-                val tz = binding.dropdownMenuTimezone.text.toString()
-                //Set language and timezone locally and send it to backend
-                viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
-                    if (isOnline) {
-                        showLogin()
-                    } else {
-                        val goToInetSettingsActivity =
-                            Intent(context, NoInternetNetworkSettingsActivity::class.java)
-                        startActivity(goToInetSettingsActivity)
+                viewModel.viewModelScope.launch {
+                    val lang = binding.dropdownMenuLanguage.text.toString()
+                    if (!viewModel.languages.contains(lang)) {
+                        binding.dropdownMenuLayoutLanguage.error = context?.getText(R.string.invalid_value)
+                        Utils.showErrorMessage(
+                            requireContext(),
+                            context?.getText(R.string.invalid_value).toString(),
+                            false
+                        )
+                        return@launch
+                    }
+                    binding.dropdownMenuLayoutLanguage.error = null
+                    val tz = binding.dropdownMenuTimezone.text.toString()
+                    if (!TimeZone.getAvailableIDs().contains(tz)) {
+                        binding.dropdownMenuLayoutTimezone.error = context?.getText(R.string.invalid_value)
+                        Utils.showErrorMessage(
+                            requireContext(),
+                            context?.getText(R.string.invalid_value).toString(),
+                            false
+                        )
+                        return@launch
+                    }
+                    binding.dropdownMenuLayoutTimezone.error = null
+                    //Set language and timezone locally and send it to backend
+                    viewModel.saveLangAndTimezone(requireActivity(), lang, tz) { isOnline ->
+                        if (isOnline) {
+                            showLogin()
+                        } else {
+                            val goToInetSettingsActivity =
+                                Intent(context, NoInternetNetworkSettingsActivity::class.java)
+                            startActivity(goToInetSettingsActivity)
+                        }
                     }
                 }
             }
@@ -314,12 +336,14 @@ class LoginFragment : Fragment() {
                 if (context != null) {
                     Utils.showErrorMessage(
                         requireContext(),
-                        context.getText(R.string.fill_out_fields).toString()
+                        context.getText(R.string.fill_out_fields).toString(),
+                        false
                     )
                 } else {
                     Utils.showErrorMessage(
                         requireContext(),
-                        requireContext().getText(R.string.fill_out_fields).toString()
+                        requireContext().getText(R.string.fill_out_fields).toString(),
+                        false
                     )
                 }
             }

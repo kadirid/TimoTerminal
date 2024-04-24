@@ -103,10 +103,10 @@ class HttpService : KoinComponent {
             if (context != null) {
                 Handler(Looper.getMainLooper()).post {
                     val dialog = MaterialAlertDialogBuilder(context, R.style.MySingleButtonDialog)
-                    dialog.setTitle(context.getString(R.string.error))
+                    dialog.setTitle(context.getString(R.string.warning))
                     dialog.setIcon(
                         AppCompatResources.getDrawable(
-                            context, R.drawable.baseline_error_24
+                            context, R.drawable.baseline_warning_24
                         )
                     )
                     //If you are running the app on debug mode, the url will appear next to the error message
