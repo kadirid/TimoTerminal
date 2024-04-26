@@ -305,7 +305,7 @@ class HttpService : KoinComponent {
         })
     }
 
-    fun responseForCommand(unique: String) {
+    fun responseForCommand(unique: String, callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }) {
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
@@ -318,7 +318,8 @@ class HttpService : KoinComponent {
                     Pair("terminalSN", hardware.serialNumber()),
                     Pair("token", token),
                     Pair("unique", unique)
-                ), null, { _, _, _ -> }, { _, _, _, _ -> })
+                ), null, callback
+            ) { _, _, _, _ -> }
         }
     }
 }

@@ -169,7 +169,6 @@ class UserService(
      * successCallback contains a boolean which shows if the request was successful or not. If not, the message will be filled with a message from the server. Otherwise the objResponse will contain the UserInformation object.
      * errorCallback contains the exception, the response, the context and the output from the server.
      * @author Elias Kadiri
-     * @param scope CoroutineScope
      * @param user UserEntity
      * @param successCallback (success: Boolean, message: String, objResponse: UserInformation?) -> Unit?
      * @param errorCallback (e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit?
@@ -178,7 +177,6 @@ class UserService(
      *
      */
     fun loadUserInformation(
-        scope: CoroutineScope,
         user: UserEntity,
         from: Date,
         successCallback: (success: Boolean, message: String, objResponse: UserInformation?) -> Unit?,
@@ -198,7 +196,7 @@ class UserService(
                 "${url}services/rest/zktecoTerminal/info",
                 params,
                 null,
-                { obj, arr, str ->
+                { obj, _, _ ->
                     if (obj != null) {
                         if (obj.getBoolean("success")) {
                             val res = obj.getString("message")

@@ -178,11 +178,11 @@ class LoginService(
                         callback(isNewTerminal!!)
                         soundSource.playSound(SoundSource.loginSuccessful)
                     }
-                }, { e, res, context, obj ->
+                }, { e, res, rContext, obj ->
                     soundSource.playSound(SoundSource.loginFailed)
                     val config = Configuration()
                     config.setLocale(Locale(language))
-                    val nContext = context?.createConfigurationContext(config)
+                    val nContext = rContext?.createConfigurationContext(config)
                     val errorMessage =
                         if (obj?.obj != null && obj.obj.getString("code") == "-5") {
                             nContext?.getText(R.string.account_locked).toString()
@@ -194,7 +194,7 @@ class LoginService(
                     HttpService.handleGenericRequestError(
                         e,
                         res,
-                        context,
+                        rContext,
                         obj,
                         errorMessage
                     )
@@ -204,7 +204,7 @@ class LoginService(
 
             //OFFLINE
             //check if permissions, company und users are stored persistently
-            //if everything is loaded, directly forward to the mainactivity
+            //if everything is loaded, directly forward to the main activity
 
         }
     }

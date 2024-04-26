@@ -104,7 +104,7 @@ class HeartbeatService : KoinComponent {
         var updateAllUser = ""
         var loadPermissions = ""
         var loadLanguage = ""
-        var rebootTerminal = false
+        var rebootTerminal = ""
         var enrollCard = Pair("", "")
         var enrollFinger = Pair("", "")
         val updateIds = arrayListOf<Pair<String, String>>()
@@ -137,7 +137,7 @@ class HeartbeatService : KoinComponent {
                     } else if (command == "loadLanguage") {
                         loadLanguage = id
                     } else if (command == "rebootTerminal") {
-                        rebootTerminal = true
+                        rebootTerminal = id
                     } else if (command.startsWith("changeLanguage:")) {
                         lang = Pair(command.substring(15, command.length), id)
                     }
@@ -148,17 +148,17 @@ class HeartbeatService : KoinComponent {
         }
         val scope = activity.getViewModel().viewModelScope
         scope.launch {
-            if(url.isNotEmpty()){
+            if (url.isNotEmpty()) {
                 val data = url.split(":;:")
                 val editor = sharedPrefService.getEditor()
-                if(data[1] != getCompany()){
+                if (data[1] != getCompany()) {
                     editor.putString(SharedPreferenceKeys.COMPANY.name, data[1])
                 }
-                if(data[0] != getURl()){
+                if (data[0] != getURl()) {
                     editor.putString(SharedPreferenceKeys.SERVER_URL.name, data[0])
                 }
                 editor.apply()
-            }else {
+            } else {
                 val color = activity.resources?.getColorStateList(R.color.green, null)
                 if (activity.getBinding().serverConnectionIcon.imageTintList != color) {
                     activity.runOnUiThread {
@@ -251,14 +251,16 @@ class HeartbeatService : KoinComponent {
                         }
                     }
                 }
-                if (rebootTerminal) {
+                if (rebootTerminal.isNotEmpty()) {
                     if (loadLanguage.isNotEmpty() || loadPermissions.isNotEmpty() ||
                         updateAllUser.isNotEmpty() || updateIds.size > 0 || deleteIds.size > 0 ||
                         deleteFP.size > 0 || lang.first.isNotEmpty()
                     ) {
                         delay(10000L)
                     }
-                    activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
+                    httpService.responseForCommand(rebootTerminal) { _, _, _ ->
+                        activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
+                    }
                 } else {
                     bookingService.sendSavedBooking(scope)
                 }

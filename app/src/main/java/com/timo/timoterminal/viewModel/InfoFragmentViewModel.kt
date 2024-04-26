@@ -114,7 +114,7 @@ class InfoFragmentViewModel(
             date = from
         }
         userService.loadUserInformation(
-            viewModelScope, user, date,
+            user, date,
             { success, errMessage, it ->
                 if (success) {
                     it?.card = user.card
