@@ -81,6 +81,7 @@ class SettingsFragment : Fragment() {
             binding.buttonReboot.text = languageService.getText("#RebootTerminal")
             binding.buttonTerminalBooking.text = languageService.getText("TERMINAL#Booking list")
             binding.buttonLogout.text = languageService.getText("#RenewLogin", "Logout")
+            binding.buttonBack.text = languageService.getText("hints#zurueck", "Back")
             active = viewModel.getSoundActive()
             binding.buttonSound.text =
                 if (active)
@@ -209,6 +210,10 @@ class SettingsFragment : Fragment() {
                 }
                 dialog.show()
                 dialog.window?.setLayout(680, 417)
+            }
+
+            binding.buttonBack.setOnClickListener {
+                parentFragmentManager.popBackStack()
             }
             //to get to launcher settings you need to enter TimoTimo1 as password
             binding.buttonLauncher.visibility = if (userId == -2L) View.VISIBLE else View.GONE

@@ -316,6 +316,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                     val user = mainActivityViewModel.getUserForLogin(login)
                     if (user != null && user.pin == pin && user.seeMenu) {
                         supportFragmentManager.commit {
+                            addToBackStack(null)
                             replace(
                                 R.id.fragment_container_view,
                                 SettingsFragment.newInstance(user.id)
@@ -371,6 +372,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dialog?.dismiss()
         if (user != null && user.seeMenu) {
             supportFragmentManager.commit {
+                addToBackStack(null)
                 replace(
                     R.id.fragment_container_view,
                     SettingsFragment.newInstance(user.id)
