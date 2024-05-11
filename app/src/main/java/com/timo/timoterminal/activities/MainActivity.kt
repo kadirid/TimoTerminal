@@ -11,6 +11,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
 import com.timo.timoterminal.databinding.DialogVerificationBinding
@@ -23,6 +24,7 @@ import com.timo.timoterminal.fragmentViews.ProjectFragment
 import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.service.PropertyService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
@@ -35,6 +37,7 @@ import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.component.get
 import java.util.GregorianCalendar
 import java.util.Timer
 import kotlin.concurrent.schedule
@@ -47,6 +50,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private val languageService: LanguageService by inject()
     private val userService: UserService by inject()
     private val soundSource: SoundSource by inject()
+    private val propertyService: PropertyService by inject()
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var batteryReceiver: BatteryReceiver
@@ -61,11 +65,12 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     private var timer = Timer("showAttendanceFragment", false)
+    private var timerLength = propertyService.getProperties().getProperty("timerLengthMS", "10000").toLong()
 
     fun restartTimer() {
         timer.cancel()
         timer = Timer("showAttendanceFragment", false)
-        timer.schedule(10000L) {
+        timer.schedule(timerLength) {
             showAttendanceFragment()
         }
     }

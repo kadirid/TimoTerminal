@@ -89,7 +89,7 @@ class LoginFragment : Fragment() {
                 val fillLoginFields =
                     propertyService.getProperties().getProperty("fillLoginFields").equals("true")
                 if (fillLoginFields) {
-                    binding.customUrl.setText(url)
+                    if (!url.equals("")) binding.customUrl.setText(url)
                     binding.textInputEditTextLoginCompany.setText(if (!company.isNullOrEmpty()) company else "")
                     binding.textInputEditTextLoginUser.setText(if (!username.isNullOrEmpty()) username else "")
                     binding.textInputEditTextLoginPassword.setText(if (!password.isNullOrEmpty()) password else "")
