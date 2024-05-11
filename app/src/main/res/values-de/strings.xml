@@ -43,4 +43,5 @@
     <string name="apply">Anwenden</string>
     <string name="enter_url_for_connection">Geben Sie die URL des TimO-Systems ein, welche für die Verbindung verwendet werden soll.</string>
     <string name="invalid_value">Ungültiger Wert</string>
+    <string name="please_wait">Bitte warten Sie, die automatische Anmeldung kann einige Zeit dauern.</string>
 </resources>

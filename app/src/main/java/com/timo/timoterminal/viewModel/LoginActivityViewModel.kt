@@ -2,15 +2,18 @@ package com.timo.timoterminal.viewModel
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.activities.LoginActivity
+import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService
 import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class LoginActivityViewModel(
     private val loginService: LoginService,
@@ -18,6 +21,8 @@ class LoginActivityViewModel(
     private val settingsService: SettingsService,
     private val languageService: LanguageService
 ) : ViewModel() {
+    val liveShowPleaseWaitMask: MutableLiveData<Boolean> = MutableLiveData()
+    val liveHidePleaseWaitMask: MutableLiveData<Boolean> = MutableLiveData()
 
     fun loadPermissions(context: Context, callback: (worked: Boolean) -> Unit) {
         loginService.loadPermissions(viewModelScope, context, callback)
@@ -34,13 +39,19 @@ class LoginActivityViewModel(
                 Log.d(LoginActivity.TAG, "onResume: true")
                 languageService.requestLanguageFromServer(viewModelScope, context)
                 if (Utils.isOnline(context)) {
-                    settingsService.loadTimezone(context)
-                    loginService.autoLogin(context, callback)
+                    liveShowPleaseWaitMask.postValue(true)
+                    loginService.autoLogin(context) {
+                        callback()
+                    }
                 } else {
+                    settingsService.loadTimezone(context)
                     //If we are offline, we just check whether the credentials are stored or not
                     callback()
                 }
             }
         }
     }
+
+    fun getLocal() = Locale(sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "de")!!)
+
 }

@@ -164,14 +164,20 @@ class InfoFragment : Fragment() {
             viewModel.liveUser.observe(viewLifecycleOwner) {
                 if (it != null) {
                     unregister()
+                    verifying = false
+                    viewModel.loadUserInformation(it, null)
+                    viewModel.liveUser.value = null
+                }
+            }
+            viewModel.liveShowInfoSheet.value = false
+            viewModel.liveShowInfoSheet.observe(viewLifecycleOwner) {
+                if (it == true) {
                     val sheet = MBFragmentInfoSheet()
                     sheet.show(
                         parentFragmentManager,
                         MBFragmentInfoSheet.TAG
                     )
-                    verifying = false
-                    viewModel.loadUserInformation(it, null)
-                    viewModel.liveUser.value = null
+                    viewModel.liveShowInfoSheet.value = false
                 }
             }
             viewModel.liveErrorMessage.value = ""

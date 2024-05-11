@@ -47,6 +47,7 @@ class InfoFragmentViewModel(
     val liveUser: MutableLiveData<UserEntity?> = MutableLiveData()
     val liveInfoSuccess: MutableLiveData<UserInformation> = MutableLiveData()
     val liveDismissSheet: MutableLiveData<Boolean> = MutableLiveData()
+    val liveShowInfoSheet: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowSeconds: MutableLiveData<String> = MutableLiveData()
 
     private suspend fun getUserEntityById(id: Long): UserEntity? {
@@ -117,11 +118,11 @@ class InfoFragmentViewModel(
             user, date,
             { success, errMessage, it ->
                 if (success) {
+                    liveShowInfoSheet.postValue(true)
                     it?.card = user.card
                     liveInfoSuccess.postValue(it)
                     timer.start()
                 } else {
-                    liveDismissSheet.postValue(true)
                     liveMessage.postValue(errMessage)
                 }
                 liveHideMask.postValue(true)
