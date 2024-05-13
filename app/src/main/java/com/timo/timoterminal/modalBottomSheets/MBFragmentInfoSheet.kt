@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -30,6 +31,8 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
     private lateinit var binding: FragmentInfoMessageSheetItemBinding
 
     val viewModel by sharedViewModel<InfoFragmentViewModel>()
+    private var card: String = ""
+    private var res: UserInformation? = null
 
     companion object {
         const val TAG = "MBFragmentInfoSheet"
@@ -41,6 +44,11 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentInfoMessageSheetItemBinding.inflate(inflater, container, false)
+
+        res = arguments?.getParcelable("res")!!
+        card = arguments?.getString("card") ?: ""
+
+        if (res != null) setText(res!!)
 
         viewModel.viewModelScope.launch {
             viewModel.liveDismissSheet.value = false
@@ -55,15 +63,6 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                 if (it.isNotEmpty()) {
                     binding.textviewSecondClose.text = it
                     viewModel.liveShowSeconds.value = ""
-                }
-            }
-            viewModel.liveInfoSuccess.value = null
-            viewModel.liveInfoSuccess.observe(viewLifecycleOwner) {
-                if (it != null) {
-
-                    setText(it)
-
-                    viewModel.liveInfoSuccess.value = null
                 }
             }
         }
@@ -84,7 +83,16 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             binding.textViewCurrentDay.text = languageService.getText("ALLGEMEIN#Aktueller Tag")
             binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
 
-            binding.textViewInformationValue.text = res.card
+            binding.textViewInformationValue.text = card
+            if(card.toIntOrNull() != null){
+                if(card.toInt() <= 0){
+                    binding.textViewInformation.visibility = View.GONE
+                }
+            }else{
+                if (card.isNullOrEmpty()){
+                    binding.textViewInformation.visibility = View.GONE
+                }
+            }
             binding.textViewName.text = res.user
             var ist = res.ist.toDouble()
             if (res.zeitTyp in listOf(1, 4, 6) && res.zeitLB.toString().isNotEmpty()

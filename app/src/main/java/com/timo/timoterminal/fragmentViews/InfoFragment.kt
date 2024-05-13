@@ -106,7 +106,7 @@ class InfoFragment : Fragment() {
                     }
                 }
             }
-
+            binding.installNewAppButton.visibility = View.GONE
 
             binding.fragmentInfoRootLayout.setOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
@@ -169,15 +169,16 @@ class InfoFragment : Fragment() {
                     viewModel.liveUser.value = null
                 }
             }
-            viewModel.liveShowInfoSheet.value = false
-            viewModel.liveShowInfoSheet.observe(viewLifecycleOwner) {
-                if (it == true) {
+            viewModel.liveInfoSuccess.value = Bundle()
+            viewModel.liveInfoSuccess.observe(viewLifecycleOwner) {
+                if (!it.getString("card").isNullOrBlank()) {
                     val sheet = MBFragmentInfoSheet()
+                    sheet.arguments = it
                     sheet.show(
                         parentFragmentManager,
                         MBFragmentInfoSheet.TAG
                     )
-                    viewModel.liveShowInfoSheet.value = false
+                    viewModel.liveInfoSuccess.value = Bundle()
                 }
             }
             viewModel.liveErrorMessage.value = ""

@@ -1,5 +1,6 @@
 package com.timo.timoterminal.viewModel
 
+import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
@@ -9,7 +10,6 @@ import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.UserService
-import com.timo.timoterminal.service.serviceUtils.classes.UserInformation
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
@@ -45,9 +45,8 @@ class InfoFragmentViewModel(
     val liveMessage: MutableLiveData<String> = MutableLiveData()
     val liveErrorMessage: MutableLiveData<String> = MutableLiveData()
     val liveUser: MutableLiveData<UserEntity?> = MutableLiveData()
-    val liveInfoSuccess: MutableLiveData<UserInformation> = MutableLiveData()
+    val liveInfoSuccess: MutableLiveData<Bundle> = MutableLiveData()
     val liveDismissSheet: MutableLiveData<Boolean> = MutableLiveData()
-    val liveShowInfoSheet: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowSeconds: MutableLiveData<String> = MutableLiveData()
 
     private suspend fun getUserEntityById(id: Long): UserEntity? {
@@ -118,9 +117,10 @@ class InfoFragmentViewModel(
             user, date,
             { success, errMessage, it ->
                 if (success) {
-                    liveShowInfoSheet.postValue(true)
-                    it?.card = user.card
-                    liveInfoSuccess.postValue(it)
+                    val bundle = Bundle()
+                    bundle.putParcelable("res", it)
+                    bundle.putString("card", user.card)
+                    liveInfoSuccess.postValue(bundle)
                     timer.start()
                 } else {
                     liveMessage.postValue(errMessage)

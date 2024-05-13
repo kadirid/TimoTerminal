@@ -65,8 +65,8 @@
         android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="45dp"
-        app:layout_constraintBottom_toTopOf="@id/text_view_Information"
+        android:layout_marginTop="35dp"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="Herr Vorname Admin" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
