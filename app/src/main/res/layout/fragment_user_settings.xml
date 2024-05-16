@@ -86,6 +86,20 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_close"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/square_button_background"
+                android:textAllCaps="false"
+                android:layout_gravity="end"
+                app:backgroundTint="#00FFFFFF"
+                app:icon="@drawable/baseline_close_24"
+                app:iconTint="#000000"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="24sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

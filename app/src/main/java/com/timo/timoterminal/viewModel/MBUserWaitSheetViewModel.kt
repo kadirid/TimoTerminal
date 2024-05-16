@@ -27,12 +27,15 @@ class MBUserWaitSheetViewModel(
     ) {
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+            val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 paramMap["company"] = company
                 paramMap["token"] = token
                 paramMap["terminalSN"] = hardware.serialNumber()
+                paramMap["terminalId"] = tId.toString()
+                paramMap["terminalId"] = tId.toString()
                 httpService.post("${url}services/rest/zktecoTerminal/updateUserCard",
                     paramMap,
                     null,
@@ -75,6 +78,7 @@ class MBUserWaitSheetViewModel(
                 }
 
                 val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+                val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
                 val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
                 val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
@@ -85,6 +89,7 @@ class MBUserWaitSheetViewModel(
                     paramMap["company"] = company
                     paramMap["token"] = token
                     paramMap["terminalSN"] = hardware.serialNumber()
+                    paramMap["terminalId"] = tId.toString()
                     httpService.post(
                         "${url}services/rest/zktecoTerminal/saveFP",
                         paramMap,
@@ -114,6 +119,7 @@ class MBUserWaitSheetViewModel(
                 }
 
                 val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+                val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
                 val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
                 val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
@@ -123,6 +129,7 @@ class MBUserWaitSheetViewModel(
                     paramMap["company"] = company
                     paramMap["token"] = token
                     paramMap["terminalSN"] = hardware.serialNumber()
+                    paramMap["terminalId"] = tId.toString()
                     httpService.post(
                         "${url}services/rest/zktecoTerminal/delFP",
                         paramMap,

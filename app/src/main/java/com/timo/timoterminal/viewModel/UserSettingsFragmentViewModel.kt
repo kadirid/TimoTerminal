@@ -28,6 +28,7 @@ class UserSettingsFragmentViewModel(
     ) {
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+            val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
@@ -37,6 +38,7 @@ class UserSettingsFragmentViewModel(
                 paramMap["editor"] = "$editor"
                 paramMap["token"] = token
                 paramMap["terminalSN"] = hardware.serialNumber()
+                paramMap["terminalId"] = tId.toString()
                 httpService.post(
                     "${url}services/rest/zktecoTerminal/assignUser",
                     paramMap,
@@ -52,7 +54,8 @@ class UserSettingsFragmentViewModel(
                                     callback,
                                     id,
                                     company,
-                                    token
+                                    token,
+                                    tId
                                 )
                             }
                         }

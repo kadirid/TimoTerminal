@@ -8,8 +8,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import androidx.fragment.app.Fragment
@@ -53,6 +55,11 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
                 AlertDialog.Builder(requireContext(), R.style.MyDialog)
             dlgAlert.setMessage(languageService.getText("#AssignUserToTerminal"))
             dlgAlert.setTitle(languageService.getText("#Attention"))
+            dlgAlert.setIcon(
+                AppCompatResources.getDrawable(
+                    requireContext(), R.drawable.baseline_info_24
+                )
+            )
             dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
             dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                 (activity as MainActivity?)?.showLoadMask()
@@ -62,10 +69,16 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
             Utils.hideNavInDialog(dialog)
             dialog.setOnShowListener {
                 val textView = dialog.findViewById<TextView>(android.R.id.message)
-                textView?.textSize = 40f
+                textView?.textSize = 30f
+
+                val imageView = dialog.findViewById<ImageView>(android.R.id.icon)
+                val params = imageView?.layoutParams
+                params?.height = 48
+                params?.width = 48
+                imageView?.layoutParams = params
             }
             dialog.show()
-            dialog.window?.setLayout(680, 324)
+            dialog.window?.setLayout(680, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
 
@@ -233,6 +246,9 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
                 } else {
                     showMsg(languageService.getText("#OfflineNoUserEdit"))//Only online
                 }
+            }
+            binding.buttonClose.setOnClickListener {
+                parentFragmentManager.popBackStack()
             }
             binding.buttonDeleteFingerprint.setSafeOnClickListener {
                 val call = fun() {

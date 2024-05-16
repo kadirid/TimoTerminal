@@ -34,6 +34,9 @@ class BookingListFragment : Fragment() {
         setAdapter()
         setListener()
         binding.fragmentBookingListEmptyListTextView.text = languageService.getText("#NoEntriesForBookedTimes")
+        binding.buttonClose.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
 
         return binding.root
     }
@@ -66,6 +69,7 @@ class BookingListFragment : Fragment() {
             statusMap[100] = languageService.getText("#Kommt")
             statusMap[200] = languageService.getText("#Geht")
             statusMap[110] = languageService.getText("ALLGEMEIN#Pause")
+            statusMap[210] = languageService.getText("ALLGEMEIN#Pausenende")
             bookingListFragmentViewModel.getAll().collect {
                 adapter = BookingBUEntityAdapter(it, userMap, statusMap,
                     object : BookingBUEntityAdapter.OnItemClickListener {

@@ -28,6 +28,10 @@ class BookingService(
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
     }
 
+    private fun getTerminalId(): Int {
+        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+    }
+
     private fun getToken(): String {
         return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
     }
@@ -48,12 +52,14 @@ class BookingService(
         bookingBURepository.deleteOldBUBookings()
         if (bookingRepository.count() > 0) {
             val url = getURl()
+            val tId = getTerminalId()
             val company = getCompany()
             val token = getToken()
             if (!company.isNullOrEmpty() && token.isNotEmpty()) {
                 val bookings = bookingRepository.getAllAsList()
                 val params = JSONObject()
                 params.put("terminalSN", hardware.serialNumber())
+                params.put("terminalId", "$tId")
                 params.put("token", token)
                 params.put("firma", company)
                 val arr = JSONArray()

@@ -46,6 +46,10 @@ class HeartbeatService : KoinComponent {
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
     }
 
+    private fun getTerminalId(): Int {
+        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+    }
+
     private fun getToken(): String {
         return sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
     }
@@ -59,6 +63,7 @@ class HeartbeatService : KoinComponent {
         runnable = Runnable {
             handler.postDelayed(runnable!!, 30000L)
             val url = getURl()
+            val tId = getTerminalId()
             val company = getCompany()
             val token = getToken()
             val date = Utils.getDateTimeFromGC(Utils.getCal())
@@ -70,6 +75,7 @@ class HeartbeatService : KoinComponent {
                         Pair("firma", company),
                         Pair("date", date),
                         Pair("terminalSN", hardware.serialNumber()),
+                        Pair("terminalId", "$tId"),
                         Pair("token", token)
                     ),
                     null,

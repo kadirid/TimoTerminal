@@ -8,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -99,6 +101,7 @@ class SettingsFragment : Fragment() {
             binding.buttonUserSetting.setSafeOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
                 parentFragmentManager.commit {
+                    addToBackStack(null)
                     replace(
                         R.id.fragment_container_view,
                         UserSettingsFragment.newInstance(userId),
@@ -137,6 +140,11 @@ class SettingsFragment : Fragment() {
                     AlertDialog.Builder(requireContext(), R.style.MyDialog)
                 dlgAlert.setMessage(languageService.getText("#LogoutOfTimOSystem"))
                 dlgAlert.setTitle(languageService.getText("#Attention"))
+                dlgAlert.setIcon(
+                    AppCompatResources.getDrawable(
+                        requireContext(), R.drawable.baseline_warning_24
+                    )
+                )
                 dlgAlert.setNegativeButton(
                     languageService.getText(
                         "BUTTON#Gen_Cancel",
@@ -151,14 +159,20 @@ class SettingsFragment : Fragment() {
                 Utils.hideNavInDialog(dialog)
                 dialog.setOnShowListener {
                     val textView = dialog.findViewById<TextView>(android.R.id.message)
-                    textView?.textSize = 40f
+                    textView?.textSize = 30f
+                    val imageView = dialog.findViewById<ImageView>(android.R.id.icon)
+                    val params = imageView?.layoutParams
+                    params?.height = 48
+                    params?.width = 48
+                    imageView?.layoutParams = params
                 }
                 dialog.show()
-                dialog.window?.setLayout(680, 324)
+                dialog.window?.setLayout(680, ViewGroup.LayoutParams.WRAP_CONTENT)
             }
             binding.buttonTerminalBooking.setSafeOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
                 parentFragmentManager.commit {
+                    addToBackStack(null)
                     replace(R.id.fragment_container_view, BookingListFragment())
                 }
             }
@@ -193,6 +207,11 @@ class SettingsFragment : Fragment() {
                     AlertDialog.Builder(requireContext(), R.style.MyDialog)
                 dlgAlert.setMessage(languageService.getText("#DeleteDataResetTerminal"))
                 dlgAlert.setTitle(languageService.getText("#Attention"))
+                dlgAlert.setIcon(
+                    AppCompatResources.getDrawable(
+                        requireContext(), R.drawable.baseline_warning_24
+                    )
+                )
                 dlgAlert.setNegativeButton(
                     languageService.getText(
                         "BUTTON#Gen_Cancel",
@@ -206,10 +225,15 @@ class SettingsFragment : Fragment() {
                 Utils.hideNavInDialog(dialog)
                 dialog.setOnShowListener {
                     val textView = dialog.findViewById<TextView>(android.R.id.message)
-                    textView?.textSize = 40f
+                    textView?.textSize = 30f
+                    val imageView = dialog.findViewById<ImageView>(android.R.id.icon)
+                    val params = imageView?.layoutParams
+                    params?.height = 48
+                    params?.width = 48
+                    imageView?.layoutParams = params
                 }
                 dialog.show()
-                dialog.window?.setLayout(680, 417)
+                dialog.window?.setLayout(680, ViewGroup.LayoutParams.WRAP_CONTENT)
             }
 
             binding.buttonBack.setOnClickListener {
@@ -229,6 +253,11 @@ class SettingsFragment : Fragment() {
                     AlertDialog.Builder(requireContext(), R.style.MySmallDialog)
                 dlgAlert.setMessage(languageService.getText("#PleaseEnterCode"))
                 dlgAlert.setTitle(languageService.getText("#Verification"))
+                dlgAlert.setIcon(
+                    AppCompatResources.getDrawable(
+                        requireContext(), R.drawable.baseline_warning_24
+                    )
+                )
                 dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
                 dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                     val code = passCodeEditText.text.toString()
@@ -249,9 +278,15 @@ class SettingsFragment : Fragment() {
                     passCodeEditText.isFocusable = true
                     passCodeEditText.inputType =
                         InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+
+                    val imageView = dialog.findViewById<ImageView>(android.R.id.icon)
+                    val params = imageView?.layoutParams
+                    params?.height = 48
+                    params?.width = 48
+                    imageView?.layoutParams = params
                 }
                 dialog.show()
-                dialog.window?.setLayout(680, 244)
+                dialog.window?.setLayout(680, ViewGroup.LayoutParams.WRAP_CONTENT)
             }
         }
     }
@@ -262,6 +297,11 @@ class SettingsFragment : Fragment() {
             AlertDialog.Builder(requireContext(), R.style.MyDialog)
         dlgAlert.setMessage(languageService.getText("#DeleteDataResetTerminal"))
         dlgAlert.setTitle(languageService.getText("#Attention"))
+        dlgAlert.setIcon(
+            AppCompatResources.getDrawable(
+                requireContext(), R.drawable.baseline_warning_24
+            )
+        )
         dlgAlert.setNegativeButton(
             languageService.getText(
                 "BUTTON#Gen_Cancel",
@@ -275,10 +315,16 @@ class SettingsFragment : Fragment() {
         Utils.hideNavInDialog(dialog)
         dialog.setOnShowListener {
             val textView = dialog.findViewById<TextView>(android.R.id.message)
-            textView?.textSize = 40f
+            textView?.textSize = 30f
+
+            val imageView = dialog.findViewById<ImageView>(android.R.id.icon)
+            val params = imageView?.layoutParams
+            params?.height = 48
+            params?.width = 48
+            imageView?.layoutParams = params
         }
         dialog.show()
-        dialog.window?.setLayout(680, 417)
+        dialog.window?.setLayout(680, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     companion object {

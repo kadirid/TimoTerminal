@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -96,9 +97,6 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
     private fun setOnClickListeners() {
         viewModel.viewModelScope.launch {
             if (isFP) {
-                binding.buttonClose.setSafeOnClickListener {
-                    this@MBUserWaitSheet.dismiss()
-                }
                 binding.fingerSelectArrow0.setSafeOnClickListener {
                     processFingerClickListener(it, 0)
                 }
@@ -136,6 +134,9 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
                     soundSource.playSound(SoundSource.selectFinger)
                 }
             }
+            binding.buttonClose.setSafeOnClickListener {
+                this@MBUserWaitSheet.dismiss()
+            }
         }
     }
 
@@ -153,6 +154,11 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
                 AlertDialog.Builder(requireContext(), R.style.MyDialog)
             dlgAlert.setMessage(languageService.getText("#ReallyDeleteFP"))
             dlgAlert.setTitle(languageService.getText("#Attention"))
+            dlgAlert.setIcon(
+                AppCompatResources.getDrawable(
+                    requireContext(), R.drawable.baseline_info_24
+                )
+            )
             dlgAlert.setNegativeButton(languageService.getText("BUTTON#Gen_Cancel")) { dia, _ -> dia.dismiss() }
             dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok")) { _, _ ->
                 showLoadMask()
@@ -172,10 +178,16 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
             Utils.hideNavInDialog(dialog)
             dialog.setOnShowListener {
                 val textView = dialog.findViewById<TextView>(android.R.id.message)
-                textView?.textSize = 40f
+                textView?.textSize = 30f
+
+                val imageView = dialog.findViewById<ImageView>(android.R.id.icon)
+                val params = imageView?.layoutParams
+                params?.height = 48
+                params?.width = 48
+                imageView?.layoutParams = params
             }
             dialog.show()
-            dialog.window?.setLayout(680, 324)
+            dialog.window?.setLayout(680, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
 
@@ -362,7 +374,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
             dialog.setOnShowListener {
                 Utils.hideNavInDialog(this.dialog)
                 val textView = dialog.findViewById<TextView>(android.R.id.message)
-                textView?.textSize = 40f
+                textView?.textSize = 30f
             }
             dialog.setOnDismissListener {
                 Utils.hideNavInDialog(this.dialog)
@@ -471,7 +483,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
                         binding.scanBottomSheet.measuredHeight,
                         binding.scanBottomSheet.measuredHeight + if (isFP) 300 else 0
                     )
-                    valueAnimator.duration = 500L
+                    valueAnimator.duration = if (isFP) 500L else 0L
                     valueAnimator.addUpdateListener {
                         val animatedValue = valueAnimator.animatedValue as Int
                         val layoutParams = binding.scanBottomSheet.layoutParams
@@ -479,11 +491,11 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
                         binding.scanBottomSheet.layoutParams = layoutParams
                     }
                     valueAnimator.doOnEnd {
-                        binding.buttonClose.visibility = if (isFP) View.VISIBLE else View.GONE
+                        binding.buttonClose.visibility = View.VISIBLE
                     }
                     valueAnimator.start()
                 }
-            }, 1000L)
+            }, if (isFP) 1000L else 10L)
         }
     }
 

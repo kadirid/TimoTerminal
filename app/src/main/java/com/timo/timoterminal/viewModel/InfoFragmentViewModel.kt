@@ -37,6 +37,8 @@ class InfoFragmentViewModel(
         }
     }
 
+    var type = -1
+
     val liveRfidNumber: MutableLiveData<String> = MutableLiveData()
     val liveHideMask: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowMask: MutableLiveData<Boolean> = MutableLiveData()
@@ -44,7 +46,7 @@ class InfoFragmentViewModel(
     val liveRestartTimer: MutableLiveData<Boolean> = MutableLiveData()
     val liveMessage: MutableLiveData<String> = MutableLiveData()
     val liveErrorMessage: MutableLiveData<String> = MutableLiveData()
-    val liveUser: MutableLiveData<UserEntity?> = MutableLiveData()
+    val liveUser: MutableLiveData<Pair<Boolean, UserEntity?>> = MutableLiveData()
     val liveInfoSuccess: MutableLiveData<Bundle> = MutableLiveData()
     val liveDismissSheet: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowSeconds: MutableLiveData<String> = MutableLiveData()
@@ -79,7 +81,11 @@ class InfoFragmentViewModel(
             val user = getUserEntityById(id.toLong())
             if (user != null) {
                 soundSource.playSound(SoundSource.successSound)
-                liveUser.postValue(user)
+                liveUser.postValue(Pair(true,user))
+                type = 2
+            }else{
+                soundSource.playSound(SoundSource.authenticationFailed)
+                liveUser.postValue(Pair(true,null))
             }
         }
     }
@@ -89,7 +95,8 @@ class InfoFragmentViewModel(
             val user = getUserEntityByCard(card)
             if (user != null) {
                 soundSource.playSound(SoundSource.successSound)
-                liveUser.postValue(user)
+                liveUser.postValue(Pair(true,user))
+                type = 1
             } else {
                 liveRfidNumber.postValue(card)
             }
@@ -101,9 +108,11 @@ class InfoFragmentViewModel(
             val user = getUserForPin(pin)
             if (user != null) {
                 soundSource.playSound(SoundSource.successSound)
-                liveUser.postValue(user)
+                liveUser.postValue(Pair(true,user))
+                type = 3
             } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
+                liveUser.postValue(Pair(true,null))
             }
         }
     }
@@ -152,10 +161,11 @@ class InfoFragmentViewModel(
     }
 
     fun dismissInfoSheet() {
+        type = -1
         if (isTimerRunning) {
-            liveDismissInfoSheet.postValue(true)
             timer.cancel()
         }
+        liveDismissInfoSheet.postValue(true)
     }
 
     override fun onFingerprintPressed(

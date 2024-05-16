@@ -44,6 +44,7 @@ class MBSheetFingerprintCardReader(
 
     private var status: Int = -1
     private var ranCancel: Boolean = false
+    private var success: Boolean = true
     private val timer = object : CountDownTimer(10000, 5000) {
         override fun onTick(millisUntilFinished: Long) {
         }
@@ -64,6 +65,7 @@ class MBSheetFingerprintCardReader(
     ): View {
         binding = MbSheetFingerprintCardReaderBinding.inflate(inflater, container, false)
 
+        success = true
         setValues()
         setUpListeners()
 
@@ -76,20 +78,24 @@ class MBSheetFingerprintCardReader(
             // as well!
             status = arguments?.getInt("status") ?: -1
             viewModel.status = status
-            val sStatus = when (status) {
-                100 -> languageService.getText("#Kommt")
-                200 -> languageService.getText("#Geht")
-                110 -> languageService.getText("ALLGEMEIN#Pause")
-                210 -> languageService.getText("ALLGEMEIN#Pausenende")
-                else -> {
-                    "No known type"
-                }
-            }
-            binding.bookingTypeTextContainer.text = sStatus
+            setStatusText()
             binding.cardImage.contentDescription = languageService.getText("#RFID")
             binding.keyboardImage.contentDescription = languageService.getText("#RFID")
             binding.identificationText.text = languageService.getText("#WaitIdentification")
         }
+    }
+
+    private fun setStatusText() {
+        val sStatus = when (status) {
+            100 -> languageService.getText("#Kommt")
+            200 -> languageService.getText("#Geht")
+            110 -> languageService.getText("ALLGEMEIN#Pause")
+            210 -> languageService.getText("ALLGEMEIN#Pausenende")
+            else -> {
+                "No known type"
+            }
+        }
+        binding.bookingTypeTextContainer.text = sStatus
     }
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -108,6 +114,9 @@ class MBSheetFingerprintCardReader(
             binding.keyboardImage.setSafeOnClickListener {
                 showVerificationAlert()
             }
+            binding.buttonClose.setOnClickListener {
+                this@MBSheetFingerprintCardReader.dismiss()
+            }
 
             viewModel.liveDone.value = false
             viewModel.liveDone.observe(viewLifecycleOwner) {
@@ -122,6 +131,7 @@ class MBSheetFingerprintCardReader(
                 if (it == true) {
                     val color = activity?.resources?.getColorStateList(R.color.error_booking, null)
                     if (color != null) binding.bookingInfoContainer.backgroundTintList = color
+                    success = false
                     viewModel.liveShowErrorColor.value = false
                 }
             }
@@ -170,6 +180,19 @@ class MBSheetFingerprintCardReader(
                     viewModel.liveShowInfo.value = Pair("", "")
                 }
             }
+            viewModel.liveStatus.value = -1
+            viewModel.liveStatus.observe(viewLifecycleOwner) {
+                if(it > 0){
+                    status = when(it){
+                        1 -> 100
+                        2 -> 200
+                        3 -> 110
+                        4 -> 210
+                        else -> -1
+                    }
+                    setStatusText()
+                }
+            }
         }
     }
 
@@ -187,6 +210,7 @@ class MBSheetFingerprintCardReader(
 
     override fun onResume() {
         super.onResume()
+        binding.buttonClose.visibility = View.VISIBLE
 
         RfidService.unregister()
         FingerprintService.unregister()
@@ -258,7 +282,7 @@ class MBSheetFingerprintCardReader(
                                             0F,
                                             100F
                                         )
-                                        anim.duration = 5000
+                                        anim.duration = if(success) 2000L else 5000L
                                         anim.setAnimationListener(object :
                                             Animation.AnimationListener {
                                             override fun onAnimationStart(p0: Animation?) {

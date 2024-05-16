@@ -38,6 +38,7 @@ class MBSheetFingerprintCardReaderViewModel(
     val liveShowMask: MutableLiveData<Boolean> = MutableLiveData()
     val liveOfflineBooking: MutableLiveData<BookingEntity> = MutableLiveData()
     val liveShowInfo: MutableLiveData<Pair<String, String>> = MutableLiveData()
+    val liveStatus: MutableLiveData<Int> = MutableLiveData()
 
     var status = 0
 
@@ -47,6 +48,10 @@ class MBSheetFingerprintCardReaderViewModel(
 
     private fun getURl(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+    }
+
+    private fun getTerminalId(): Int {
+        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
     }
 
     private fun getToken(): String {
@@ -151,6 +156,7 @@ class MBSheetFingerprintCardReaderViewModel(
     ) {
         viewModelScope.launch {
             val url = getURl()
+            val tId = getTerminalId()
             val company = getCompany()
             val token = getToken()
             if (!company.isNullOrEmpty() && entity.status > 0 && token.isNotEmpty()) {
@@ -163,6 +169,7 @@ class MBSheetFingerprintCardReaderViewModel(
                         Pair("funcCode", entity.status.toString()),
                         Pair("inputCode", entity.inputCode.toString()),
                         Pair("terminalSN", hardware.serialNumber()),
+                        Pair("terminalId", "$tId"),
                         Pair("token", token),
                         Pair("validate", "true")
                     ),
@@ -173,6 +180,7 @@ class MBSheetFingerprintCardReaderViewModel(
                             RfidService.unregister()
                             FingerprintService.unregister()
                             liveSetText.postValue(obj.getString("message"))
+                            liveStatus.postValue(obj.getInt("bookingType"))
                             if (!obj.getBoolean("success")) {
                                 soundSource.playSound(SoundSource.failedSound)
                                 liveShowErrorColor.postValue(true)

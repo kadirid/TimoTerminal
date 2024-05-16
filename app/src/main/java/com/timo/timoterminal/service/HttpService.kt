@@ -7,6 +7,7 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -138,7 +139,13 @@ class HttpService : KoinComponent {
                     Utils.hideNavInDialog(dia)
                     dia.setOnShowListener {
                         val textView = dia.findViewById<TextView>(android.R.id.message)
-                        textView?.textSize = 40f
+                        textView?.textSize = 30f
+
+                        val imageView = dia.findViewById<ImageView>(android.R.id.icon)
+                        val params = imageView?.layoutParams
+                        params?.height = 48
+                        params?.width = 48
+                        imageView?.layoutParams = params
                     }
                     dia.show()
                     val positiveButton: Button = dia.getButton(AlertDialog.BUTTON_POSITIVE)
@@ -308,6 +315,7 @@ class HttpService : KoinComponent {
     fun responseForCommand(unique: String, callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }) {
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
         if (company.isNotEmpty() && token.isNotEmpty() && unique.isNotEmpty()) {
@@ -316,6 +324,7 @@ class HttpService : KoinComponent {
                 mapOf(
                     Pair("company", company),
                     Pair("terminalSN", hardware.serialNumber()),
+                    Pair("terminalId","$tId"),
                     Pair("token", token),
                     Pair("unique", unique)
                 ), null, callback

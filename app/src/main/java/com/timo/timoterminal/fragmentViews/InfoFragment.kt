@@ -17,6 +17,7 @@ import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.DialogSingleTextInputBinding
 import com.timo.timoterminal.databinding.FragmentInfoBinding
 import com.timo.timoterminal.databinding.FragmentInfoMessageSheetItemBinding
+import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.modalBottomSheets.MBFragmentInfoSheet
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
@@ -112,6 +113,10 @@ class InfoFragment : Fragment() {
                 (activity as MainActivity?)?.restartTimer()
             }
 
+            binding.buttonBack.setOnClickListener {
+                parentFragmentManager.popBackStack()
+            }
+
             viewModel.liveRfidNumber.value = ""
             viewModel.liveRfidNumber.observe(viewLifecycleOwner) {
                 if (it.isNotEmpty()) {
@@ -160,13 +165,18 @@ class InfoFragment : Fragment() {
                     viewModel.liveMessage.value = ""
                 }
             }
-            viewModel.liveUser.value = null
+            viewModel.liveUser.value = Pair(false, null)
             viewModel.liveUser.observe(viewLifecycleOwner) {
-                if (it != null) {
-                    unregister()
-                    verifying = false
-                    viewModel.loadUserInformation(it, null)
-                    viewModel.liveUser.value = null
+                if(it.first) {
+                    if (it.second != null) {
+                        unregister()
+                        verifying = false
+                        viewModel.loadUserInformation(it.second as UserEntity, null)
+                        viewModel.liveUser.value = Pair(false, null)
+                    }else{
+                        Utils.showErrorMessage(requireContext(), languageService.getText("#NoUserFound"))
+                        viewModel.liveHideMask.postValue(true)
+                    }
                 }
             }
             viewModel.liveInfoSuccess.value = Bundle()

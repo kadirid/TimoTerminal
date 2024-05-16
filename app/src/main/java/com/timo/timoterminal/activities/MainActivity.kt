@@ -210,6 +210,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                     timer.cancel()
                 } else {
                     supportFragmentManager.commit {
+                        addToBackStack(null)
                         replace(R.id.fragment_container_view, fragment)
                     }
                     restartTimer()
@@ -224,16 +225,19 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             timer.cancel()
         } else if (binding.navigationRail.menu.findItem(R.id.project).isVisible) {
             supportFragmentManager.commit {
+                addToBackStack(null)
                 replace(R.id.fragment_container_view, ProjectFragment.newInstance("", ""))
             }
             restartTimer()
         } else if (binding.navigationRail.menu.findItem(R.id.absence).isVisible) {
             supportFragmentManager.commit {
+                addToBackStack(null)
                 replace(R.id.fragment_container_view, AbsenceFragment.newInstance("", ""))
             }
             restartTimer()
         } else if (binding.navigationRail.menu.findItem(R.id.info).isVisible) {
             supportFragmentManager.commit {
+                addToBackStack(null)
                 replace(R.id.fragment_container_view, InfoFragment())
             }
             restartTimer()

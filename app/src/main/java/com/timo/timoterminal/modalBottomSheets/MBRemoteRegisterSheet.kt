@@ -317,7 +317,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
                         binding.remoteRegisterBottomSheet.measuredHeight,
                         binding.remoteRegisterBottomSheet.measuredHeight + if (isFP) 300 else 0
                     )
-                    valueAnimator.duration = 500L
+                    valueAnimator.duration = if (isFP) 500L else 0L
                     valueAnimator.addUpdateListener {
                         val animatedValue = valueAnimator.animatedValue as Int
                         val layoutParams = binding.remoteRegisterBottomSheet.layoutParams
@@ -340,11 +340,11 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
                         }
                         if (sound != -1)
                             soundSource.playSound(sound)
-                        binding.buttonClose.visibility = if(isFP) View.VISIBLE else View.GONE
+                        binding.buttonClose.visibility = View.VISIBLE
                     }
                     valueAnimator.start()
                 }
-            }, 1000L)
+            }, if (isFP) 1000L else 10L)
         }
     }
 

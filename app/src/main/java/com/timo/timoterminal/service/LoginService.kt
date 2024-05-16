@@ -215,6 +215,7 @@ class LoginService(
         callback: (worked: Boolean) -> Unit
     ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
@@ -225,6 +226,7 @@ class LoginService(
                     mapOf(
                         Pair("firma", company),
                         Pair("terminalSN", hardware.serialNumber()),
+                        Pair("terminalId","$tId"),
                         Pair("token", token)
                     ),
                     context,
@@ -277,9 +279,10 @@ class LoginService(
 
     fun autoLogin(context: Context, callback: () -> Unit) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-        validateLogin(company, token, context, url, callback)
+        validateLogin(company, token, context, url, tId, callback)
     }
 
     private fun validateLogin(
@@ -287,6 +290,7 @@ class LoginService(
         token: String?,
         context: Context?,
         url: String?,
+        tId: Int,
         callback: () -> Unit
     ) {
         val serverUrl =
@@ -296,6 +300,7 @@ class LoginService(
             parameterMap["company"] = company!!
             parameterMap["token"] = token!!
             parameterMap["terminalSN"] = hardware.serialNumber()
+            parameterMap["terminalId"] = tId.toString()
             httpService.post(
                 "${url}services/rest/zktecoTerminal/validateLogin",
                 parameterMap,

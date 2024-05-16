@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -66,6 +65,9 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                 }
             }
         }
+        binding.buttonBack.setOnClickListener {
+            this@MBFragmentInfoSheet.dismiss()
+        }
 
         return binding.root
     }
@@ -84,14 +86,10 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             binding.textViewCurretLeave.text = languageService.getText("ALLGEMEIN#Urlaub")
 
             binding.textViewInformationValue.text = card
-            if(card.toIntOrNull() != null){
-                if(card.toInt() <= 0){
-                    binding.textViewInformation.visibility = View.GONE
-                }
-            }else{
-                if (card.isNullOrEmpty()){
-                    binding.textViewInformation.visibility = View.GONE
-                }
+            when(viewModel.type) {
+                1 -> binding.textViewInformation.visibility = View.VISIBLE
+                2 -> binding.iconFinger.visibility = View.VISIBLE
+                3 -> binding.iconPin.visibility = View.VISIBLE
             }
             binding.textViewName.text = res.user
             var ist = res.ist.toDouble()

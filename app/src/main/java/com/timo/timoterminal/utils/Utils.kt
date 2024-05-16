@@ -24,6 +24,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -332,7 +333,13 @@ class Utils {
                 hideNavInDialog(dia)
                 dia.setOnShowListener {
                     val textView = dia.findViewById<TextView>(android.R.id.message)
-                    textView?.textSize = 40f
+                    textView?.textSize = 30f
+
+                    val imageView = dia.findViewById<ImageView>(android.R.id.icon)
+                    val params = imageView?.layoutParams
+                    params?.height = 48
+                    params?.width = 48
+                    imageView?.layoutParams = params
                 }
                 dia.show()
                 val positiveButton: Button = dia.getButton(AlertDialog.BUTTON_POSITIVE)

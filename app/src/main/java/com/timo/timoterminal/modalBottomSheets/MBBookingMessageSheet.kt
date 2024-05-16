@@ -147,7 +147,7 @@ class MBBookingMessageSheet : BottomSheetDialogFragment() {
                                             0F,
                                             100F
                                         )
-                                        anim.duration = 5000
+                                        anim.duration = if(success) 2000 else 5000
                                         anim.setAnimationListener(object :
                                             Animation.AnimationListener {
                                             override fun onAnimationStart(p0: Animation?) {

@@ -163,6 +163,7 @@ class AttendanceFragment : Fragment() {
         if (Utils.isOnline(requireContext())) {
             viewModel.viewModelScope.launch {
                 val url = viewModel.getURl()
+                val tId = viewModel.getTerminalId()
                 val company = viewModel.getCompany()
                 val token = viewModel.getToken()
                 if (!company.isNullOrEmpty() && token.isNotEmpty()) {
@@ -174,6 +175,7 @@ class AttendanceFragment : Fragment() {
                             Pair("date", Utils.getDateTimeFromGC(Utils.getCal())),
                             Pair("inputCode", "$inputCode"),
                             Pair("terminalSN", hardware.serialNumber()),
+                            Pair("terminalId", "$tId"),
                             Pair("token", token)
                         ),
                         requireContext(),

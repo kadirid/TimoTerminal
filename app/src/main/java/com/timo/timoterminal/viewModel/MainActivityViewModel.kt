@@ -37,7 +37,7 @@ class MainActivityViewModel(
 
     fun hideSystemUI() {
         viewModelScope.launch {
-            val uiVisible = sharedPrefService.getBoolean(SharedPreferenceKeys.UI_VISIBLE, false)
+            val uiVisible = sharedPrefService.getBoolean(SharedPreferenceKeys.UI_VISIBLE, true)
             Log.d("MainActivityViewModel", "hideSystemUI: $uiVisible")
             if (uiVisible) {
                 hardware.hideSystemUI()
