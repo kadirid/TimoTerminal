@@ -10,9 +10,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="48dp"
-        app:layout_constraintEnd_toStartOf="@id/name_container"
-        app:layout_constraintStart_toStartOf="@id/name_container">
+        android:layout_marginBottom="48dp">
 
         <com.google.android.material.bottomsheet.BottomSheetDragHandleView
             android:id="@+id/message_drag_handle"

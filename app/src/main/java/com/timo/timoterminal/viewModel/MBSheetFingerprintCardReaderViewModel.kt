@@ -1,5 +1,6 @@
 package com.timo.timoterminal.viewModel
 
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -31,14 +32,9 @@ class MBSheetFingerprintCardReaderViewModel(
     private val hardware: IHardwareSource
 ) : ViewModel(), TimoRfidListener, FingerprintListener {
 
-    val liveDone: MutableLiveData<Boolean> = MutableLiveData()
-    val liveShowErrorColor: MutableLiveData<Boolean> = MutableLiveData()
-    val liveSetText: MutableLiveData<String> = MutableLiveData()
     val liveHideMask: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowMask: MutableLiveData<Boolean> = MutableLiveData()
-    val liveOfflineBooking: MutableLiveData<BookingEntity> = MutableLiveData()
-    val liveShowInfo: MutableLiveData<Pair<String, String>> = MutableLiveData()
-    val liveStatus: MutableLiveData<Int> = MutableLiveData()
+    val liveShowMessageSheet: MutableLiveData<Bundle> = MutableLiveData()
 
     var status = 0
 
@@ -51,7 +47,7 @@ class MBSheetFingerprintCardReaderViewModel(
     }
 
     private fun getTerminalId(): Int {
-        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
     }
 
     private fun getToken(): String {
@@ -88,14 +84,14 @@ class MBSheetFingerprintCardReaderViewModel(
             val user = getUserEntity(id)
             if (user != null) {
                 val greg = Utils.getCal()
-                liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
+                liveShowMask.postValue(true)
                 sendBooking(
                     BookingEntity(
                         user.card,
                         2,
                         Utils.getDateTimeFromGC(greg),
                         status
-                    )
+                    ), user.name()
                 )
             } else {
                 errorNoUser("#VerificationFailed")
@@ -108,14 +104,14 @@ class MBSheetFingerprintCardReaderViewModel(
             val user = getUserEntityByCard(card)
             if (user != null) {
                 val greg = Utils.getCal()
-                liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
+                liveShowMask.postValue(true)
                 sendBooking(
                     BookingEntity(
                         user.card,
                         1,
                         Utils.getDateTimeFromGC(greg),
                         status
-                    )
+                    ), user.name()
                 )
             } else {
                 errorNoUser("#Number unknown")
@@ -128,14 +124,14 @@ class MBSheetFingerprintCardReaderViewModel(
             val user = getUserEntityByPIN(pin)
             if (user != null) {
                 val greg = Utils.getCal()
-                liveShowInfo.postValue(Pair(Utils.getTimeFromGC(greg), user.name()))
+                liveShowMask.postValue(true)
                 sendBooking(
                     BookingEntity(
                         user.card,
                         0,
                         Utils.getDateTimeFromGC(greg),
                         status
-                    )
+                    ), user.name()
                 )
             } else {
                 errorNoUser("#VerificationFailed")
@@ -145,14 +141,17 @@ class MBSheetFingerprintCardReaderViewModel(
 
     private fun errorNoUser(key: String) {
         soundSource.playSound(SoundSource.authenticationFailed)
-        liveDone.postValue(true)
-        liveSetText.postValue(languageService.getText(key))
-        liveShowErrorColor.postValue(true)
+        val bundle = Bundle()
+        bundle.putBoolean("success", false)
+        bundle.putString("error", languageService.getText(key))
+        bundle.putString("message", "")
+        liveShowMessageSheet.postValue(bundle)
     }
 
     // send all necessary information to timo to create a booking
     private fun sendBooking(
-        entity: BookingEntity
+        entity: BookingEntity,
+        name: String
     ) {
         viewModelScope.launch {
             val url = getURl()
@@ -176,33 +175,50 @@ class MBSheetFingerprintCardReaderViewModel(
                     null,
                     { obj, _, _ ->
                         if (obj != null) {
-                            liveDone.postValue(true)
+                            val bundle = Bundle()
+                            if(obj.has("bookingType"))
+                                bundle.putInt("status", obj.getInt("bookingType"))
+                            if(obj.has("adjusted"))
+                                bundle.putBoolean("adjusted", obj.getBoolean("adjusted"))
+                            bundle.putBoolean("success", obj.getBoolean("success"))
+                            if(obj.has("error"))
+                                bundle.putString("error", obj.getString("error"))
+                            bundle.putBoolean("success", obj.getBoolean("success"))
+                            bundle.putString("message", obj.getString("message"))
+                            bundle.putString("name", name)
+                            liveShowMessageSheet.postValue(bundle)
                             RfidService.unregister()
                             FingerprintService.unregister()
-                            liveSetText.postValue(obj.getString("message"))
-                            liveStatus.postValue(obj.getInt("bookingType"))
                             if (!obj.getBoolean("success")) {
                                 soundSource.playSound(SoundSource.failedSound)
-                                liveShowErrorColor.postValue(true)
                             } else {
                                 soundSource.playSound(SoundSource.successSound)
                             }
                         }
                         liveHideMask.postValue(true)
                     }, { _, _, _, _ ->
-                        liveOfflineBooking.postValue(entity)
-                        processOffline(entity)
+                        processOffline(entity, name)
                     }
                 )
             }
         }
     }
 
-    private fun processOffline(entity: BookingEntity) {
+    private fun processOffline(entity: BookingEntity, name: String) {
         viewModelScope.launch {
             soundSource.playSound(SoundSource.offlineSaved)
             RfidService.unregister()
             FingerprintService.unregister()
+            val bundle = Bundle()
+            bundle.putInt("status", when (entity.status){
+                100 -> 1
+                200 -> 2
+                else -> 3
+            })
+            bundle.putBoolean("offline", true)
+            bundle.putString("name", name)
+            bundle.putString("message", "")
+            liveShowMessageSheet.postValue(bundle)
             bookingService.insertBooking(entity)
         }
     }

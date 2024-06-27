@@ -11,7 +11,6 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
-import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
 import com.timo.timoterminal.databinding.DialogVerificationBinding
@@ -37,7 +36,6 @@ import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.core.component.get
 import java.util.GregorianCalendar
 import java.util.Timer
 import kotlin.concurrent.schedule

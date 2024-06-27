@@ -25,6 +25,7 @@ import com.timo.timoterminal.service.WorkerService
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
+import com.timo.timoterminal.viewModel.InternalTerminalSettingsFragmentViewModel
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import com.timo.timoterminal.viewModel.MBRemoteRegisterSheetViewModel
@@ -108,6 +109,7 @@ var appModule = module {
     single { LoginService(get(), get(), get(), get(), get(), get(), get(), get()) }
 
 
+    viewModel { InternalTerminalSettingsFragmentViewModel(get()) }
     viewModel { MainActivityViewModel(get(), get(), get(), get()) }
     viewModel { InfoFragmentViewModel(get(), get(), get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
@@ -115,7 +117,7 @@ var appModule = module {
     viewModel { SettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { AttendanceFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBUserWaitSheetViewModel(get(), get(), get(), get(), get()) }
-    viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get(),get()) }
+    viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get(), get()) }
     viewModel { MBRemoteRegisterSheetViewModel(get(), get(), get(), get(), get()) }
     viewModel {
         MBSheetFingerprintCardReaderViewModel(

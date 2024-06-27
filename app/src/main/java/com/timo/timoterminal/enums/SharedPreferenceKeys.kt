@@ -11,5 +11,6 @@ enum class SharedPreferenceKeys {
     LANGUAGE,
     TIMEZONE,
     UI_VISIBLE,
-    SOUND_ACTIVITY
+    SOUND_ACTIVITY,
+    BOOKING_MESSAGE_TIMEOUT_IN_SEC
 }

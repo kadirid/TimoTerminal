@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/button_close"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -57,7 +57,7 @@
         android:layout_height="60dp"
         android:background="@drawable/square_button_background"
         android:textAllCaps="false"
-        app:backgroundTint="#00FFFFFF"
+        app:backgroundTint="#10000000"
         app:icon="@drawable/baseline_close_24"
         app:iconTint="#000000"
         app:iconGravity="textStart"

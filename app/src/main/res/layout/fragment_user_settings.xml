@@ -93,7 +93,7 @@
                 android:background="@drawable/square_button_background"
                 android:textAllCaps="false"
                 android:layout_gravity="end"
-                app:backgroundTint="#00FFFFFF"
+                app:backgroundTint="#10000000"
                 app:icon="@drawable/baseline_close_24"
                 app:iconTint="#000000"
                 app:iconGravity="textStart"

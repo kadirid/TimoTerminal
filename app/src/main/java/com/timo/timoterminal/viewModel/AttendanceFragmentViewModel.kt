@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
-import com.timo.timoterminal.modalBottomSheets.MBBookingMessageSheet
+import com.timo.timoterminal.modalBottomSheets.MBBookingResponseSheet
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
@@ -17,6 +17,7 @@ import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.interfaces.FingerprintListener
 import com.zkteco.android.core.sdk.service.FingerprintService
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class AttendanceFragmentViewModel(
     private val sharedPrefService: SharedPrefService,
@@ -47,22 +48,26 @@ class AttendanceFragmentViewModel(
     fun showMessage(
         fragment: AttendanceFragment,
         card: String,
-        funcCode: Int,
-        success: Boolean,
-        message: String
+        obj: JSONObject
     ) {
         viewModelScope.launch {
             val user = getUserByCard(card)
-            if (user != null) {
+            if (user != null || obj.has("error")) {
                 fragment.activity?.runOnUiThread {
-                    val bookingMessage = MBBookingMessageSheet()
                     val bundle = Bundle()
-                    bundle.putInt("funcCode", funcCode)
-                    bundle.putString("name", user.name())
-                    bundle.putString("message", message)
-                    bundle.putBoolean("success", success)
-                    bookingMessage.arguments = bundle
-                    bookingMessage.show(fragment.parentFragmentManager, MBBookingMessageSheet.TAG)
+                    val sheet = MBBookingResponseSheet()
+                    if(obj.has("bookingType"))
+                        bundle.putInt("status", obj.getInt("bookingType"))
+                    if(obj.has("adjusted"))
+                        bundle.putBoolean("adjusted", obj.getBoolean("adjusted"))
+                    bundle.putBoolean("success", obj.getBoolean("success"))
+                    if(obj.has("error"))
+                        bundle.putString("error", obj.getString("error"))
+                    bundle.putBoolean("success", obj.getBoolean("success"))
+                    bundle.putString("message", obj.getString("message"))
+                    bundle.putString("name", user?.name() ?: "")
+                    sheet.arguments = bundle
+                    sheet.show(fragment.parentFragmentManager, MBBookingResponseSheet.TAG)
                 }
             }
         }

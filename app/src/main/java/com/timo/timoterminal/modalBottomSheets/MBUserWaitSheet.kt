@@ -204,11 +204,6 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
 
             binding.identificationText.visibility = View.GONE
             binding.keyboardImage.visibility = View.GONE
-            binding.nameContainer.visibility = View.GONE
-            binding.bookingTypeTextContainer.visibility = View.GONE
-            binding.progressContainer.visibility = View.GONE
-            binding.timeTextContainer.visibility = View.GONE
-            binding.sheetSeparator.visibility = View.GONE
             if (isFP) {
                 binding.cardImage.visibility = View.GONE
                 binding.fingerSelectContainer.visibility = View.VISIBLE

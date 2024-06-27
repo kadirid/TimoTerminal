@@ -180,7 +180,6 @@
             android:layout_height="match_parent"
             android:imeOptions="actionDone"
             android:inputType="none"
-
             android:textSize="30sp" />
 
     </com.google.android.material.textfield.TextInputLayout>

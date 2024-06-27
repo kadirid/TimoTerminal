@@ -76,77 +76,12 @@
             android:background="@drawable/rounded_container_16dp"
             android:backgroundTint="?attr/colorPrimaryContainer"
             android:visibility="gone"
+            tools:visibility="visible"
+            tools:alpha="1"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/drag_handle">
-
-            <TextView
-                android:id="@+id/name_container"
-                style="@style/TextAppearance.Material3.HeadlineSmall"
-                android:layout_width="500dp"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="20dp"
-                android:paddingVertical="20dp"
-                android:textAlignment="textStart"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Elias Kadiri" />
-
-            <TextView
-                android:id="@+id/booking_type_text_container"
-                style="@style/TextAppearance.Material3.HeadlineSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingVertical="20dp"
-                android:paddingStart="20dp"
-                android:textAlignment="textStart"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/name_container"
-                tools:text="Pause Ende" />
-
-            <LinearLayout
-                android:id="@+id/progress_container"
-                android:layout_width="55dp"
-                android:layout_height="0dp"
-                android:gravity="center"
-                app:layout_constraintBottom_toBottomOf="@id/booking_type_text_container"
-                app:layout_constraintEnd_toStartOf="@id/time_text_container"
-                app:layout_constraintStart_toEndOf="@id/booking_type_text_container"
-                app:layout_constraintTop_toTopOf="@id/booking_type_text_container">
-
-                <com.google.android.material.progressindicator.CircularProgressIndicator
-                    android:id="@+id/progress_indicator"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="false"
-                    android:progress="0"
-                    android:progressTint="@color/come" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/time_text_container"
-                style="@style/TextAppearance.Material3.HeadlineSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingVertical="20dp"
-                android:paddingEnd="20dp"
-                android:textAlignment="textEnd"
-                app:layout_constraintBottom_toBottomOf="@id/booking_type_text_container"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/booking_type_text_container"
-                tools:text="13:37" />
-
-            <View
-                android:id="@+id/sheet_separator"
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_marginHorizontal="20dp"
-                android:background="@drawable/gradient_drawable_nav_rail"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/booking_type_text_container" />
 
             <TextView
                 android:id="@+id/text_view_booking_message"
@@ -161,7 +96,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/booking_type_text_container"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="Ihre Daten wurden erfolgreich gespeichert" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -175,7 +110,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/drag_handle"
-            tools:visibility="gone">
+            tools:visibility="visible">
 
             <ImageView
                 android:id="@+id/finger_select_hand_left"
@@ -350,7 +285,7 @@
             android:background="@drawable/square_button_background"
             android:textAllCaps="false"
             android:visibility="gone"
-            app:backgroundTint="#00FFFFFF"
+            app:backgroundTint="#10000000"
             app:icon="@drawable/baseline_close_24"
             app:iconTint="#000000"
             app:iconGravity="textStart"

@@ -184,9 +184,7 @@ class AttendanceFragment : Fragment() {
                                 viewModel.showMessage(
                                     this@AttendanceFragment,
                                     card,
-                                    obj.getInt("funcCode"),
-                                    obj.getBoolean("success"),
-                                    obj.getString("message")
+                                    obj
                                 )
                             }
                             if (!msg.isNullOrEmpty()) {

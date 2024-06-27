@@ -1,8 +1,5 @@
 package com.timo.timoterminal.modalBottomSheets
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
@@ -11,9 +8,7 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
 import androidx.appcompat.app.AlertDialog
-import androidx.core.animation.doOnEnd
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -21,9 +16,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.DialogSingleTextInputBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
-import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.utils.ProgressBarAnimation
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
@@ -78,24 +71,10 @@ class MBSheetFingerprintCardReader(
             // as well!
             status = arguments?.getInt("status") ?: -1
             viewModel.status = status
-            setStatusText()
             binding.cardImage.contentDescription = languageService.getText("#RFID")
             binding.keyboardImage.contentDescription = languageService.getText("#RFID")
             binding.identificationText.text = languageService.getText("#WaitIdentification")
         }
-    }
-
-    private fun setStatusText() {
-        val sStatus = when (status) {
-            100 -> languageService.getText("#Kommt")
-            200 -> languageService.getText("#Geht")
-            110 -> languageService.getText("ALLGEMEIN#Pause")
-            210 -> languageService.getText("ALLGEMEIN#Pausenende")
-            else -> {
-                "No known type"
-            }
-        }
-        binding.bookingTypeTextContainer.text = sStatus
     }
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -118,30 +97,6 @@ class MBSheetFingerprintCardReader(
                 this@MBSheetFingerprintCardReader.dismiss()
             }
 
-            viewModel.liveDone.value = false
-            viewModel.liveDone.observe(viewLifecycleOwner) {
-                if (it == true) {
-                    animateSuccess()
-                    status = -1
-                    viewModel.liveDone.value = false
-                }
-            }
-            viewModel.liveShowErrorColor.value = false
-            viewModel.liveShowErrorColor.observe(viewLifecycleOwner) {
-                if (it == true) {
-                    val color = activity?.resources?.getColorStateList(R.color.error_booking, null)
-                    if (color != null) binding.bookingInfoContainer.backgroundTintList = color
-                    success = false
-                    viewModel.liveShowErrorColor.value = false
-                }
-            }
-            viewModel.liveSetText.value = ""
-            viewModel.liveSetText.observe(viewLifecycleOwner) {
-                if (it.isNotEmpty()) {
-                    binding.textViewBookingMessage.text = it
-                    viewModel.liveSetText.value = ""
-                }
-            }
             viewModel.liveHideMask.value = false
             viewModel.liveHideMask.observe(viewLifecycleOwner) {
                 if (it == true) {
@@ -159,38 +114,14 @@ class MBSheetFingerprintCardReader(
                     viewModel.liveShowMask.value = false
                 }
             }
-            viewModel.liveOfflineBooking.value = BookingEntity("", -1, "", -1)
-            viewModel.liveOfflineBooking.observe(viewLifecycleOwner) {
-                if (it.status != -1) {
-                    viewModel.liveOfflineBooking.value = BookingEntity("", -1, "", -1)
-
-                    viewModel.liveHideMask.value = true
-                    viewModel.liveSetText.value =
-                        languageService.getText("#BookingTemporarilySaved")
-                    viewModel.liveDone.value = true
-                }
-            }
-            viewModel.liveShowInfo.value = Pair("", "")
-            viewModel.liveShowInfo.observe(viewLifecycleOwner) {
-                if (it.first.isNotEmpty()) {
-                    binding.timeTextContainer.text = it.first
-                    binding.nameContainer.text = it.second
-                    viewModel.liveShowMask.value = true
-
-                    viewModel.liveShowInfo.value = Pair("", "")
-                }
-            }
-            viewModel.liveStatus.value = -1
-            viewModel.liveStatus.observe(viewLifecycleOwner) {
-                if(it > 0){
-                    status = when(it){
-                        1 -> 100
-                        2 -> 200
-                        3 -> 110
-                        4 -> 210
-                        else -> -1
-                    }
-                    setStatusText()
+            viewModel.liveShowMessageSheet.value = Bundle()
+            viewModel.liveShowMessageSheet.observe(viewLifecycleOwner) {
+                if (it.containsKey("message")) {
+                    val sheet = MBBookingResponseSheet()
+                    sheet.arguments = it
+                    sheet.show(parentFragmentManager, MBBookingResponseSheet.TAG)
+                    this@MBSheetFingerprintCardReader.dismiss()
+                    viewModel.liveShowMessageSheet.value = Bundle()
                 }
             }
         }
@@ -231,87 +162,6 @@ class MBSheetFingerprintCardReader(
         timer.cancel()
 
         super.onPause()
-    }
-
-    private fun animateSuccess() {
-        timer.cancel()
-        binding.identificationText.animate()
-            .translationY(-binding.identificationText.height.toFloat())
-            .alpha(0.0f)
-            .setListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    super.onAnimationEnd(animation)
-
-                    //Animation, to increase the height of the dialog
-                    val valueAnimator = ValueAnimator.ofInt(
-                        binding.scanBottomSheet.measuredHeight,
-                        binding.scanBottomSheet.measuredHeight + 200
-                    )
-                    valueAnimator.duration = 500L
-                    valueAnimator.addUpdateListener {
-                        val animatedValue = valueAnimator.animatedValue as Int
-                        val layoutParams = binding.scanBottomSheet.layoutParams
-                        layoutParams.height = animatedValue
-                        binding.scanBottomSheet.layoutParams = layoutParams
-                    }
-                    valueAnimator.start()
-                    valueAnimator.doOnEnd {
-                        //Animation to value container
-                        binding.bookingInfoContainer.visibility = View.VISIBLE
-                        binding.bookingInfoContainer.animate()
-                            .alpha(1.0f)
-                            .setListener(object : AnimatorListenerAdapter() {
-                                override fun onAnimationEnd(animation: Animator) {
-                                    super.onAnimationEnd(animation)
-                                    val widthAnimator = ValueAnimator.ofInt(
-                                        binding.progressContainer.measuredWidth,
-                                        binding.progressContainer.measuredWidth + 100
-                                    )
-                                    widthAnimator.duration = 500L
-                                    widthAnimator.addUpdateListener {
-                                        val animatedValue = widthAnimator.animatedValue as Int
-                                        val layoutParams =
-                                            binding.progressContainer.layoutParams
-                                        layoutParams.width = animatedValue
-                                        binding.progressContainer.layoutParams = layoutParams
-                                    }
-                                    widthAnimator.start()
-                                    widthAnimator.doOnEnd {
-                                        val anim = ProgressBarAnimation(
-                                            binding.progressIndicator,
-                                            0F,
-                                            100F
-                                        )
-                                        anim.duration = if(success) 2000L else 5000L
-                                        anim.setAnimationListener(object :
-                                            Animation.AnimationListener {
-                                            override fun onAnimationStart(p0: Animation?) {
-                                                //do nothing
-                                            }
-
-                                            override fun onAnimationEnd(p0: Animation?) {
-                                                binding.progressIndicator.progress = 0
-                                                dismiss()
-                                            }
-
-                                            override fun onAnimationRepeat(p0: Animation?) {
-                                                //do nothing
-                                            }
-                                        })
-                                        binding.progressIndicator.startAnimation(anim)
-                                    }
-                                }
-                            })
-                    }
-
-                }
-
-                override fun onAnimationStart(animation: Animator) {
-                    //animation to move the name container up on place of indent text
-                    binding.linearIconContainer.animate()
-                        .translationY(-binding.identificationText.height.toFloat())
-                }
-            })
     }
 
     private fun showVerificationAlert() {
