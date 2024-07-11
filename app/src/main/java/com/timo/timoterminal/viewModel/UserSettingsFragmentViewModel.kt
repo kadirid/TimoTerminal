@@ -1,7 +1,10 @@
 package com.timo.timoterminal.viewModel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
@@ -17,9 +20,25 @@ class UserSettingsFragmentViewModel(
     private val languageService: LanguageService,
     private val hardware: IHardwareSource
 ) : ViewModel() {
+    private val _items = MutableLiveData<List<UserEntity>>(emptyList())
+    val items: LiveData<List<UserEntity>> = _items
+    private var currentPage = 0
+    private var isLoading = false
+
+    fun loadMoreItems() {
+        if (!isLoading) {
+            isLoading = true
+            viewModelScope.launch {
+                // Fetch data from a remote source or local database
+                val newItems = userService.getPageAsList(currentPage)
+                _items.value = _items.value?.plus(newItems) ?: newItems
+                currentPage++
+                isLoading = false
+            }
+        }
+    }
 
     suspend fun getAllAsList() = userService.getAllAsList()
-    fun getAll() = userService.getAllEntities
 
     fun assignUser(
         id: String,
@@ -28,7 +47,7 @@ class UserSettingsFragmentViewModel(
     ) {
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+            val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 

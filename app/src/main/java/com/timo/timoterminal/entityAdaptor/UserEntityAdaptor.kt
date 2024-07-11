@@ -37,7 +37,7 @@ class UserEntityAdaptor(
             val name =
                 if (user.firstName.isBlank()) user.lastName else "${user.firstName} ${user.lastName}"
             idView.text = "${user.id}"
-            nameView.text = name
+            nameView.text = if (name.length > 20) name.subSequence(0, 20) else name
             cardView.text = user.card
             pinView.text = user.pin
             itemView.setOnClickListener {

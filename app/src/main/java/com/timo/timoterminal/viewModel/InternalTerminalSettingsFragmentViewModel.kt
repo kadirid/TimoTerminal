@@ -8,10 +8,9 @@ class InternalTerminalSettingsFragmentViewModel(
     private val sharedPrefService: SharedPrefService
 ) : ViewModel() {
 
-    fun setTimeOut(inputNumber: String = "5") {
-        val seconds = inputNumber.toLong()
-
-        sharedPrefService.getEditor().putLong(SharedPreferenceKeys.BOOKING_MESSAGE_TIMEOUT_IN_SEC.name, seconds).apply()
+    fun setTimeOut(inputNumber: Long = 5) {
+        sharedPrefService.getEditor()
+            .putLong(SharedPreferenceKeys.BOOKING_MESSAGE_TIMEOUT_IN_SEC.name, inputNumber).apply()
     }
 
 }

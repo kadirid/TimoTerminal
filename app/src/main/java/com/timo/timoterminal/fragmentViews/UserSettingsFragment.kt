@@ -1,6 +1,7 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
+import androidx.recyclerview.widget.RecyclerView
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentUserSettingsBinding
@@ -42,11 +44,11 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
 
     private val userSettingsFragmentViewModel: UserSettingsFragmentViewModel by viewModel()
     private lateinit var binding: FragmentUserSettingsBinding
-    private lateinit var adapter: UserEntityAdaptor
     private val languageService: LanguageService by inject()
     private val paramMap = HashMap<String, String>()
     private var userId: Long = -1
     private var assignedToTerminal = false
+    private var recyclerViewState: Parcelable? = null
 
     private val assignUser = fun(callback: () -> Unit?) {
         (activity as MainActivity?)?.restartTimer()
@@ -168,23 +170,38 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
     }
 
     private fun setAdapter() {
-        val emptyAdapter = UserEntityAdaptor(emptyList(),
-            object : OnItemClickListener {
-                override fun onItemClick(user: UserEntity) {}
-            })
-        binding.viewRecyclerUserFilter.adapter = emptyAdapter
-        binding.viewRecyclerUserAll.adapter = emptyAdapter
-        userSettingsFragmentViewModel.viewModelScope.launch {
-            userSettingsFragmentViewModel.getAll().collect {
-                adapter = UserEntityAdaptor(it,
-                    object : OnItemClickListener {
-                        override fun onItemClick(user: UserEntity) {
-                            loadFormData(user)
-                        }
-                    })
-                binding.viewRecyclerUserAll.adapter = adapter
+        val adapter =
+            UserEntityAdaptor(emptyList(),
+                object : OnItemClickListener {
+                    override fun onItemClick(user: UserEntity) {}
+                })
+        binding.viewRecyclerUserFilter.adapter = adapter
+        binding.viewRecyclerUserAll.adapter = adapter
+
+        binding.viewRecyclerUserAll.addOnScrollListener(object :
+            RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                (activity as MainActivity?)?.restartTimer()
+                if (dy > 0 && !recyclerView.canScrollVertically(1)) { // Scrolled to bottom
+                    userSettingsFragmentViewModel.loadMoreItems()
+                }
             }
+        })
+
+        userSettingsFragmentViewModel.items.observe(viewLifecycleOwner) {
+            recyclerViewState = binding.viewRecyclerUserAll.layoutManager?.onSaveInstanceState()
+            binding.viewRecyclerUserAll.adapter =
+                UserEntityAdaptor(it, object : OnItemClickListener {
+                    override fun onItemClick(user: UserEntity) {
+                        loadFormData(user)
+                    }
+                })
+            binding.viewRecyclerUserAll.layoutManager?.onRestoreInstanceState(recyclerViewState)
+
         }
+        userSettingsFragmentViewModel.loadMoreItems()
+
     }
 
     private fun loadFormData(user: UserEntity) {
@@ -276,9 +293,6 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
             }
 
             binding.fragmentUserSettingsRootLayout.setOnClickListener {
-                (activity as MainActivity?)?.restartTimer()
-            }
-            binding.fragmentUserSettingsNestedScrollView.setOnScrollChangeListener { _, _, _, _, _ ->
                 (activity as MainActivity?)?.restartTimer()
             }
         }

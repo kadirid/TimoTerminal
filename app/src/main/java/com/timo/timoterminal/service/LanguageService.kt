@@ -5,6 +5,7 @@ import com.timo.timoterminal.entityClasses.LanguageEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.LanguageRepository
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.ResponseToJSON
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -44,24 +45,7 @@ class LanguageService(
                         { obj, _, _ ->
                             if (obj != null) {
                                 val values = Utils.parseResponseToJSON(obj.getString("values"))
-                                val list = mutableListOf<LanguageEntity>()
-                                if (values.array != null) {
-                                    for (i in 0 until values.array.length()) {
-                                        val oneValue = values.array.getJSONObject(i)
-                                        list.add(
-                                            LanguageEntity.convertJSONObjectToLanguageEntity(
-                                                oneValue
-                                            )
-                                        )
-                                    }
-                                }
-                                coroutineScope.launch {
-                                    languageRepository.insertLanguageEntities(list)
-                                }
-                                putLanguageValuesInMap(list)
-                                if (unique.isNotEmpty()) {
-                                    httpService.responseForCommand(unique)
-                                }
+                                processLanguageResponse(values, coroutineScope, unique)
                             }
                         }, { _, _, _, _ ->
                             coroutineScope.launch {
@@ -78,6 +62,31 @@ class LanguageService(
                     putLanguageValuesInMap(list)
                 }
             }
+        }
+    }
+
+    fun processLanguageResponse(
+        values: ResponseToJSON,
+        coroutineScope: CoroutineScope,
+        unique: String
+    ) {
+        val list = mutableListOf<LanguageEntity>()
+        if (values.array != null) {
+            for (i in 0 until values.array.length()) {
+                val oneValue = values.array.getJSONObject(i)
+                list.add(
+                    LanguageEntity.convertJSONObjectToLanguageEntity(
+                        oneValue
+                    )
+                )
+            }
+        }
+        coroutineScope.launch {
+            languageRepository.insertLanguageEntities(list)
+        }
+        putLanguageValuesInMap(list)
+        if (unique.isNotEmpty()) {
+            httpService.responseForCommand(unique)
         }
     }
 

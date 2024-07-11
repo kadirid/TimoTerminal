@@ -39,13 +39,15 @@ class BookingService(
     suspend fun insertBooking(
         entity: BookingEntity
     ) {
-        bookingRepository.insertBookingEntity(entity)
-        insertBU()
+        val newId = bookingRepository.insertBookingEntity(entity)
+        if(newId > 0){
+            val newEntity = bookingRepository.getById(newId)
+            insertBU(newEntity)
+        }
     }
 
-    private suspend fun insertBU() {
-        val entities = bookingRepository.getAllAsList()
-        bookingBURepository.insertBookingEntities(entities)
+    private suspend fun insertBU(entity: BookingEntity) {
+        bookingBURepository.insertBookingEntity(entity)
     }
 
     suspend fun sendSavedBooking(scope: CoroutineScope) {

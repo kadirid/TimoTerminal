@@ -4,18 +4,19 @@ import android.content.Intent
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import android.util.Log
 import androidx.core.os.postDelayed
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
+import com.timo.timoterminal.enums.TerminalCommands
 import com.timo.timoterminal.modalBottomSheets.MBRemoteRegisterSheet
 import com.timo.timoterminal.utils.Utils
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
+import org.json.JSONArray
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -47,7 +48,7 @@ class HeartbeatService : KoinComponent {
     }
 
     private fun getTerminalId(): Int {
-        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+        return sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
     }
 
     private fun getToken(): String {
@@ -107,9 +108,9 @@ class HeartbeatService : KoinComponent {
             val tTime = Utils.parseDBDateTime(obj.getString("time"))
             Utils.setCal(tTime)
         }
-        var updateAllUser = ""
-        var loadPermissions = ""
-        var loadLanguage = ""
+        var updateAllUser = Pair("", "")
+        var loadPermissions = Pair("", "")
+        var loadLanguage = Pair("", "")
         var rebootTerminal = ""
         var enrollCard = Pair("", "")
         var enrollFinger = Pair("", "")
@@ -123,32 +124,52 @@ class HeartbeatService : KoinComponent {
             for (i in 0 until array.length()) {
                 val cmdObj = array.getJSONObject(i)
                 val command = cmdObj.optString("command")
-                Log.d("HeartbeatService", command)
+                val type = cmdObj.optInt("type", -1)
                 val id = cmdObj.optString("unique")
                 if (id.isNotEmpty()) {
-                    if (command == "updateAllUser") {
-                        updateAllUser = id
-                    } else if (command.startsWith("updateUser:")) {
-                        updateIds.add(Pair(command.substring(11, command.length), id))
-                    } else if (command.startsWith("deleteUser:")) {
-                        deleteIds.add(Pair(command.substring(11, command.length), id))
-                    } else if (command.startsWith("deleteFP:")) {
-                        deleteFP.add(Pair(command.substring(9, command.length), id))
-                    } else if (command.startsWith("enrollCard:")) {
-                        enrollCard = Pair(command.substring(11, command.length), id)
-                    } else if (command.startsWith("enrollFinger:")) {
-                        enrollFinger = Pair(command.substring(13, command.length), id)
-                    } else if (command == "loadPermissions") {
-                        loadPermissions = id
-                    } else if (command == "loadLanguage") {
-                        loadLanguage = id
-                    } else if (command == "rebootTerminal") {
-                        rebootTerminal = id
-                    } else if (command.startsWith("changeLanguage:")) {
-                        lang = Pair(command.substring(15, command.length), id)
+                    when (type) {
+                        TerminalCommands.COMMAND_UPDATE_ALL_USER.ordinal -> {
+                            updateAllUser = Pair(command, id)
+                        }
+
+                        TerminalCommands.COMMAND_UPDATE_USER.ordinal -> {
+                            updateIds.add(Pair(command, id))
+                        }
+
+                        TerminalCommands.COMMAND_DELETE_USER.ordinal -> {
+                            deleteIds.add(Pair(command, id))
+                        }
+
+                        TerminalCommands.COMMAND_DELETE_FP.ordinal -> {
+                            deleteFP.add(Pair(command, id))
+                        }
+
+                        TerminalCommands.COMMAND_ENROLL_CARD.ordinal -> {
+                            enrollCard = Pair(command, id)
+                        }
+
+                        TerminalCommands.COMMAND_ENROLL_FINGER.ordinal -> {
+                            enrollFinger = Pair(command, id)
+                        }
+
+                        TerminalCommands.COMMAND_LOAD_PERMISSION.ordinal -> {
+                            loadPermissions = Pair(command, id)
+                        }
+
+                        TerminalCommands.COMMAND_LOAD_LANGUAGE.ordinal -> {
+                            loadLanguage = Pair(command, id)
+                        }
+
+                        TerminalCommands.COMMAND_REBOOT_TERMINAL.ordinal -> {
+                            rebootTerminal = id
+                        }
+
+                        TerminalCommands.COMMAND_CHANGE_LANGUAGE.ordinal -> {
+                            lang = Pair(command, id)
+                        }
                     }
-                } else if (command.startsWith("updateUrl:")) {
-                    url = command.substring(10, command.length)
+                } else if (type == TerminalCommands.COMMAND_UPDATE_URL.ordinal) {
+                    url = command
                 }
             }
         }
@@ -171,8 +192,14 @@ class HeartbeatService : KoinComponent {
                         activity.getBinding().serverConnectionIcon.imageTintList = color
                     }
                 }
-                if (updateAllUser.isNotEmpty()) {
-                    userService.loadUsersFromServer(scope, updateAllUser)
+                if (updateAllUser.first.isNotEmpty()) {
+                    val resObj = Utils.parseResponseToJSON(updateAllUser.first)
+                    userService.processUserArray(
+                        resObj.array,
+                        scope,
+                        updateAllUser.second,
+                        deleteOld = true
+                    )
                 } else {
                     for (no in deleteFP) {
                         val ids = no.first.split(":")
@@ -180,21 +207,38 @@ class HeartbeatService : KoinComponent {
                             userService.deleteFP(ids[0], ids[1].toInt(), no.second)
                         }
                     }
+                    val array = JSONArray()
+                    val resIds = JSONArray()
                     for (no in updateIds) {
-                        userService.loadUserFromServer(scope, no.first, no.second)
+                        val resObj = Utils.parseResponseToJSON(no.first).obj
+                        resIds.put(no.second)
+                        if (resObj != null)
+                            array.put(resObj)
+                    }
+                    if (updateIds.size > 0) {
+                        userService.processUserArray(array, scope, "")
+                        httpService.responseForMultiCommand(resIds)
                     }
                     for (no in deleteIds) {
                         userService.deleteUser(no.first, no.second)
                     }
                 }
-                if (loadPermissions.isNotEmpty()) {
-                    loginService.loadPermissions(
-                        scope,
-                        activity
-                    ) { worked -> if (worked) httpService.responseForCommand(loadPermissions) }
+                if (loadPermissions.first.isNotEmpty()) {
+                    val resObj = Utils.parseResponseToJSON(loadPermissions.first)
+                    if (resObj.array != null) {
+                        httpService.responseForCommand(loadPermissions.second)
+                        loginService.processPermissions(
+                            resObj.array,
+                            scope
+                        ) {}
+                    }
                 }
-                if (loadLanguage.isNotEmpty()) {
-                    languageService.requestLanguageFromServer(scope, activity, loadLanguage)
+                if (loadLanguage.first.isNotEmpty()) {
+                    languageService.processLanguageResponse(
+                        Utils.parseResponseToJSON(loadLanguage.first),
+                        scope,
+                        loadLanguage.second
+                    )
                 }
                 if (lang.first.isNotEmpty()) {
                     settingsService.changeLanguage(activity, lang.first, lang.second)
@@ -258,8 +302,8 @@ class HeartbeatService : KoinComponent {
                     }
                 }
                 if (rebootTerminal.isNotEmpty()) {
-                    if (loadLanguage.isNotEmpty() || loadPermissions.isNotEmpty() ||
-                        updateAllUser.isNotEmpty() || updateIds.size > 0 || deleteIds.size > 0 ||
+                    if (loadLanguage.first.isNotEmpty() || loadPermissions.second.isNotEmpty() ||
+                        updateAllUser.first.isNotEmpty() || updateIds.size > 0 || deleteIds.size > 0 ||
                         deleteFP.size > 0 || lang.first.isNotEmpty()
                     ) {
                         delay(10000L)

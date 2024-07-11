@@ -331,4 +331,25 @@ class HttpService : KoinComponent {
             ) { _, _, _, _ -> }
         }
     }
+
+    fun responseForMultiCommand(data: JSONArray, callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }) {
+        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
+        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
+
+        val params = JSONObject()
+        params.put("terminalSN", hardware.serialNumber())
+        params.put("terminalId", "$tId")
+        params.put("token", token)
+        params.put("firma", company)
+        params.put("data", data)
+
+        if (company.isNotEmpty() && token.isNotEmpty() && data.toString().isNotEmpty()) {
+            postJson(
+                "${url}services/rest/zktecoTerminal/doneMultiCommand",
+                params.toString(), null, callback
+            ) { _, _, _, _ -> }
+        }
+    }
 }

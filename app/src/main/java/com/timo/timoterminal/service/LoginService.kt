@@ -17,6 +17,7 @@ import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.Locale
@@ -215,7 +216,7 @@ class LoginService(
         callback: (worked: Boolean) -> Unit
     ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
@@ -226,32 +227,12 @@ class LoginService(
                     mapOf(
                         Pair("firma", company),
                         Pair("terminalSN", hardware.serialNumber()),
-                        Pair("terminalId","$tId"),
+                        Pair("terminalId", "$tId"),
                         Pair("token", token)
                     ),
                     context,
                     { _, array, _ ->
-                        if (array != null && array.length() > 0) {
-                            val list = ArrayList<ConfigEntity>()
-                            for (i in 0 until array.length()) {
-                                val obj = array.getJSONObject(i)
-                                list.add(
-                                    ConfigEntity(
-                                        ConfigRepository.TYPE_PERMISSION,
-                                        obj.getString("name"),
-                                        obj.getString("value")
-                                    )
-                                )
-                            }
-                            coroutineScope.launch {
-                                insertOrUpdateConfigEntities(list)
-                                configRepository.initMap()
-                                callback(true)
-                            }
-                            null
-                        } else {
-                            callback(false)
-                        }
+                        processPermissions(array, coroutineScope, callback)
                     }, { _, _, _, _ ->
                         //check if permissions table is really populated
                         coroutineScope.launch {
@@ -271,6 +252,33 @@ class LoginService(
         }
     }
 
+    fun processPermissions(
+        array: JSONArray?,
+        coroutineScope: CoroutineScope,
+        callback: (worked: Boolean) -> Unit
+    ) {
+        if (array != null && array.length() > 0) {
+            val list = ArrayList<ConfigEntity>()
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                list.add(
+                    ConfigEntity(
+                        ConfigRepository.TYPE_PERMISSION,
+                        obj.getString("name"),
+                        obj.getString("value")
+                    )
+                )
+            }
+            coroutineScope.launch {
+                insertOrUpdateConfigEntities(list)
+                configRepository.initMap()
+                callback(true)
+            }
+        } else {
+            callback(false)
+        }
+    }
+
     private fun addConfig(scope: CoroutineScope, config: ConfigEntity) {
         scope.launch {
             configRepository.insertConfigEntity(config)
@@ -279,7 +287,7 @@ class LoginService(
 
     fun autoLogin(context: Context, callback: () -> Unit) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
         validateLogin(company, token, context, url, tId, callback)

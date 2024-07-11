@@ -176,12 +176,12 @@ class MBSheetFingerprintCardReaderViewModel(
                     { obj, _, _ ->
                         if (obj != null) {
                             val bundle = Bundle()
-                            if(obj.has("bookingType"))
+                            if (obj.has("bookingType"))
                                 bundle.putInt("status", obj.getInt("bookingType"))
-                            if(obj.has("adjusted"))
+                            if (obj.has("adjusted"))
                                 bundle.putBoolean("adjusted", obj.getBoolean("adjusted"))
                             bundle.putBoolean("success", obj.getBoolean("success"))
-                            if(obj.has("error"))
+                            if (obj.has("error"))
                                 bundle.putString("error", obj.getString("error"))
                             bundle.putBoolean("success", obj.getBoolean("success"))
                             bundle.putString("message", obj.getString("message"))
@@ -210,11 +210,13 @@ class MBSheetFingerprintCardReaderViewModel(
             RfidService.unregister()
             FingerprintService.unregister()
             val bundle = Bundle()
-            bundle.putInt("status", when (entity.status){
-                100 -> 1
-                200 -> 2
-                else -> 3
-            })
+            bundle.putInt(
+                "status", when (entity.status) {
+                    100 -> 1
+                    200 -> 2
+                    else -> 3
+                }
+            )
             bundle.putBoolean("offline", true)
             bundle.putString("name", name)
             bundle.putString("message", "")

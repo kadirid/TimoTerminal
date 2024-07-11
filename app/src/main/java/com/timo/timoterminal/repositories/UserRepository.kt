@@ -3,11 +3,8 @@ package com.timo.timoterminal.repositories
 import androidx.annotation.WorkerThread
 import com.timo.timoterminal.dao.UserDAO
 import com.timo.timoterminal.entityClasses.UserEntity
-import kotlinx.coroutines.flow.Flow
 
 class UserRepository(private val userDAO: UserDAO) {
-
-    val getAllEntities: Flow<List<UserEntity>> = userDAO.getAll()
 
     @WorkerThread
     suspend fun insertUserEntity(entity: List<UserEntity>) {
@@ -31,4 +28,6 @@ class UserRepository(private val userDAO: UserDAO) {
     suspend fun getEntityByPIN(pin: String): List<UserEntity> = userDAO.loadEntityByPIN(pin)
 
     suspend fun deleteAll() = userDAO.deleteAll()
+
+    suspend fun getPageAsList(pageNo: Int): List<UserEntity> = userDAO.getPageAsList(pageNo * 50)
 }

@@ -9,7 +9,6 @@ import com.timo.timoterminal.utils.classes.ResponseToJSON
 import com.zkteco.android.core.sdk.service.FingerprintService
 import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import okhttp3.Response
 import org.json.JSONArray
@@ -29,15 +28,15 @@ class UserService(
 
     suspend fun insertOne(user: UserEntity) = userRepository.insertOne(user)
 
-    val getAllEntities: Flow<List<UserEntity>> = userRepository.getAllEntities
-
     suspend fun getAllAsList(): List<UserEntity> = userRepository.getAllAsList()
+
+    suspend fun getPageAsList(pageNo: Int): List<UserEntity> = userRepository.getPageAsList(pageNo)
 
     fun loadUsersFromServer(scope: CoroutineScope, unique: String = "") {
         scope.launch {
             //Load from server
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+            val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
             val params = HashMap<String, String>()
@@ -51,27 +50,51 @@ class UserService(
                     null,
                     { _, arrResponse, _ ->
                         //Save it persistently offline
-                        loadIntoDB(arrResponse, scope)
-                        getFPFromServer(scope)
-                        if (unique.isNotEmpty()) {
-                            httpService.responseForCommand(unique)
-                        }
+                        processUserArray(arrResponse, scope, unique, true, deleteOld = true)
                     })
             }
         }
     }
 
-    private fun loadIntoDB(arrResponse: JSONArray?, coroutineScope: CoroutineScope) {
+    fun processUserArray(
+        arrResponse: JSONArray?,
+        scope: CoroutineScope,
+        unique: String,
+        loadFP: Boolean = false,
+        deleteOld: Boolean = false
+    ) {
+        loadIntoDB(arrResponse, scope, deleteOld)
+        if (loadFP) {
+            getFPFromServer(scope)
+        }
+        if (unique.isNotEmpty()) {
+            httpService.responseForCommand(unique)
+        }
+    }
+
+    private fun loadIntoDB(
+        arrResponse: JSONArray?,
+        coroutineScope: CoroutineScope,
+        deleteOld: Boolean = false
+    ) {
         coroutineScope.launch {
             val users = ArrayList<UserEntity>()
             if (arrResponse!!.length() > 0) {
-                userRepository.deleteAll()
-                FingerprintService.clear()
+                if (deleteOld) {
+                    userRepository.deleteAll()
+                    FingerprintService.clear()
+                }
             }
             for (i in 0 until arrResponse.length()) {
-                val obj = arrResponse.getJSONObject(i)
-                val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
-                users.add(userEntity)
+                val obj = validateUserResponse(arrResponse.getJSONObject(i))
+                if (obj != null) {
+                    val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
+                    users.add(userEntity)
+                    if (userEntity.assignedToTerminal && obj.has("fp")) {
+                        val fpObj = obj.getJSONObject("fp")
+                        processFPObj(fpObj, userEntity.id.toString())
+                    }
+                }
             }
             userRepository.insertUserEntity(users)
         }
@@ -87,7 +110,7 @@ class UserService(
     private fun getFPFromServer(viewModelScope: CoroutineScope) {
         viewModelScope.launch {
             val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-            val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+            val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
             val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
             val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
@@ -135,41 +158,15 @@ class UserService(
         )
     }
 
-    fun loadUserFromServer(scope: CoroutineScope, userId: String, unique: String = "") {
-        //Load from server
-        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
-        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-        val params = HashMap<String, String>()
-        if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
-            params["company"] = company
-            params["token"] = token
-            params["terminalSN"] = hardware.serialNumber()
-            params["userId"] = userId
-            params["terminalId"] = tId.toString()
-            httpService.get("${url}services/rest/zktecoTerminal/loadUser",
-                params,
-                null,
-                { obj, _, _ ->
-                    //Save it persistently offline
-                    if (obj != null) {
-                        scope.launch {
-                            if(obj.has("id")) {
-                                val userEntity: UserEntity = UserEntity.parseJsonToUserEntity(obj)
-                                userRepository.insertOne(userEntity)
-                                if (userEntity.assignedToTerminal) {
-                                    getFPForUser(url, { }, userId, company, token, tId)
-                                }
-                            }
-                            if (unique.isNotEmpty()) {
-                                httpService.responseForCommand(unique)
-                            }
-                        }
-                    }
-                }
-            )
+    private fun validateUserResponse(
+        obj: JSONObject?,
+    ): JSONObject? {
+        if (obj != null) {
+            if (obj.has("id")) {
+                return obj
+            }
         }
+        return null
     }
 
     /**
@@ -191,7 +188,7 @@ class UserService(
         errorCallback: ((e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit?)
     ) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
         if (!company.isNullOrEmpty() && !token.isNullOrEmpty()) {
@@ -264,16 +261,16 @@ class UserService(
         }
     }
 
-    private fun processFPObj(obj: JSONObject) {
-        val user = obj.optString("user", "")
-        if (user.isNotEmpty()) {
+    private fun processFPObj(obj: JSONObject, user: String? = null) {
+        val userId = user ?: obj.optString("user", "")
+        if (userId.isNotEmpty()) {
             for (i in 0..9) {
                 val name = "fp$i"
                 val template = obj.optString(name)
                 if (template.isNotEmpty()) {
-                    saveFPinDB(template, i, user)
+                    saveFPinDB(template, i, userId)
                 } else {
-                    FingerprintService.delete("$user|$i")
+                    FingerprintService.delete("$userId|$i")
                 }
             }
         }

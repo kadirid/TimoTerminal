@@ -25,7 +25,10 @@ interface BookingDAO {
     suspend fun insertAll(entities : List<BookingEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity : BookingEntity)
+    suspend fun insert(entity : BookingEntity): Long
+
+    @Query("SELECT * FROM BookingEntity where id = :id")
+    suspend fun getById(id: Long): BookingEntity
 
     @Delete
     suspend fun delete(bookingEntity: BookingEntity)

@@ -7,14 +7,16 @@ import com.timo.timoterminal.entityClasses.BookingEntity
 class BookingRepository(private val bookingDAO: BookingDAO) {
 
     @WorkerThread
-    suspend fun insertBookingEntities(entities: List<BookingEntity>){
+    suspend fun insertBookingEntities(entities: List<BookingEntity>) {
         bookingDAO.insertAll(entities)
     }
 
     @WorkerThread
-    suspend fun insertBookingEntity(entity: BookingEntity){
-        bookingDAO.insert(entity)
+    suspend fun insertBookingEntity(entity: BookingEntity): Long {
+        return bookingDAO.insert(entity)
     }
+
+    suspend fun getById(id: Long) = bookingDAO.getById(id)
 
     fun getAll() = bookingDAO.getAll()
 
