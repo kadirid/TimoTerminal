@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings.*
+import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.LoginActivity
 import com.timo.timoterminal.entityClasses.ConfigEntity
@@ -147,6 +148,7 @@ class LoginService(
             parameters["androidId"] = String(hashedAndroidId)
             parameters["device"] = hardware.getDevice().naming
             parameters["brand"] = Build.BRAND
+            parameters["version"] = BuildConfig.VERSION_NAME
             parameters["timezone"] =
                 sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
                     ?: "Europe/Berlin"

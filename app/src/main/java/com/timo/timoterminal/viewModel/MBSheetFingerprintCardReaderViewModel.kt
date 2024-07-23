@@ -249,7 +249,6 @@ class MBSheetFingerprintCardReaderViewModel(
         viewModelScope.launch {
             // get Key associated to the fingerprint
             FingerprintService.identify(template)?.run {
-                Log.d("FP Key", this)
                 val id = this.substring(0, this.length - 2).toLong()
                 sendBookingById(id)
                 return@launch

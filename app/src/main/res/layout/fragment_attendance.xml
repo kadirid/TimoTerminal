@@ -9,44 +9,6 @@
     tools:layout_marginStart="200dp"
     tools:context=".fragmentViews.AttendanceFragment">
 
-    <!--
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_test_kommen"
-        android:layout_width="400dp"
-        android:layout_height="48dp"
-        android:text="Kommen"
-        android:visibility="invisible"/>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_test_gehen"
-        android:layout_width="400dp"
-        android:layout_height="48dp"
-        android:text="Gehen"
-        android:visibility="invisible"/>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_test_pause_anfang"
-        android:layout_width="400dp"
-        android:layout_height="48dp"
-        android:text="Pause Anfang"
-        android:visibility="invisible"/>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_test_pause_ende"
-        android:layout_width="400dp"
-        android:layout_height="48dp"
-        android:text="Pause Ende"
-        android:visibility="invisible"/>
-
-    <TextView
-        android:id="@+id/text_view_attendance_state"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="32sp"
-        android:text="Keine Anwesenheit ausgewählt"
-        android:visibility="invisible"/>
-        -->
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

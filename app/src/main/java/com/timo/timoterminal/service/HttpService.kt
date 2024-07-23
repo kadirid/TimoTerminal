@@ -352,4 +352,25 @@ class HttpService : KoinComponent {
             ) { _, _, _, _ -> }
         }
     }
+
+    fun responseForUpdate(version: String, callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }) {
+        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
+        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
+
+        val params = mutableMapOf(Pair("terminalSN", hardware.serialNumber()))
+
+        params["terminalId"] = "$tId"
+        params["token"] = token
+        params["firma"] = company
+        params["version"] = version
+
+        if (company.isNotEmpty() && token.isNotEmpty() && version.isNotEmpty()) {
+            post(
+                "${url}services/rest/zktecoTerminal/doneUpdate",
+                params, null, callback
+            ) { _, _, _, _ -> }
+        }
+    }
 }

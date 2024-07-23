@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="false"
-    tools:context=".activities.MainActivity">
+    tools:context=".activities.MainActivity"
+    >
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/navigation_rail_container"
@@ -14,7 +15,8 @@
         android:paddingHorizontal="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        >
 
         <ImageView
             android:id="@+id/image_view_logo"
@@ -26,7 +28,8 @@
             android:src="@drawable/logo_white_light_blue_single_o_40x40"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            />
 
         <com.google.android.material.navigationrail.NavigationRailView
             android:id="@+id/navigation_rail"
@@ -44,7 +47,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/image_view_logo"
-            app:menu="@menu/navigation_rail_menu" />
+            app:menu="@menu/navigation_rail_menu"
+            />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_settings"
@@ -56,7 +60,8 @@
             app:iconTint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -73,11 +78,12 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container_view"
         android:layout_width="0dp"
-        android:padding="60dp"
+        android:layout_margin="60dp"
         android:layout_height="match_parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/navigation_rail_container"
-        android:name="com.timo.timoterminal.fragmentViews.AttendanceFragment" />
+        android:name="com.timo.timoterminal.fragmentViews.AttendanceFragment"
+        />
 
 <!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
 <!--        android:id="@+id/floating_action_button_keyboard"-->
@@ -97,17 +103,33 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="25dp"
         android:layout_marginEnd="25dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/terminal_has_update_button"
+            android:layout_width="230dp"
+            android:layout_height="48dp"
+            android:layout_marginVertical="12dp"
+            android:layout_marginHorizontal="200dp"
+            android:padding="0dp"
+            android:textSize="20sp"
+            android:textAllCaps="false"
+            android:background="@drawable/main_banner_button"
+            app:backgroundTint="@null"
+            android:textColor="#000000"
+            tools:text="Update available"
+            />
 
         <ImageView
             android:id="@+id/network_connection_icon"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginHorizontal="10dp"
-            android:src="@drawable/baseline_lan_32"/>
+            android:src="@drawable/baseline_lan_32"
+            />
 
         <ImageView
             android:id="@+id/server_connection_icon"
@@ -115,14 +137,16 @@
             android:layout_height="30dp"
             android:layout_marginHorizontal="10dp"
             android:src="@drawable/baseline_cloud_24"
-            app:tint="@color/red" />
+            app:tint="@color/red"
+            />
 
         <ImageView
             android:id="@+id/battery_icon"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginHorizontal="10dp"
-            android:src="@drawable/baseline_battery_full_32"/>
+            android:src="@drawable/baseline_battery_full_32"
+            />
 
         <TextView
             android:id="@+id/battery_percent"
@@ -147,7 +171,8 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:indeterminateTint="#FF4E616D"
-            android:indeterminate="true" />
+            android:indeterminate="true"
+            />
 
     </RelativeLayout>
 

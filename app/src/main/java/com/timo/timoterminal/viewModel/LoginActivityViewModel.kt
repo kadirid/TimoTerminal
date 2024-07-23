@@ -36,7 +36,6 @@ class LoginActivityViewModel(
         viewModelScope.launch {
             val saved: Boolean = checkIfCredsAreLocallySaved()
             if (saved) {
-                Log.d(LoginActivity.TAG, "onResume: true")
                 languageService.requestLanguageFromServer(viewModelScope, context)
                 if (Utils.isOnline(context)) {
                     liveShowPleaseWaitMask.postValue(true)

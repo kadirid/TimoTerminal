@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.view.View
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.os.postDelayed
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
@@ -119,6 +121,7 @@ class HeartbeatService : KoinComponent {
         val deleteFP = arrayListOf<Pair<String, String>>()
         var lang = Pair("", "")
         var url = ""
+        var updateAPK = Pair("", "")
         if (!obj.isNull("commands") && obj.getJSONArray("commands").length() > 0) {
             val array = obj.getJSONArray("commands")
             for (i in 0 until array.length()) {
@@ -166,6 +169,10 @@ class HeartbeatService : KoinComponent {
 
                         TerminalCommands.COMMAND_CHANGE_LANGUAGE.ordinal -> {
                             lang = Pair(command, id)
+                        }
+
+                        TerminalCommands.COMMAND_UPDATE_APK.ordinal -> {
+                            updateAPK = Pair(command, id)
                         }
                     }
                 } else if (type == TerminalCommands.COMMAND_UPDATE_URL.ordinal) {
@@ -301,18 +308,30 @@ class HeartbeatService : KoinComponent {
                         }
                     }
                 }
-                if (rebootTerminal.isNotEmpty()) {
-                    if (loadLanguage.first.isNotEmpty() || loadPermissions.second.isNotEmpty() ||
-                        updateAllUser.first.isNotEmpty() || updateIds.size > 0 || deleteIds.size > 0 ||
-                        deleteFP.size > 0 || lang.first.isNotEmpty()
-                    ) {
-                        delay(10000L)
-                    }
-                    httpService.responseForCommand(rebootTerminal) { _, _, _ ->
-                        activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
+                if (updateAPK.first.isNotEmpty()) {
+                    httpService.responseForCommand(updateAPK.second) { _, _, _ ->
+                        val editor = sharedPrefService.getEditor()
+                        editor.putBoolean(SharedPreferenceKeys.HAS_UPDATE.name, true)
+                        editor.putString(SharedPreferenceKeys.UPDATE_VERSION.name, updateAPK.first)
+                        editor.apply()
+                        activity.runOnUiThread {
+                            activity.getBinding().terminalHasUpdateButton.visibility = View.VISIBLE
+                        }
                     }
                 } else {
-                    bookingService.sendSavedBooking(scope)
+                    if (rebootTerminal.isNotEmpty()) {
+                        if (loadLanguage.first.isNotEmpty() || loadPermissions.second.isNotEmpty() ||
+                            updateAllUser.first.isNotEmpty() || updateIds.size > 0 || deleteIds.size > 0 ||
+                            deleteFP.size > 0 || lang.first.isNotEmpty()
+                        ) {
+                            delay(10000L)
+                        }
+                        httpService.responseForCommand(rebootTerminal) { _, _, _ ->
+                            activity.sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
+                        }
+                    } else {
+                        bookingService.sendSavedBooking(scope)
+                    }
                 }
             }
         }

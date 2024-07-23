@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -63,7 +64,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     private var timer = Timer("showAttendanceFragment", false)
-    private var timerLength = propertyService.getProperties().getProperty("timerLengthMS", "10000").toLong()
+    private var timerLength =
+        propertyService.getProperties().getProperty("timerLengthMS", "10000").toLong()
 
     fun restartTimer() {
         timer.cancel()
@@ -103,6 +105,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.initHeartbeatService(this)
 
         setUpListeners()
+
+        mainActivityViewModel.checkAndSaveVersionName(this)
 
         val view = binding.root
         setContentView(view)
@@ -167,6 +171,25 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                 showSettings(it)
                 mainActivityViewModel.liveUserEntity.value = null
             }
+        }
+        binding.terminalHasUpdateButton.setOnClickListener {
+            if (mainActivityViewModel.hasUpdate()) {
+                val launchIntent: Intent? =
+                    packageManager.getLaunchIntentForPackage("com.timo.timoupdate")
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    launchIntent.putExtra("src", mainActivityViewModel.getDownloadUrl())
+                    launchIntent.putExtra("version", mainActivityViewModel.getFutureVersionName())
+                    ContextCompat.startActivity(
+                        this,
+                        launchIntent,
+                        null
+                    ) //null pointer check in case package name was not found
+                }
+            }
+        }
+        if (!mainActivityViewModel.hasUpdate()) {
+            binding.terminalHasUpdateButton.visibility = View.INVISIBLE
         }
     }
 
@@ -252,6 +275,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                 languageService.getText("#Attendance")
             binding.navigationRail.menu.findItem(R.id.absence).title =
                 languageService.getText("#Absence")
+            binding.terminalHasUpdateButton.text =
+                languageService.getText("#UpdateAvailable")
         }
     }
 
@@ -270,8 +295,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
     }
 
-    fun hideLoadMask(restartTimer:Boolean = true) {
-        if(restartTimer) {
+    fun hideLoadMask(restartTimer: Boolean = true) {
+        if (restartTimer) {
             restartTimer()
         }
         runOnUiThread {
@@ -283,7 +308,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.reloadSoundSource()
     }
 
-    fun loadSoundForFP(finger: Int){
+    fun loadSoundForFP(finger: Int) {
         mainActivityViewModel.loadSoundForFP(finger)
     }
 

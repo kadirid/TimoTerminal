@@ -104,7 +104,6 @@ class AttendanceFragmentViewModel(
         // get Key associated to the fingerprint
         viewModelScope.launch {
             FingerprintService.identify(template)?.run {
-                Log.d("FP Key", this)
                 val id = this.substring(0, this.length - 2).toLong()
                 val user = getUser(id)
                 if (user != null) {

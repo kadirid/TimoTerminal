@@ -1,15 +1,18 @@
 package com.timo.timoterminal.viewModel
 
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HeartbeatService
+import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
@@ -25,6 +28,7 @@ class MainActivityViewModel(
     private val configRepository: ConfigRepository,
     private val heartbeatService: HeartbeatService,
     private val sharedPrefService: SharedPrefService,
+    private val httpService: HttpService
 ) : ViewModel(), KoinComponent, FingerprintListener, TimoRfidListener {
     private val hardware: IHardwareSource by inject()
     private val soundSource: SoundSource by inject()
@@ -41,7 +45,8 @@ class MainActivityViewModel(
             Log.d("MainActivityViewModel", "hideSystemUI: $uiVisible")
             if (uiVisible) {
                 hardware.hideSystemUI()
-                sharedPrefService.getEditor().putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), false).commit()
+                sharedPrefService.getEditor()
+                    .putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), false).commit()
             }
         }
     }
@@ -51,14 +56,16 @@ class MainActivityViewModel(
             val uiVisible = sharedPrefService.getBoolean(SharedPreferenceKeys.UI_VISIBLE, false)
             if (!uiVisible) {
                 hardware.showSystemUI()
-                sharedPrefService.getEditor().putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), true).commit()
+                sharedPrefService.getEditor()
+                    .putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), true).commit()
             }
         }
     }
 
     fun setSystemUI(visible: Boolean) {
         viewModelScope.launch {
-            sharedPrefService.getEditor().putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), visible).commit()
+            sharedPrefService.getEditor()
+                .putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), visible).commit()
         }
     }
 
@@ -113,7 +120,7 @@ class MainActivityViewModel(
                     -1,
                     "Terminal",
                     "Admin",
-                    "123456789",
+                    "",
                     permission("terminal.zkteco.admin.pin"),
                     login,
                     1L,
@@ -125,7 +132,7 @@ class MainActivityViewModel(
                     -2,
                     "TimO",
                     "Admin",
-                    "987654321",
+                    "",
                     permission("terminal.zkteco.support.admin.pin"),
                     login,
                     1L,
@@ -146,7 +153,6 @@ class MainActivityViewModel(
         viewModelScope.launch {
             // get Key associated to the fingerprint
             FingerprintService.identify(template)?.run {
-                Log.d("FP Key", this)
                 getUser(this.substring(0, this.length - 2))
             }
         }
@@ -168,6 +174,45 @@ class MainActivityViewModel(
         viewModelScope.launch {
             soundSource.loadForFP(finger)
         }
+    }
+
+    fun hasUpdate(): Boolean {
+        return sharedPrefService.getBoolean(SharedPreferenceKeys.HAS_UPDATE, false)
+    }
+
+    fun getDownloadUrl(): String {
+        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+        val terminalSN = hardware.serialNumber()
+        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
+        val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
+
+        if (!url.isNullOrEmpty()) {
+            return "${url}services/rest/zktecoTerminal/downloadAPK/?firma=${company}&token=${token}&terminalSN=${terminalSN}&terminalId=${terminalId}"
+        }
+        return ""
+    }
+
+    fun getFutureVersionName(): String {
+        return sharedPrefService.getString(SharedPreferenceKeys.UPDATE_VERSION) ?: ""
+    }
+
+    fun checkAndSaveVersionName(activity: MainActivity) {
+        val versionName = BuildConfig.VERSION_NAME
+        val oldVersion = sharedPrefService.getString(SharedPreferenceKeys.LAST_VERSION, versionName)
+        if (oldVersion != versionName) {
+            val editor = sharedPrefService.getEditor()
+            editor.putBoolean(SharedPreferenceKeys.HAS_UPDATE.name, false)
+            editor.apply()
+
+            httpService.responseForUpdate(versionName)
+            activity.runOnUiThread {
+                activity.getBinding().terminalHasUpdateButton.visibility = View.INVISIBLE
+            }
+        }
+
+        sharedPrefService.getEditor().putString(SharedPreferenceKeys.LAST_VERSION.name, versionName)
+            .apply()
     }
 }
 

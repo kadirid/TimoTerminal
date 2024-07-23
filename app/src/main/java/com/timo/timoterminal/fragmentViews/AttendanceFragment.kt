@@ -47,7 +47,6 @@ class AttendanceFragment : Fragment() {
         binding = FragmentAttendanceBinding.inflate(inflater, container, false)
 
         setUpListeners()
-        setText()
         return binding.root
     }
 
@@ -77,6 +76,7 @@ class AttendanceFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         setListener()
+        setText()
         viewModel.loadSoundForAttendance()
         adaptLottieAnimationTime()
     }

@@ -2,13 +2,14 @@ package com.timo.timoterminal.viewModel
 
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.entityClasses.UserEntity
+import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
@@ -22,7 +23,8 @@ class InfoFragmentViewModel(
     private val userRepository: UserRepository,
     private val languageService: LanguageService,
     private val soundSource: SoundSource,
-    private val userService: UserService
+    private val userService: UserService,
+    private val sharedPrefService: SharedPrefService
 ) : ViewModel(), TimoRfidListener, FingerprintListener {
 
     private var isTimerRunning = true
@@ -81,11 +83,11 @@ class InfoFragmentViewModel(
             val user = getUserEntityById(id.toLong())
             if (user != null) {
                 soundSource.playSound(SoundSource.successSound)
-                liveUser.postValue(Pair(true,user))
+                liveUser.postValue(Pair(true, user))
                 type = 2
-            }else{
+            } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
-                liveUser.postValue(Pair(true,null))
+                liveUser.postValue(Pair(true, null))
             }
         }
     }
@@ -95,7 +97,7 @@ class InfoFragmentViewModel(
             val user = getUserEntityByCard(card)
             if (user != null) {
                 soundSource.playSound(SoundSource.successSound)
-                liveUser.postValue(Pair(true,user))
+                liveUser.postValue(Pair(true, user))
                 type = 1
             } else {
                 liveRfidNumber.postValue(card)
@@ -108,11 +110,11 @@ class InfoFragmentViewModel(
             val user = getUserForPin(pin)
             if (user != null) {
                 soundSource.playSound(SoundSource.successSound)
-                liveUser.postValue(Pair(true,user))
+                liveUser.postValue(Pair(true, user))
                 type = 3
             } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
-                liveUser.postValue(Pair(true,null))
+                liveUser.postValue(Pair(true, null))
             }
         }
     }
@@ -175,11 +177,9 @@ class InfoFragmentViewModel(
         height: Int
     ) {
         viewModelScope.launch {
-            Log.d("FP", fingerprint)
             // get Key associated to the fingerprint
             FingerprintService.identify(template)?.run {
                 soundSource.playSound(SoundSource.successSound)
-                Log.d("FP Key", this)
                 liveShowMask.postValue(true)
                 loadUserInfoById(this.substring(0, this.length - 2))
                 return@launch
@@ -202,5 +202,13 @@ class InfoFragmentViewModel(
                 loadUserInfoByCard(oct)
             }
         }
+    }
+
+    fun getVersionName(): String {
+        val version = sharedPrefService.getString(SharedPreferenceKeys.LAST_VERSION)
+        if (version.isNullOrEmpty()) {
+            return ""
+        }
+        return "${languageService.getText("#CurrentVersion")}: $version"
     }
 }

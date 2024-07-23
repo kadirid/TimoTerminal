@@ -306,7 +306,6 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
     ) {
         // get Key associated to the fingerprint
         FingerprintService.identify(template)?.run {
-            Log.d("FP Key", this)
             val id = this.substring(0, this.length - 2)
             (activity as MainActivity?)?.restartTimer()
             binding.searchView.show()

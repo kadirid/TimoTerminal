@@ -230,7 +230,6 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
             soundSource.playSound(SoundSource.takeFingerAway)
             // This function returns the merged template, which is the template saved by the FP algorithm.
             FingerprintService.enroll(enrollingKey, templates).run {
-                Log.d("MBRemoteRegisterSheet", "Enrolled template $this")
                 showLoadMask()
                 viewModel.saveFP(id, finger, this) { error ->
                     if (error.isEmpty()) {

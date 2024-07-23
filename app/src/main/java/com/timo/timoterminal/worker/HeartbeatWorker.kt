@@ -15,7 +15,6 @@ class HeartbeatWorker(context: Context, workerParameters: WorkerParameters) : Wo
 
     override fun doWork(): Result {
         //....
-        Log.d("WORKER", "doWork: HI WORKER")
         return Result.success()
     }
 

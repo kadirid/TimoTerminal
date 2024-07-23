@@ -54,6 +54,7 @@ class InfoFragment : Fragment() {
 
     private fun setText() {
         binding.infoIdentificationText.text = languageService.getText("#WaitIdentification")
+        binding.infoVersionText.text = viewModel.getVersionName()
     }
 
     override fun onResume() {
@@ -103,6 +104,11 @@ class InfoFragment : Fragment() {
                         requireActivity().packageManager.getLaunchIntentForPackage("com.timo.timoupdate")
                     if (launchIntent != null) {
                         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        launchIntent.putExtra(
+                            "src",
+                            "http://192.168.0.45/timo_prd/services/rest/zktecoTerminal/downloadAPK/?firma=prdjbtestzkteco&token=teHJdiMxvwV3steWsyXfaXp99U1721644328176&terminalSN=CKWN214760894&terminalId=6"
+                        )
+                        launchIntent.putExtra("version", "1.2.00000000000000000000000000000000000000000000001")
                         startActivity(launchIntent) //null pointer check in case package name was not found
                     }
                 }
@@ -167,14 +173,17 @@ class InfoFragment : Fragment() {
             }
             viewModel.liveUser.value = Pair(false, null)
             viewModel.liveUser.observe(viewLifecycleOwner) {
-                if(it.first) {
+                if (it.first) {
                     if (it.second != null) {
                         unregister()
                         verifying = false
                         viewModel.loadUserInformation(it.second as UserEntity, null)
                         viewModel.liveUser.value = Pair(false, null)
-                    }else{
-                        Utils.showErrorMessage(requireContext(), languageService.getText("#NoUserFound"))
+                    } else {
+                        Utils.showErrorMessage(
+                            requireContext(),
+                            languageService.getText("#NoUserFound")
+                        )
                         viewModel.liveHideMask.postValue(true)
                     }
                 }
