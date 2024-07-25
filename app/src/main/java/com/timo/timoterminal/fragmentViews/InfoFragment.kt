@@ -207,6 +207,13 @@ class InfoFragment : Fragment() {
                     viewModel.liveErrorMessage.value = ""
                 }
             }
+            viewModel.liveShowMessageSheet.value = ""
+            viewModel.liveShowMessageSheet.observe(viewLifecycleOwner) {
+                if (it.isNotEmpty()) {
+                    Utils.showMessage(parentFragmentManager, it)
+                    viewModel.liveShowMessageSheet.value = ""
+                }
+            }
         }
     }
 

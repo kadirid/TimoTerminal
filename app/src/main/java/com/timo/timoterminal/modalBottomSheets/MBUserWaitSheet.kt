@@ -455,6 +455,8 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, Fingerpri
                             obj.getBoolean("success"),
                             obj.optString("message", "")
                         )
+                        RfidService.unregister()
+                        FingerprintService.unregister()
                     } else {
                         activity?.runOnUiThread {
                             Utils.showErrorMessage(requireContext(), obj.getString("error"))

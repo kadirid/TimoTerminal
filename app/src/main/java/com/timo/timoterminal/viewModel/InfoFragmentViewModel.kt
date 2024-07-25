@@ -52,6 +52,7 @@ class InfoFragmentViewModel(
     val liveInfoSuccess: MutableLiveData<Bundle> = MutableLiveData()
     val liveDismissSheet: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowSeconds: MutableLiveData<String> = MutableLiveData()
+    val liveShowMessageSheet: MutableLiveData<String> = MutableLiveData()
 
     private suspend fun getUserEntityById(id: Long): UserEntity? {
         val users = userRepository.getEntity(id)
@@ -185,6 +186,7 @@ class InfoFragmentViewModel(
                 return@launch
             }
             soundSource.playSound(SoundSource.authenticationFailed)
+            liveShowMessageSheet.postValue(languageService.getText("#VerificationFailed"))
         }
     }
 
@@ -200,6 +202,9 @@ class InfoFragmentViewModel(
                 oct = oct.reversed()
                 liveShowMask.postValue(true)
                 loadUserInfoByCard(oct)
+            }else{
+                soundSource.playSound(SoundSource.authenticationFailed)
+                liveShowMessageSheet.postValue(languageService.getText("#VerificationFailed"))
             }
         }
     }

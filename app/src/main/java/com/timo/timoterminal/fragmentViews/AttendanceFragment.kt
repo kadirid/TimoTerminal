@@ -186,6 +186,11 @@ class AttendanceFragment : Fragment() {
                                     card,
                                     obj
                                 )
+                                if (!obj.getBoolean("success")) {
+                                    soundSource.playSound(SoundSource.failedSound)
+                                } else {
+                                    soundSource.playSound(SoundSource.successSound)
+                                }
                             }
                             if (!msg.isNullOrEmpty()) {
                                 activity?.runOnUiThread {
