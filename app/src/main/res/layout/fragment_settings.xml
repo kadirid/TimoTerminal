@@ -102,7 +102,6 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonLogout"
             style="@style/SettingsViewButtons"
-            android:backgroundTint="@color/black"
             android:layout_marginStart="20dp"
             tools:text="Renew Login"
             app:layout_constraintStart_toEndOf="@id/buttonSound"

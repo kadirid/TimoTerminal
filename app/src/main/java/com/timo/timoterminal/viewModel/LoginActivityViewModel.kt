@@ -1,11 +1,9 @@
 package com.timo.timoterminal.viewModel
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.timo.timoterminal.activities.LoginActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.LoginService

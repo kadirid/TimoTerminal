@@ -128,7 +128,7 @@ class MBBookingResponseSheet : BottomSheetDialogFragment() {
             binding.bookingMessageAdjustBookingNewValue.text = newTime
         }
 
-        if(!offline && message.isNullOrEmpty()){
+        if(!offline && message.isEmpty()){
             infoMessage.visibility = View.GONE
         }
 

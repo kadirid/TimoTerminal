@@ -352,14 +352,15 @@ class LoginService(
         }
         bookingService.deleteAll(coroutineScope)
         heartbeatService.stopHeartBeat()
-        val helperDB = FeedReaderDbHelper(context, "room.db").writableDatabase
-        helperDB.execSQL("CREATE TABLE dummy (id INTEGER PRIMARY KEY AUTOINCREMENT);")
-        helperDB.execSQL("DROP TABLE dummy;")
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='ConfigEntity';")
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='LanguageEntity';")
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='UserEntity';")
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingBUEntity';")
-        helperDB.execSQL("DELETE FROM sqlite_sequence WHERE name='BookingEntity';")
+        FeedReaderDbHelper(context, "room.db").writableDatabase.apply {
+            execSQL("CREATE TABLE dummy (id INTEGER PRIMARY KEY AUTOINCREMENT);")
+            execSQL("DROP TABLE dummy;")
+            execSQL("DELETE FROM sqlite_sequence WHERE name='ConfigEntity';")
+            execSQL("DELETE FROM sqlite_sequence WHERE name='LanguageEntity';")
+            execSQL("DELETE FROM sqlite_sequence WHERE name='UserEntity';")
+            execSQL("DELETE FROM sqlite_sequence WHERE name='BookingBUEntity';")
+            execSQL("DELETE FROM sqlite_sequence WHERE name='BookingEntity';")
+        }
         logout(context)
     }
 

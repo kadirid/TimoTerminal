@@ -16,6 +16,7 @@ import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.Date
+import java.util.concurrent.Executors
 
 class UserService(
     private val httpService: HttpService,
@@ -23,6 +24,7 @@ class UserService(
     private val userRepository: UserRepository
 ) : KoinComponent {
     private val hardware: IHardwareSource by inject()
+    private val executor = Executors.newFixedThreadPool(5)
 
     suspend fun getEntity(id: Long): List<UserEntity> = userRepository.getEntity(id)
 
@@ -92,7 +94,9 @@ class UserService(
                     users.add(userEntity)
                     if (userEntity.assignedToTerminal && obj.has("fp")) {
                         val fpObj = obj.getJSONObject("fp")
-                        processFPObj(fpObj, userEntity.id.toString())
+                        executor.execute {
+                            processFPObj(fpObj, userEntity.id.toString())
+                        }
                     }
                 }
             }
@@ -256,7 +260,9 @@ class UserService(
         if (arr != null && arr.length() > 0) {
             for (c in 0 until arr.length()) {
                 val obj = arr.getJSONObject(c)
-                processFPObj(obj)
+                executor.execute {
+                    processFPObj(obj)
+                }
             }
         }
     }
@@ -283,5 +289,4 @@ class UserService(
         }
         FingerprintService.load(key, template)
     }
-
 }

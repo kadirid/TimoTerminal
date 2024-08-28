@@ -145,25 +145,26 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             restartTimer()
         Utils.hideStatusAndNavbar(this)
         isInit = false
+
+        if (!mainActivityViewModel.hasUpdate()) {
+            binding.terminalHasUpdateButton.visibility = View.INVISIBLE
+        }else{
+            binding.terminalHasUpdateButton.visibility = View.VISIBLE
+        }
+
         super.onResume()
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         unregisterReceiver(batteryReceiver)
         unregisterReceiver(networkChangeReceiver)
+        super.onDestroy()
     }
 
     private fun setUpListeners() {
         binding.buttonSettings.setSafeOnClickListener {
             showVerificationAlert()
         }
-//        binding.batteryIcon.setSafeOnClickListener {
-//            mainActivityViewModel.hideSystemUI()
-//        }
-//        binding.networkConnectionIcon.setSafeOnClickListener {
-//            mainActivityViewModel.showSystemUI()
-//        }
 
         mainActivityViewModel.liveUserEntity.value = null
         mainActivityViewModel.liveUserEntity.observe(this@MainActivity) {
@@ -187,9 +188,6 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                     ) //null pointer check in case package name was not found
                 }
             }
-        }
-        if (!mainActivityViewModel.hasUpdate()) {
-            binding.terminalHasUpdateButton.visibility = View.INVISIBLE
         }
     }
 

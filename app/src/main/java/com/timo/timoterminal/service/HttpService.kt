@@ -312,7 +312,10 @@ class HttpService : KoinComponent {
         })
     }
 
-    fun responseForCommand(unique: String, callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }) {
+    fun responseForCommand(
+        unique: String,
+        callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }
+    ) {
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
         val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
@@ -324,7 +327,7 @@ class HttpService : KoinComponent {
                 mapOf(
                     Pair("company", company),
                     Pair("terminalSN", hardware.serialNumber()),
-                    Pair("terminalId","$tId"),
+                    Pair("terminalId", "$tId"),
                     Pair("token", token),
                     Pair("unique", unique)
                 ), null, callback
@@ -332,7 +335,10 @@ class HttpService : KoinComponent {
         }
     }
 
-    fun responseForMultiCommand(data: JSONArray, callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }) {
+    fun responseForMultiCommand(
+        data: JSONArray,
+        callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }
+    ) {
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
         val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
@@ -353,7 +359,10 @@ class HttpService : KoinComponent {
         }
     }
 
-    fun responseForUpdate(version: String, callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }) {
+    fun responseForUpdate(
+        version: String,
+        callback: (JSONObject?, JSONArray?, String?) -> Unit = { _, _, _ -> }
+    ) {
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL) ?: ""
         val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)

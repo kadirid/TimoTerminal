@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.view.View
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.os.postDelayed
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
@@ -208,12 +207,6 @@ class HeartbeatService : KoinComponent {
                         deleteOld = true
                     )
                 } else {
-                    for (no in deleteFP) {
-                        val ids = no.first.split(":")
-                        if (ids.size == 2) {
-                            userService.deleteFP(ids[0], ids[1].toInt(), no.second)
-                        }
-                    }
                     val array = JSONArray()
                     val resIds = JSONArray()
                     for (no in updateIds) {
@@ -223,11 +216,19 @@ class HeartbeatService : KoinComponent {
                             array.put(resObj)
                     }
                     if (updateIds.size > 0) {
-                        userService.processUserArray(array, scope, "")
                         httpService.responseForMultiCommand(resIds)
-                    }
-                    for (no in deleteIds) {
-                        userService.deleteUser(no.first, no.second)
+                        userService.processUserArray(array, scope, "")
+                    }else if(deleteIds.size > 0) {
+                        for (no in deleteIds) {
+                            userService.deleteUser(no.first, no.second)
+                        }
+                    }else if(deleteFP.size > 0) {
+                        for (no in deleteFP) {
+                            val ids = no.first.split(":")
+                            if (ids.size == 2) {
+                                userService.deleteFP(ids[0], ids[1].toInt(), no.second)
+                            }
+                        }
                     }
                 }
                 if (loadPermissions.first.isNotEmpty()) {

@@ -40,6 +40,7 @@ class InternalTerminalSettingsFragment : Fragment() {
     }
 
     private fun setUp() {
+        binding.terminalSettingTimeoutInputLayout.hint = languageService.getText("#TimeOutSeconds")
         binding.terminalSettingTimeoutInputEditText.setText(timerLength.toString())
         binding.terminalSettingTimeoutInputEditText.filters = arrayOf(object : InputFilter {
             override fun filter(
