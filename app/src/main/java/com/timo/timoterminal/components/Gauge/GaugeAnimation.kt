@@ -15,7 +15,7 @@ class GaugeAnimation(
     var onAnimationEnd: (() -> Unit)? = null
 
     init {
-        this.duration = 1000;
+        this.duration = 1000
         setAnimationListener(object : AnimationListener {
             override fun onAnimationStart(animation: Animation?) {}
             override fun onAnimationEnd(animation: Animation?) {

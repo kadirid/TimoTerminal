@@ -1,11 +1,13 @@
 package com.timo.timoterminal.viewModel
 
+import android.graphics.Bitmap
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.BuildConfig
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
@@ -14,11 +16,9 @@ import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HeartbeatService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.SharedPrefService
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
-import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.sources.IHardwareSource
+import com.zkteco.android.lcdk.data.IFingerprintListener
+import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -29,8 +29,7 @@ class MainActivityViewModel(
     private val heartbeatService: HeartbeatService,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService
-) : ViewModel(), KoinComponent, FingerprintListener, TimoRfidListener {
-    private val hardware: IHardwareSource by inject()
+) : ViewModel(), KoinComponent, IFingerprintListener, IRfidListener {
     private val soundSource: SoundSource by inject()
 
     val liveUserEntity: MutableLiveData<UserEntity> = MutableLiveData()
@@ -44,7 +43,7 @@ class MainActivityViewModel(
             val uiVisible = sharedPrefService.getBoolean(SharedPreferenceKeys.UI_VISIBLE, true)
             Log.d("MainActivityViewModel", "hideSystemUI: $uiVisible")
             if (uiVisible) {
-                hardware.hideSystemUI()
+                MainApplication.lcdk.hideSystemUI()
                 sharedPrefService.getEditor()
                     .putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), false).commit()
             }
@@ -55,7 +54,7 @@ class MainActivityViewModel(
         viewModelScope.launch {
             val uiVisible = sharedPrefService.getBoolean(SharedPreferenceKeys.UI_VISIBLE, false)
             if (!uiVisible) {
-                hardware.showSystemUI()
+                MainApplication.lcdk.showSystemUI()
                 sharedPrefService.getEditor()
                     .putBoolean(SharedPreferenceKeys.UI_VISIBLE.toString(), true).commit()
             }
@@ -144,22 +143,8 @@ class MainActivityViewModel(
         return null
     }
 
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
-        viewModelScope.launch {
-            // get Key associated to the fingerprint
-            FingerprintService.identify(template)?.run {
-                getUser(this.substring(0, this.length - 2))
-            }
-        }
-    }
-
-    override fun onRfidRead(rfidInfo: String) {
-        val rfidCode = rfidInfo.toLongOrNull(16)
+    override fun onRfidRead(text: String) {
+        val rfidCode = text.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)
             while (oct.length < 9) {
@@ -182,7 +167,7 @@ class MainActivityViewModel(
 
     fun getDownloadUrl(): String {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-        val terminalSN = hardware.serialNumber()
+        val terminalSN = MainApplication.lcdk.getSerialNumber()
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
         val terminalId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY) ?: ""
@@ -214,5 +199,18 @@ class MainActivityViewModel(
         sharedPrefService.getEditor().putString(SharedPreferenceKeys.LAST_VERSION.name, versionName)
             .apply()
     }
+
+    override fun onFingerprintPressed(template: ByteArray): Boolean {
+        viewModelScope.launch {
+            MainApplication.lcdk.identifyFingerPrint(template, 70).run {
+                if(this.isNotEmpty()) {
+                    getUser(this.substring(0, this.length - 2))
+                }
+            }
+        }
+        return false
+    }
+
+    override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
 }
 

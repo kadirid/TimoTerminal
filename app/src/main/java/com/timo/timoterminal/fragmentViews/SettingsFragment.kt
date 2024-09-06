@@ -16,6 +16,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentSettingsBinding
@@ -24,7 +25,6 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.SettingsFragmentViewModel
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -33,7 +33,6 @@ private const val ARG_USERID = "userId"
 
 class SettingsFragment : Fragment() {
     private lateinit var binding: FragmentSettingsBinding
-    private val hardwareSource: IHardwareSource by inject()
     private val languageService: LanguageService by inject()
     private val heartbeatService: HeartbeatService by inject()
     private val viewModel: SettingsFragmentViewModel by viewModel()
@@ -112,7 +111,7 @@ class SettingsFragment : Fragment() {
                 viewModel.loadSound()
             }
             binding.buttonReboot.setSafeOnClickListener {
-                requireActivity().sendBroadcast(Intent("com.zkteco.android.action.REBOOT"))
+                MainApplication.lcdk.reboot()
             }
             binding.buttonSound.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonSound.setSafeOnClickListener {
@@ -192,7 +191,7 @@ class SettingsFragment : Fragment() {
             binding.buttonEthernet.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonEthernet.setSafeOnClickListener {
                 (requireActivity() as MainActivity).getViewModel().showSystemUI()
-                hardwareSource.openAndroidEthernetSettings()
+                MainApplication.lcdk.openAndroidEthernetNetworkSettings()
             }
             binding.buttonActualizeTerminal.setSafeOnClickListener {
                 viewModel.actualizeTerminal(requireContext())

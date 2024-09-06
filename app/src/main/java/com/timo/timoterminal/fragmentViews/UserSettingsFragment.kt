@@ -1,5 +1,6 @@
 package com.timo.timoterminal.fragmentViews
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Parcelable
 import android.text.Editable
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.toLowerCase
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentUserSettingsBinding
@@ -25,13 +27,11 @@ import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor.OnItemClickListener
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.modalBottomSheets.MBUserWaitSheet
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
-import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.service.RfidService
+import com.zkteco.android.lcdk.data.IFingerprintListener
+import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -39,7 +39,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 private const val ARG_USERID = "userId"
 
-class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
+class UserSettingsFragment : Fragment(), IRfidListener, IFingerprintListener {
 
     private val userSettingsFragmentViewModel: UserSettingsFragmentViewModel by viewModel()
     private lateinit var binding: FragmentUserSettingsBinding
@@ -157,13 +157,15 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
     override fun onResume() {
         super.onResume()
 
-        RfidService.unregister()
-        RfidService.setListener(this)
-        RfidService.register()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
+        MainApplication.lcdk.setRfidListener(this)
+        MainApplication.lcdk.setFingerprintListener(this)
     }
 
     override fun onPause() {
-        RfidService.unregister()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
 
         super.onPause()
     }
@@ -297,23 +299,9 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
         }
     }
 
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
-        // get Key associated to the fingerprint
-        FingerprintService.identify(template)?.run {
-            val id = this.substring(0, this.length - 2)
-            (activity as MainActivity?)?.restartTimer()
-            binding.searchView.show()
-            binding.searchView.setText(id)
-        }
-    }
 
-    override fun onRfidRead(rfidInfo: String) {
-        val rfidCode = rfidInfo.toLongOrNull(16)
+    override fun onRfidRead(text: String) {
+        val rfidCode = text.toLongOrNull(16)
         if (rfidCode != null) {
             var oct = rfidCode.toString(8)
             while (oct.length < 9) {
@@ -340,4 +328,18 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, FingerprintListener {
     private fun showMsg(text: String) {
         Utils.showMessage(parentFragmentManager, text)
     }
+
+    override fun onFingerprintPressed(template: ByteArray): Boolean {
+        MainApplication.lcdk.identifyFingerPrint(template, 70).run {
+            if(this.isNotEmpty()) {
+                val id = this.substring(0, this.length - 2)
+                (activity as MainActivity?)?.restartTimer()
+                binding.searchView.show()
+                binding.searchView.setText(id)
+            }
+        }
+        return true
+    }
+
+    override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
 }

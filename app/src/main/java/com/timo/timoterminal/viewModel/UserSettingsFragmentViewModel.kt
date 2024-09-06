@@ -4,21 +4,20 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 
 class UserSettingsFragmentViewModel(
     private val userService: UserService,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService,
-    private val languageService: LanguageService,
-    private val hardware: IHardwareSource
+    private val languageService: LanguageService
 ) : ViewModel() {
     private val _items = MutableLiveData<List<UserEntity>>(emptyList())
     val items: LiveData<List<UserEntity>> = _items
@@ -56,7 +55,7 @@ class UserSettingsFragmentViewModel(
                 paramMap["user"] = id
                 paramMap["editor"] = "$editor"
                 paramMap["token"] = token
-                paramMap["terminalSN"] = hardware.serialNumber()
+                paramMap["terminalSN"] = MainApplication.lcdk.getSerialNumber()
                 paramMap["terminalId"] = tId.toString()
                 httpService.post(
                     "${url}services/rest/zktecoTerminal/assignUser",

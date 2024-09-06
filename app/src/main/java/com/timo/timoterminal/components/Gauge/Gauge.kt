@@ -19,13 +19,13 @@ class Gauge(
     private var ta: TypedArray = context.obtainStyledAttributes(attrs, R.styleable.Gauge)
     private var data : ArrayList<BGData> = ArrayList()
     var arcAngle: Float = (ta.getFloat(R.styleable.Gauge_percentage, 0f) / 100) * 180f
-    var startAngle = 180f
+    private var startAngle = 180f
 
     private val paint = Paint().apply {
         val col = MaterialColors.getColor(
             context,
             R.attr.colorSurfaceContainerHighest,
-            getResources().getColor(R.color.black)
+            resources.getColor(R.color.black)
         )
         style = Paint.Style.STROKE
         strokeWidth = 10f
@@ -42,7 +42,7 @@ class Gauge(
         isAntiAlias = true
     }
 
-    val pPaint = Paint().apply {
+    private val pPaint = Paint().apply {
         style = Paint.Style.STROKE
         strokeWidth = 10f
         color = 0xFFFFB900.toInt()
@@ -88,7 +88,7 @@ class Gauge(
         super.onDraw(canvas)
         canvas.drawArc(rect, 180f, 180f, false, paint)
         if (data.isNotEmpty()) {
-            val sum = data.map { it.data }.sum();
+            val sum = data.map { it.data }.sum()
             var lastThreshold = 0f
             var index = 0
             data.reversed().forEach {

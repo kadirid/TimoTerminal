@@ -5,9 +5,11 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.DialogInterface
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,19 +18,18 @@ import androidx.core.animation.doOnEnd
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.MbRemoteRegisterSheetBinding
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.service.LanguageService
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBRemoteRegisterSheetViewModel
-import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.service.RfidService
+import com.zkteco.android.lcdk.data.IFingerprintListener
+import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -41,14 +42,14 @@ private const val ARG_IS_FP = "isFP"
 private const val ARG_FINGER = "finger"
 private const val ARG_COMMAND_ID = "commandId"
 
-class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, FingerprintListener {
+class MBRemoteRegisterSheet : BottomSheetDialogFragment(), IRfidListener, IFingerprintListener {
 
     private val viewModel: MBRemoteRegisterSheetViewModel by sharedViewModel()
     private lateinit var binding: MbRemoteRegisterSheetBinding
     private val languageService: LanguageService by inject()
     private val soundSource: SoundSource by inject()
 
-    private val templates = mutableListOf<String>()
+    private val templates = mutableListOf<ByteArray>()
     private var enrollCount: Int = 0
     private var nDismiss: Boolean = true
 
@@ -118,43 +119,43 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
         viewModel.viewModelScope.launch {
             val color = activity?.resources?.getColorStateList(R.color.green, null)
             if (color != null) {
-                FingerprintService.getTemplate("$id|0")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|0")?.let {
                     binding.fingerSelectArrow0.imageTintList = color
                     binding.fingerSelectArrow0.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|1")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|1")?.let {
                     binding.fingerSelectArrow1.imageTintList = color
                     binding.fingerSelectArrow1.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|2")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|2")?.let {
                     binding.fingerSelectArrow2.imageTintList = color
                     binding.fingerSelectArrow2.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|3")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|3")?.let {
                     binding.fingerSelectArrow3.imageTintList = color
                     binding.fingerSelectArrow3.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|4")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|4")?.let {
                     binding.fingerSelectArrow4.imageTintList = color
                     binding.fingerSelectArrow4.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|5")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|5")?.let {
                     binding.fingerSelectArrow5.imageTintList = color
                     binding.fingerSelectArrow5.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|6")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|6")?.let {
                     binding.fingerSelectArrow6.imageTintList = color
                     binding.fingerSelectArrow6.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|7")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|7")?.let {
                     binding.fingerSelectArrow7.imageTintList = color
                     binding.fingerSelectArrow7.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|8")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|8")?.let {
                     binding.fingerSelectArrow8.imageTintList = color
                     binding.fingerSelectArrow8.alpha = 1F
                 }
-                FingerprintService.getTemplate("$id|9")?.let {
+                MainApplication.lcdk.getFingerPrintTemplate("$id|9")?.let {
                     binding.fingerSelectArrow9.imageTintList = color
                     binding.fingerSelectArrow9.alpha = 1F
                 }
@@ -175,7 +176,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
             }
             image?.imageTintList = white
             image?.alpha = 1F
-            FingerprintService.getTemplate("$id|$finger")?.let {
+            MainApplication.lcdk.getFingerPrintTemplate("$id|$finger")?.let {
                 viewModel.delFP(id, finger)
             }
             animate()
@@ -201,14 +202,16 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
             })
     }
 
-    private fun processEnroll(enrollingKey: String, template: String) {
+    private fun processEnroll(enrollingKey: String, template: ByteArray) {
         if (templates.isEmpty()) {
-            FingerprintService.identify(template)?.run {
-                showMsg(languageService.getText("#FPAlreadyInUse"))
-                return
+            MainApplication.lcdk.identifyFingerPrint(template, 70).run {
+                if(this.isNotEmpty()) {
+                    showMsg(languageService.getText("#FPAlreadyInUse"))
+                    return
+                }
             }
         } else {
-            if (!FingerprintService.verify(templates[0], template)) {
+            if (!MainApplication.lcdk.verifyFingerPrint(templates[0], template, 70)) {
                 soundSource.playSound(SoundSource.placeSameFingerAgain)
                 showMsg(languageService.getText("#PleaseSameFinger"))
                 return
@@ -228,9 +231,9 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
         if (enrollCount == 3) {
             soundSource.playSound(SoundSource.takeFingerAway)
             // This function returns the merged template, which is the template saved by the FP algorithm.
-            FingerprintService.enroll(enrollingKey, templates).run {
+            MainApplication.lcdk.enrollFingerPrint(enrollingKey, templates).run {
                 showLoadMask()
-                viewModel.saveFP(id, finger, this) { error ->
+                viewModel.saveFP(id, finger, Base64.encodeToString(this, Base64.NO_WRAP)) { error ->
                     if (error.isEmpty()) {
                         showMsg(languageService.getText("#SavedNewFingerprint"))
                         soundSource.playSound(SoundSource.fingerSaved)
@@ -244,7 +247,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
                     timer2.schedule(5000) {
                         this@MBRemoteRegisterSheet.dismiss()
                     }
-                    FingerprintService.unregister()
+                    MainApplication.lcdk.setFingerprintListener(null)
                 }
             }
 
@@ -255,27 +258,11 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
         }
     }
 
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
-        if (isFP) {
-            restartTimer()
 
-            if (!id.isNullOrEmpty() && finger != -1) {
-                val enrollingKey = "$id|$finger"
-
-                processEnroll(enrollingKey, template)
-            }
-        }
-    }
-
-    override fun onRfidRead(rfidInfo: String) {
+    override fun onRfidRead(text: String) {
         if (!isFP) {
             timer.cancel()
-            val rfidCode = rfidInfo.toLongOrNull(16)
+            val rfidCode = text.toLongOrNull(16)
             if (rfidCode != null) {
                 var oct = rfidCode.toString(8)
                 while (oct.length < 9) {
@@ -349,8 +336,8 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         nDismiss = false
-        RfidService.unregister()
-        FingerprintService.unregister()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
         val frag = parentFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
         if (frag == null || !frag.isVisible) {
             (activity as MainActivity?)?.showAttendanceFragment()
@@ -364,19 +351,17 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
     override fun onResume() {
         super.onResume()
 
-        RfidService.unregister()
-        FingerprintService.unregister()
-        RfidService.setListener(this)
-        RfidService.register()
-        FingerprintService.setListener(this)
-        FingerprintService.register()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
+        MainApplication.lcdk.setRfidListener(this)
+        MainApplication.lcdk.setFingerprintListener(this)
         restartTimer()
     }
 
     override fun onPause() {
         if (nDismiss) {
-            RfidService.unregister()
-            FingerprintService.unregister()
+            MainApplication.lcdk.setRfidListener(null)
+            MainApplication.lcdk.setFingerprintListener(null)
         }
         timer.cancel()
 
@@ -469,4 +454,19 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, Fin
             binding.sheetLayoutLoadMaks.visibility = View.GONE
         }
     }
+
+    override fun onFingerprintPressed(template: ByteArray): Boolean {
+        if (isFP) {
+            restartTimer()
+
+            if (!id.isNullOrEmpty() && finger != -1) {
+                val enrollingKey = "$id|$finger"
+
+                processEnroll(enrollingKey, template)
+            }
+        }
+        return true
+    }
+
+    override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
 }

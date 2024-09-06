@@ -1,20 +1,18 @@
 package com.timo.timoterminal.service
 
 import android.content.Context
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.serviceUtils.classes.UserInformation
 import com.timo.timoterminal.utils.classes.ResponseToJSON
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.util.Date
 import java.util.concurrent.Executors
 
@@ -23,7 +21,6 @@ class UserService(
     private val sharedPrefService: SharedPrefService,
     private val userRepository: UserRepository
 ) : KoinComponent {
-    private val hardware: IHardwareSource by inject()
     private val executor = Executors.newFixedThreadPool(5)
 
     suspend fun getEntity(id: Long): List<UserEntity> = userRepository.getEntity(id)
@@ -45,7 +42,7 @@ class UserService(
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 params["company"] = company
                 params["token"] = token
-                params["terminalSN"] = hardware.serialNumber()
+                params["terminalSN"] = MainApplication.lcdk.getSerialNumber()
                 params["terminalId"] = tId.toString()
                 httpService.get("${url}services/rest/zktecoTerminal/loadAllUsers",
                     params,
@@ -84,7 +81,7 @@ class UserService(
             if (arrResponse!!.length() > 0) {
                 if (deleteOld) {
                     userRepository.deleteAll()
-                    FingerprintService.clear()
+                    MainApplication.lcdk.clearFingerPrint()
                 }
             }
             for (i in 0 until arrResponse.length()) {
@@ -107,7 +104,7 @@ class UserService(
     fun deleteAllUsers(coroutineScope: CoroutineScope) {
         coroutineScope.launch {
             userRepository.deleteAll()
-            FingerprintService.clear()
+            MainApplication.lcdk.clearFingerPrint()
         }
     }
 
@@ -121,14 +118,14 @@ class UserService(
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 val paramMap = mutableMapOf(Pair("company", company))
                 paramMap["token"] = token
-                paramMap["terminalSN"] = hardware.serialNumber()
+                paramMap["terminalSN"] = MainApplication.lcdk.getSerialNumber()
                 paramMap["terminalId"] = tId.toString()
                 httpService.get(
                     "${url}services/rest/zktecoTerminal/getAllFPForTerminal",
                     paramMap,
                     null,
                     { _, arr, _ ->
-                        FingerprintService.clear()
+                        MainApplication.lcdk.clearFingerPrint()
                         processFPArray(arr)
                     }
                 )
@@ -147,7 +144,7 @@ class UserService(
         val paramMap = mutableMapOf(Pair("company", company))
         paramMap["user"] = id
         paramMap["token"] = token
-        paramMap["terminalSN"] = hardware.serialNumber()
+        paramMap["terminalSN"] = MainApplication.lcdk.getSerialNumber()
         paramMap["terminalId"] = tId.toString()
         httpService.get(
             "${url}services/rest/zktecoTerminal/getFP",
@@ -199,7 +196,7 @@ class UserService(
             val params = HashMap<String, String>()
             params["card"] = user.card
             params["firma"] = company
-            params["terminalSN"] = hardware.serialNumber()
+            params["terminalSN"] = MainApplication.lcdk.getSerialNumber()
             params["terminalId"] = tId.toString()
             params["token"] = token
             params["from"] = from.time.toString()
@@ -234,23 +231,23 @@ class UserService(
     }
 
     private fun deleteFPForUser(userId: String, unique: String = "") {
-        FingerprintService.delete("$userId|0")
-        FingerprintService.delete("$userId|1")
-        FingerprintService.delete("$userId|2")
-        FingerprintService.delete("$userId|3")
-        FingerprintService.delete("$userId|4")
-        FingerprintService.delete("$userId|5")
-        FingerprintService.delete("$userId|6")
-        FingerprintService.delete("$userId|7")
-        FingerprintService.delete("$userId|8")
-        FingerprintService.delete("$userId|9")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|0")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|1")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|2")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|3")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|4")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|5")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|6")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|7")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|8")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|9")
         if (unique.isNotEmpty()) {
             httpService.responseForCommand(unique)
         }
     }
 
     fun deleteFP(userId: String, finger: Int, unique: String = "") {
-        FingerprintService.delete("$userId|$finger")
+        MainApplication.lcdk.unregisterFingerPrint("$userId|$finger")
         if (unique.isNotEmpty()) {
             httpService.responseForCommand(unique)
         }
@@ -276,7 +273,7 @@ class UserService(
                 if (template.isNotEmpty()) {
                     saveFPinDB(template, i, userId)
                 } else {
-                    FingerprintService.delete("$userId|$i")
+                    MainApplication.lcdk.unregisterFingerPrint("$userId|$i")
                 }
             }
         }
@@ -284,9 +281,9 @@ class UserService(
 
     private fun saveFPinDB(template: String, finger: Int, id: String) {
         val key = "$id|$finger"
-        FingerprintService.getTemplate(key)?.let {//Already registered
+        MainApplication.lcdk.getFingerPrintTemplate(key)?.let {//Already registered
             return
         }
-        FingerprintService.load(key, template)
+        MainApplication.lcdk.registerFingerPrint(key, template)
     }
 }

@@ -8,20 +8,18 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.os.postDelayed
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.databinding.ActivityNoInternetNetworkSettingsBinding
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.LoginActivityViewModel
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 // An activity to show if terminal has no connection to internet
 // Has three buttons to change connection settings and one to proceed
 class NoInternetNetworkSettingsActivity : AppCompatActivity() {
     private lateinit var binding : ActivityNoInternetNetworkSettingsBinding
-    private val hardwareSource: IHardwareSource by inject()
     private val loginActivityViewModel : LoginActivityViewModel by viewModel()
     private var first = true
 
@@ -35,7 +33,7 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
 
         Handler(this.mainLooper).postDelayed(200) {
             Log.d("NoInternetNetworkSettingsActivity","showSystemUI")
-            hardwareSource.showSystemUI()
+            MainApplication.lcdk.showSystemUI()
         }
     }
 
@@ -47,7 +45,7 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
                     finish()
                     Handler(this@NoInternetNetworkSettingsActivity.mainLooper).postDelayed(900) {
                         Log.d("NoInternetNetworkSettingsActivity","hideSystemUi")
-                        hardwareSource.hideSystemUI()
+                        MainApplication.lcdk.hideSystemUI()
                     }
                 }
             }
@@ -62,13 +60,13 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
                     finish()
                     Handler(this@NoInternetNetworkSettingsActivity.mainLooper).postDelayed(900) {
                         Log.d("NoInternetNetworkSettingsActivity", "hideSystemUi")
-                        hardwareSource.hideSystemUI()
+                        MainApplication.lcdk.hideSystemUI()
                     }
                 }
             }
         }
         binding.buttonEthernet.setSafeOnClickListener {
-            hardwareSource.openAndroidEthernetSettings()
+            MainApplication.lcdk.openAndroidEthernetNetworkSettings()
         }
         binding.buttonMobileNetwork.setSafeOnClickListener {
             val intent = Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)

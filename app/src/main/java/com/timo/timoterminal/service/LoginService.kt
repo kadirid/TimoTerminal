@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.provider.Settings.*
 import com.timo.timoterminal.BuildConfig
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.LoginActivity
 import com.timo.timoterminal.entityClasses.ConfigEntity
@@ -15,7 +17,6 @@ import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.FeedReaderDbHelper
 import com.timo.timoterminal.utils.classes.SoundSource
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -28,7 +29,6 @@ class LoginService(
     private val httpService: HttpService,
     private val configRepository: ConfigRepository,
     private val sharedPrefService: SharedPrefService,
-    private val hardware: IHardwareSource,
     private val userService: UserService,
     private val settingsService: SettingsService,
     private val languageService: LanguageService,
@@ -140,13 +140,20 @@ class LoginService(
             val timoTerminalId =
                 sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
             val ip = Utils.getIPAddress(true)
+            val connectionType = Utils.getCurrentNetworkConnectionType(context)
+            val mac = when(connectionType){
+                NetworkCapabilities.TRANSPORT_ETHERNET -> Utils.getMACAddress("eth0")
+                NetworkCapabilities.TRANSPORT_WIFI -> Utils.getMACAddress("wlan0")
+                else -> ""
+            }
+
 
             parameters["id"] = timoTerminalId.toString()
             parameters["company"] = company
             parameters["password"] = password
             parameters["username"] = username
             parameters["androidId"] = String(hashedAndroidId)
-            parameters["device"] = hardware.getDevice().naming
+            parameters["device"] = MainApplication.lcdk.getDeviceName().name
             parameters["brand"] = Build.BRAND
             parameters["version"] = BuildConfig.VERSION_NAME
             parameters["timezone"] =
@@ -154,8 +161,9 @@ class LoginService(
                     ?: "Europe/Berlin"
             parameters["language"] = language
             parameters["ip"] = ip
+            parameters["mac"] = mac
             //Serial number is used as terminalId
-            parameters["serialNumber"] = hardware.serialNumber()
+            parameters["serialNumber"] = MainApplication.lcdk.getSerialNumber()
 
             httpService.post(
                 "${url}services/rest/zktecoTerminal/loginTerminal", parameters,
@@ -228,7 +236,7 @@ class LoginService(
                     "${url}services/rest/zktecoTerminal/permission",
                     mapOf(
                         Pair("firma", company),
-                        Pair("terminalSN", hardware.serialNumber()),
+                        Pair("terminalSN", MainApplication.lcdk.getSerialNumber()),
                         Pair("terminalId", "$tId"),
                         Pair("token", token)
                     ),
@@ -309,7 +317,7 @@ class LoginService(
             val parameterMap = HashMap<String, String>()
             parameterMap["company"] = company!!
             parameterMap["token"] = token!!
-            parameterMap["terminalSN"] = hardware.serialNumber()
+            parameterMap["terminalSN"] = MainApplication.lcdk.getSerialNumber()
             parameterMap["terminalId"] = tId.toString()
             httpService.post(
                 "${url}services/rest/zktecoTerminal/validateLogin",

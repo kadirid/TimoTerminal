@@ -12,6 +12,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.ActivityMainBinding
 import com.timo.timoterminal.databinding.DialogVerificationBinding
@@ -32,8 +33,6 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MainActivityViewModel
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -314,12 +313,11 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private fun showVerificationAlert() {
         timer.cancel()
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
-        RfidService.unregister()
-        RfidService.setListener(mainActivityViewModel)
-        RfidService.register()
-        FingerprintService.unregister()
-        FingerprintService.setListener(mainActivityViewModel)
-        FingerprintService.register()
+        MainApplication.lcdk.setRfidListener(null)
+         MainApplication.lcdk.setRfidListener(mainActivityViewModel)
+         
+        MainApplication.lcdk.setFingerprintListener(null)
+        MainApplication.lcdk.setFingerprintListener(mainActivityViewModel)
         dialogBinding.textInputLayoutVerificationId.hint =
             languageService.getText("#Login", "Login")
         dialogBinding.textInputLayoutVerificationPin.hint =
@@ -379,8 +377,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
         }
         dialog!!.setOnDismissListener {
-            RfidService.unregister()
-            FingerprintService.unregister()
+            MainApplication.lcdk.setRfidListener(null)
+            MainApplication.lcdk.setFingerprintListener(null)
             alertTimer?.cancel()
             val frag = supportFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
             if (!isInit && (frag == null || !frag.isVisible))

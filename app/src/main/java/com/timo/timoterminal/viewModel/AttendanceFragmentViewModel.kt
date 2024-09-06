@@ -1,9 +1,11 @@
 package com.timo.timoterminal.viewModel
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
@@ -11,10 +13,9 @@ import com.timo.timoterminal.modalBottomSheets.MBBookingResponseSheet
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
-import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.sdk.service.FingerprintService
+import com.zkteco.android.lcdk.data.IFingerprintListener
+import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -23,7 +24,7 @@ class AttendanceFragmentViewModel(
     private val userRepository: UserRepository,
     private val soundSource: SoundSource,
     private val languageService: LanguageService
-) : ViewModel(), TimoRfidListener, FingerprintListener {
+) : ViewModel(), IRfidListener, IFingerprintListener {
 
     val liveUserCard: MutableLiveData<Pair<String, Int>> = MutableLiveData()
     val liveErrorMsg: MutableLiveData<String> = MutableLiveData()
@@ -94,30 +95,10 @@ class AttendanceFragmentViewModel(
         }
     }
 
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
-        // get Key associated to the fingerprint
-        viewModelScope.launch {
-            FingerprintService.identify(template)?.run {
-                val id = this.substring(0, this.length - 2).toLong()
-                val user = getUser(id)
-                if (user != null) {
-                    liveUserCard.postValue(Pair(user.card, 2))
-                }
-                return@launch
-            }
-            liveErrorMsg.postValue(languageService.getText("#VerificationFailed"))
-        }
-    }
-
     // get code of scanned card
-    override fun onRfidRead(rfidInfo: String) {
+    override fun onRfidRead(text: String) {
         viewModelScope.launch {
-            val rfidCode = rfidInfo.toLongOrNull(16)
+            val rfidCode = text.toLongOrNull(16)
             if (rfidCode != null) {
                 var oct = rfidCode.toString(8)
                 while (oct.length < 9) {
@@ -133,4 +114,22 @@ class AttendanceFragmentViewModel(
             }
         }
     }
+
+    override fun onFingerprintPressed(template: ByteArray): Boolean {
+        viewModelScope.launch {
+            MainApplication.lcdk.identifyFingerPrint(template, 70).run {
+                if(this.isNotEmpty()) {
+                    val id = this.substring(0, this.length - 2).toLong()
+                    val user = getUser(id)
+                    if (user != null) {
+                        liveUserCard.postValue(Pair(user.card, 2))
+                    }
+                    return@launch
+                }
+            }
+        }
+        return true
+    }
+
+    override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
 }

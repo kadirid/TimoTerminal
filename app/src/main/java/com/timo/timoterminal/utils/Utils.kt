@@ -84,14 +84,28 @@ class Utils {
             return false
         }
 
-        // TODO Can this function be deleted? Why is it here?
+        fun getCurrentNetworkConnectionType(context: Context): Int {
+            val connectivityManager =
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+            val activeNetwork = connectivityManager.activeNetwork ?: return -1
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return -1
+
+            return when {
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkCapabilities.TRANSPORT_WIFI
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkCapabilities.TRANSPORT_CELLULAR
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkCapabilities.TRANSPORT_ETHERNET
+                else -> -1
+            }
+        }
+
         fun getMACAddress(interfaceName: String): String {
             try {
                 val interfaces: List<NetworkInterface> =
                     Collections.list(NetworkInterface.getNetworkInterfaces())
                 for (inf in interfaces) {
                     if (interfaceName.isNotEmpty()) {
-                        if (inf.name.lowercase() == interfaceName.lowercase()) continue
+                        if (inf.name.lowercase() != interfaceName.lowercase()) continue
                     }
 
                     val mac: ByteArray = inf.hardwareAddress

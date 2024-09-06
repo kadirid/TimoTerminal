@@ -1,16 +1,15 @@
 package com.timo.timoterminal.service
 
 import android.content.Context
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.entityClasses.LanguageEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.LanguageRepository
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.ResponseToJSON
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.util.concurrent.ConcurrentHashMap
 
 class LanguageService(
@@ -18,7 +17,6 @@ class LanguageService(
     val httpService: HttpService,
     private val languageRepository: LanguageRepository
 ) : KoinComponent {
-    private val hardware: IHardwareSource by inject()
 
     private val languages = ConcurrentHashMap<String, ConcurrentHashMap<String, String>>()
 
@@ -37,7 +35,7 @@ class LanguageService(
                     httpService.get("${url}services/rest/zktecoTerminal/language",
                         mapOf(
                             Pair("firma", company),
-                            Pair("terminalSN", hardware.serialNumber()),
+                            Pair("terminalSN", MainApplication.lcdk.getSerialNumber()),
                             Pair("terminalId","$tId"),
                             Pair("token", token)
                         ),

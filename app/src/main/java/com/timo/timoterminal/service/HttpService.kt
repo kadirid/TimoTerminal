@@ -13,14 +13,14 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.timo.timoterminal.BuildConfig
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.serviceUtils.ProgressListener
 import com.timo.timoterminal.service.serviceUtils.ProgressResponseBody
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.ResponseToJSON
-import com.zkteco.android.core.sdk.sources.IHardwareSource
-import mcv.facepass.BuildConfig
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -42,7 +42,6 @@ import java.util.concurrent.TimeUnit
 
 class HttpService : KoinComponent {
     private val sharedPrefService: SharedPrefService by inject()
-    private val hardware: IHardwareSource by inject()
 
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .readTimeout(30, TimeUnit.SECONDS)
@@ -326,7 +325,7 @@ class HttpService : KoinComponent {
                 "${url}services/rest/zktecoTerminal/doneCommand",
                 mapOf(
                     Pair("company", company),
-                    Pair("terminalSN", hardware.serialNumber()),
+                    Pair("terminalSN", MainApplication.lcdk.getSerialNumber()),
                     Pair("terminalId", "$tId"),
                     Pair("token", token),
                     Pair("unique", unique)
@@ -345,7 +344,7 @@ class HttpService : KoinComponent {
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
         val params = JSONObject()
-        params.put("terminalSN", hardware.serialNumber())
+        params.put("terminalSN", MainApplication.lcdk.getSerialNumber())
         params.put("terminalId", "$tId")
         params.put("token", token)
         params.put("firma", company)
@@ -368,7 +367,7 @@ class HttpService : KoinComponent {
         val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN, "") ?: ""
 
-        val params = mutableMapOf(Pair("terminalSN", hardware.serialNumber()))
+        val params = mutableMapOf(Pair("terminalSN", MainApplication.lcdk.getSerialNumber()))
 
         params["terminalId"] = "$tId"
         params["token"] = token

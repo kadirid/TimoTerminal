@@ -1,9 +1,11 @@
 package com.timo.timoterminal.viewModel
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.entityClasses.BookingEntity
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
@@ -12,13 +14,10 @@ import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
-import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.service.RfidService
-import com.zkteco.android.core.sdk.sources.IHardwareSource
+import com.zkteco.android.lcdk.data.IFingerprintListener
+import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 
 class MBSheetFingerprintCardReaderViewModel(
@@ -28,8 +27,7 @@ class MBSheetFingerprintCardReaderViewModel(
     private val bookingService: BookingService,
     private val languageService: LanguageService,
     private val soundSource: SoundSource,
-    private val hardware: IHardwareSource
-) : ViewModel(), TimoRfidListener, FingerprintListener {
+) : ViewModel(), IRfidListener, IFingerprintListener {
 
     val liveHideMask: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowMask: MutableLiveData<Boolean> = MutableLiveData()
@@ -166,7 +164,7 @@ class MBSheetFingerprintCardReaderViewModel(
                         Pair("date", entity.date),
                         Pair("funcCode", entity.status.toString()),
                         Pair("inputCode", entity.inputCode.toString()),
-                        Pair("terminalSN", hardware.serialNumber()),
+                        Pair("terminalSN", MainApplication.lcdk.getSerialNumber()),
                         Pair("terminalId", "$tId"),
                         Pair("token", token),
                         Pair("validate", "true")
@@ -186,8 +184,8 @@ class MBSheetFingerprintCardReaderViewModel(
                             bundle.putString("message", obj.getString("message"))
                             bundle.putString("name", name)
                             liveShowMessageSheet.postValue(bundle)
-                            RfidService.unregister()
-                            FingerprintService.unregister()
+                            MainApplication.lcdk.setRfidListener(null)
+                            MainApplication.lcdk.setFingerprintListener(null)
                             if (!obj.getBoolean("success")) {
                                 soundSource.playSound(SoundSource.failedSound)
                             } else {
@@ -206,8 +204,8 @@ class MBSheetFingerprintCardReaderViewModel(
     private fun processOffline(entity: BookingEntity, name: String) {
         viewModelScope.launch {
             soundSource.playSound(SoundSource.offlineSaved)
-            RfidService.unregister()
-            FingerprintService.unregister()
+            MainApplication.lcdk.setRfidListener(null)
+            MainApplication.lcdk.setFingerprintListener(null)
             val bundle = Bundle()
             bundle.putInt(
                 "status", when (entity.status) {
@@ -225,9 +223,9 @@ class MBSheetFingerprintCardReaderViewModel(
     }
 
     // get code of scanned card
-    override fun onRfidRead(rfidInfo: String) {
+    override fun onRfidRead(text: String) {
         viewModelScope.launch {
-            val rfidCode = rfidInfo.toLongOrNull(16)
+            val rfidCode = text.toLongOrNull(16)
             if (rfidCode != null) {
                 var oct = rfidCode.toString(8)
                 while (oct.length < 9) {
@@ -239,21 +237,20 @@ class MBSheetFingerprintCardReaderViewModel(
         }
     }
 
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
+    override fun onFingerprintPressed(template: ByteArray): Boolean {
         viewModelScope.launch {
             // get Key associated to the fingerprint
-            FingerprintService.identify(template)?.run {
-                val id = this.substring(0, this.length - 2).toLong()
-                sendBookingById(id)
-                return@launch
+            MainApplication.lcdk.identifyFingerPrint(template,70).run {
+                if(this.isNotEmpty()) {
+                    val id = this.substring(0, this.length - 2).toLong()
+                    sendBookingById(id)
+                    return@launch
+                }
             }
-            errorNoUser("#VerificationFailed")
         }
+        return true
     }
+
+    override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
 
 }

@@ -2,14 +2,13 @@ package com.timo.timoterminal.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -18,7 +17,6 @@ class MBRemoteRegisterSheetViewModel(
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService,
     private val languageService: LanguageService,
-    private val hardware: IHardwareSource
 ) : ViewModel() {
 
     fun updateUser(
@@ -33,7 +31,7 @@ class MBRemoteRegisterSheetViewModel(
             if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty()) {
                 paramMap["company"] = company
                 paramMap["token"] = token
-                paramMap["terminalSN"] = hardware.serialNumber()
+                paramMap["terminalSN"] = MainApplication.lcdk.getSerialNumber()
                 paramMap["terminalId"] = tId.toString()
                 httpService.post("${url}services/rest/zktecoTerminal/updateUserCard",
                     paramMap,
@@ -87,7 +85,7 @@ class MBRemoteRegisterSheetViewModel(
                     paramMap["fingerNo"] = "$finger"
                     paramMap["company"] = company
                     paramMap["token"] = token
-                    paramMap["terminalSN"] = hardware.serialNumber()
+                    paramMap["terminalSN"] = MainApplication.lcdk.getSerialNumber()
                     paramMap["terminalId"] = tId.toString()
                     httpService.post(
                         "${url}services/rest/zktecoTerminal/saveFP",
@@ -100,7 +98,7 @@ class MBRemoteRegisterSheetViewModel(
                                 languageService.getText("#TimoServiceNotReachable") + " " +
                                         languageService.getText("#ChangesReverted")
                             )
-                            FingerprintService.delete("$user|$finger")
+                            MainApplication.lcdk.unregisterFingerPrint("$user|$finger")
                         }
                     )
                 } else {
@@ -108,7 +106,7 @@ class MBRemoteRegisterSheetViewModel(
                         languageService.getText("#TimoServiceNotReachable") + " " +
                                 languageService.getText("#ChangesReverted")
                     )
-                    FingerprintService.delete("$user|$finger")
+                    MainApplication.lcdk.unregisterFingerPrint("$user|$finger")
                 }
             }
         }
@@ -117,7 +115,7 @@ class MBRemoteRegisterSheetViewModel(
     fun delFP(id: String?, finger: Int) {
         if (id != null) {
             viewModelScope.launch {
-                FingerprintService.delete("$id|$finger")
+                MainApplication.lcdk.unregisterFingerPrint("$id|$finger")
             }
         }
     }

@@ -5,25 +5,21 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import com.google.android.material.color.MaterialColors
 import com.timo.timoterminal.R
 import com.timo.timoterminal.utils.classes.BGData
-import kotlin.math.log
 
 class Barplot(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
-    private var data = ArrayList<BGData>();
+    private var data = ArrayList<BGData>()
 
     private val paint = Paint().apply {
         val col = MaterialColors.getColor(
             context,
             R.attr.colorSurfaceContainerHighest,
-            getResources().getColor(R.color.black)
+            resources.getColor(R.color.black)
         )
         style = Paint.Style.FILL
         strokeWidth = 10f
@@ -102,13 +98,22 @@ class Barplot(context: Context, attrs: AttributeSet) : View(context, attrs) {
                     canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
                 } else if (index == 0) {
                     // draw first rectangle with rounded corners on the left side
-                    canvas.drawPath(createRoundedRectPath(rect, cornerRadius, cornerRadius, false, true), paint)
+                    canvas.drawPath(createRoundedRectPath(rect, cornerRadius, cornerRadius,
+                        roundedRight = false,
+                        roundedLeft = true
+                    ), paint)
                 } else if (index == data.size - 1) {
                     // draw last rectangle with rounded corners on the right side
-                    canvas.drawPath(createRoundedRectPath(rect, cornerRadius, cornerRadius, true, false), paint)
+                    canvas.drawPath(createRoundedRectPath(rect, cornerRadius, cornerRadius,
+                        roundedRight = true,
+                        roundedLeft = false
+                    ), paint)
                 } else {
                     // draw other rectangles normally
-                    canvas.drawPath(createRoundedRectPath(rect, cornerRadius, cornerRadius, false, false), paint)
+                    canvas.drawPath(createRoundedRectPath(rect, cornerRadius, cornerRadius,
+                        roundedRight = false,
+                        roundedLeft = false
+                    ), paint)
                 }
                 lastThreshold += length
                 index++

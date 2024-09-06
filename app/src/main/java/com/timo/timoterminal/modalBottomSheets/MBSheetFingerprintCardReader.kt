@@ -13,6 +13,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.databinding.DialogSingleTextInputBinding
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
@@ -20,8 +21,6 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -82,8 +81,9 @@ class MBSheetFingerprintCardReader(
 
         viewModel.status = 0
         ranCancel = true
-        RfidService.unregister()
-        FingerprintService.unregister()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
         timer.cancel()
         callback()
     }
@@ -143,20 +143,18 @@ class MBSheetFingerprintCardReader(
         super.onResume()
         binding.buttonClose.visibility = View.VISIBLE
 
-        RfidService.unregister()
-        FingerprintService.unregister()
-        RfidService.setListener(viewModel)
-        RfidService.register()
-        FingerprintService.setListener(viewModel)
-        FingerprintService.register()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
+        MainApplication.lcdk.setRfidListener(viewModel)
+        MainApplication.lcdk.setFingerprintListener(viewModel)
         timer.start()
     }
 
     // remove listener on pause
     override fun onPause() {
         if (!ranCancel) {
-            RfidService.unregister()
-            FingerprintService.unregister()
+            MainApplication.lcdk.setRfidListener(null)
+            MainApplication.lcdk.setFingerprintListener(null)
             ranCancel = false
         }
         timer.cancel()

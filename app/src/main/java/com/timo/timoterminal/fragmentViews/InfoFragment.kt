@@ -12,6 +12,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.BuildConfig
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.DialogSingleTextInputBinding
@@ -23,8 +24,6 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -66,12 +65,10 @@ class InfoFragment : Fragment() {
     }
 
     private fun register() {
-        RfidService.unregister()
-        FingerprintService.unregister()
-        RfidService.setListener(viewModel)
-        RfidService.register()
-        FingerprintService.setListener(viewModel)
-        FingerprintService.register()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
+        MainApplication.lcdk.setRfidListener(viewModel)
+        MainApplication.lcdk.setFingerprintListener(viewModel)
     }
 
     override fun onPause() {
@@ -81,8 +78,8 @@ class InfoFragment : Fragment() {
     }
 
     private fun unregister() {
-        RfidService.unregister()
-        FingerprintService.unregister()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
     }
 
     private fun setUpListeners() {

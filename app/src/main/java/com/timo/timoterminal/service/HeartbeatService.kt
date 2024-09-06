@@ -1,19 +1,21 @@
 package com.timo.timoterminal.service
 
 import android.content.Intent
+import android.net.NetworkCapabilities
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.core.os.postDelayed
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.enums.TerminalCommands
 import com.timo.timoterminal.modalBottomSheets.MBRemoteRegisterSheet
 import com.timo.timoterminal.utils.Utils
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -32,8 +34,8 @@ class HeartbeatService : KoinComponent {
     private val loginService: LoginService by inject()
     private val bookingService: BookingService by inject()
     private val httpService: HttpService by inject()
-    private val hardware: IHardwareSource by inject()
     private lateinit var handler: Handler
+    private var firstError = false
     private var client: OkHttpClient = OkHttpClient().newBuilder()
         .retryOnConnectionFailure(false)
         .connectTimeout(10000, TimeUnit.MILLISECONDS)
@@ -69,6 +71,15 @@ class HeartbeatService : KoinComponent {
             val company = getCompany()
             val token = getToken()
             val date = Utils.getDateTimeFromGC(Utils.getCal())
+
+            val ip = Utils.getIPAddress(true)
+            val connectionType = Utils.getCurrentNetworkConnectionType(activity)
+            val mac = when(connectionType){
+                NetworkCapabilities.TRANSPORT_ETHERNET -> Utils.getMACAddress("eth0")
+                NetworkCapabilities.TRANSPORT_WIFI -> Utils.getMACAddress("wlan0")
+                else -> ""
+            }
+
             if (!company.isNullOrEmpty() && token.isNotEmpty()) {
                 httpService.postWithClient(
                     client,
@@ -76,22 +87,31 @@ class HeartbeatService : KoinComponent {
                     mapOf(
                         Pair("firma", company),
                         Pair("date", date),
-                        Pair("terminalSN", hardware.serialNumber()),
+                        Pair("terminalSN", MainApplication.lcdk.getSerialNumber()),
                         Pair("terminalId", "$tId"),
-                        Pair("token", token)
+                        Pair("token", token),
+                        Pair("ip", ip),
+                        Pair("mac", mac)
                     ),
                     null,
                     { obj, _, _ ->
+                        firstError = false
                         if (obj != null) {
                             handelHeartBeatResponse(obj, activity)
                         }
-                    }, { _, _, _, _ ->
-                        val color = activity.resources?.getColorStateList(R.color.red, null)
-                        if (activity.getBinding().serverConnectionIcon.imageTintList != color) {
-                            activity.runOnUiThread {
-                                activity.getBinding().serverConnectionIcon.imageTintList = color
+                    }, { e, response, _, output ->
+                        Log.d("HeartbeatService", "Error: ${e?.message}")
+                        Log.d("HeartbeatService", "response: ${response?.message}")
+                        Log.d("HeartbeatService", "output: ${output.toString()}")
+                        if(firstError) {
+                            val color = activity.resources?.getColorStateList(R.color.red, null)
+                            if (activity.getBinding().serverConnectionIcon.imageTintList != color) {
+                                activity.runOnUiThread {
+                                    activity.getBinding().serverConnectionIcon.imageTintList = color
+                                }
                             }
                         }
+                        firstError = true
                     }
                 )
             }
@@ -215,19 +235,20 @@ class HeartbeatService : KoinComponent {
                         if (resObj != null)
                             array.put(resObj)
                     }
+                    if(deleteFP.size > 0) {
+                        for (no in deleteFP) {
+                            val ids = no.first.split(":")
+                            if (ids.size == 2) {
+                                userService.deleteFP(ids[0], ids[1].toInt(), no.second)
+                            }
+                        }
+                    }
                     if (updateIds.size > 0) {
                         httpService.responseForMultiCommand(resIds)
                         userService.processUserArray(array, scope, "")
                     }else if(deleteIds.size > 0) {
                         for (no in deleteIds) {
                             userService.deleteUser(no.first, no.second)
-                        }
-                    }else if(deleteFP.size > 0) {
-                        for (no in deleteFP) {
-                            val ids = no.first.split(":")
-                            if (ids.size == 2) {
-                                userService.deleteFP(ids[0], ids[1].toInt(), no.second)
-                            }
                         }
                     }
                 }

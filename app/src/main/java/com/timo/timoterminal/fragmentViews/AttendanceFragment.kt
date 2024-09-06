@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentAttendanceBinding
 import com.timo.timoterminal.modalBottomSheets.MBSheetFingerprintCardReader
@@ -19,9 +20,6 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
-import com.zkteco.android.core.sdk.service.FingerprintService
-import com.zkteco.android.core.sdk.service.RfidService
-import com.zkteco.android.core.sdk.sources.IHardwareSource
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -32,7 +30,6 @@ class AttendanceFragment : Fragment() {
     private val languageService: LanguageService by inject()
     private val soundSource: SoundSource by inject()
     private val httpService: HttpService by inject()
-    private val hardware: IHardwareSource by inject()
 
     private var _broadcastReceiver: BroadcastReceiver? = null
     private lateinit var binding: FragmentAttendanceBinding
@@ -83,8 +80,8 @@ class AttendanceFragment : Fragment() {
 
     // remove listener on pause
     override fun onPause() {
-        RfidService.unregister()
-        FingerprintService.unregister()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
 
         super.onPause()
     }
@@ -123,8 +120,8 @@ class AttendanceFragment : Fragment() {
     }
 
     private fun executeClick() {
-        RfidService.unregister()
-        FingerprintService.unregister()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
         val bundle = Bundle()
         bundle.putInt("status", funcCode)
         if (!(mbSheetFingerprintCardReader != null
@@ -149,12 +146,10 @@ class AttendanceFragment : Fragment() {
 
     // start listening to card reader
     private fun setListener() {
-        RfidService.unregister()
-        FingerprintService.unregister()
-        RfidService.setListener(viewModel)
-        RfidService.register()
-        FingerprintService.setListener(viewModel)
-        FingerprintService.register()
+        MainApplication.lcdk.setRfidListener(null)
+        MainApplication.lcdk.setFingerprintListener(null)
+        MainApplication.lcdk.setRfidListener(viewModel)
+        MainApplication.lcdk.setFingerprintListener(viewModel)
     }
 
     // send all necessary information to timo to create a booking
@@ -174,7 +169,7 @@ class AttendanceFragment : Fragment() {
                             Pair("firma", company),
                             Pair("date", Utils.getDateTimeFromGC(Utils.getCal())),
                             Pair("inputCode", "$inputCode"),
-                            Pair("terminalSN", hardware.serialNumber()),
+                            Pair("terminalSN", MainApplication.lcdk.getSerialNumber()),
                             Pair("terminalId", "$tId"),
                             Pair("token", token)
                         ),

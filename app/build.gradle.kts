@@ -61,7 +61,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     val fragment_version = "1.6.1"
     val room_version = "2.5.2"
-    val koin_android_version = "3.0.2"
+    val koin_android_version = "3.4.3"
 
     implementation("androidx.work:work-runtime-ktx:2.8.1")
 
@@ -118,18 +118,17 @@ dependencies {
     implementation("io.insert-koin:koin-androidx-workmanager:$koin_android_version")
     // Navigation Graph
 
+    implementation("com.zkteco.android.lcdk:Lcdk:1.2.3.4-release")
+//    implementation("com.zkteco.android.core.sdk:CoreServiceSDK:3.5.6.4-release")
+//    implementation("com.zkteco.ormlite:HelpersORMLite:3.0.5-release")
+//    implementation("com.zkteco.android.irmodulesdk:IRModuleSdk:1.0.8-release")
+//    implementation("com.zkteco.android.visiblelightsdk:VisibleLightSdk:1.2.2-release")
+//    implementation("com.zkteco.liveface562:liveface:5.6.2")
+
     implementation("com.j256.ormlite:ormlite-android:5.0")
-    implementation("com.zkteco.android.core.sdk:CoreServiceSDK:3.5.6.4-release")
-    implementation("com.zkteco.ormlite:HelpersORMLite:3.0.5-release")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-
-    implementation("com.zkteco.android.irmodulesdk:IRModuleSdk:1.0.8-release")
-    implementation("com.guide.guidecore:guidecore:2.410@aar")
-
-    implementation("com.zkteco.android.visiblelightsdk:VisibleLightSdk:1.2.2-release")
-    implementation("com.zkteco.liveface562:liveface:5.6.2")
-
     implementation("com.airbnb.android:lottie:6.1.0")
+    implementation("com.guide.guidecore:guidecore:2.410@aar")
 
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 

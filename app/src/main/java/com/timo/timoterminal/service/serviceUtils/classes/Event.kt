@@ -239,11 +239,11 @@ class Event(
          * @param e : Event
          */
         fun splitEventToDaily(e: Event) : ArrayList<Event> {
-            val outputEventArr = ArrayList<Event>();
+            val outputEventArr = ArrayList<Event>()
             val datesBetweenStartAndEnd = Utils.daysBetween(e.StartDate!!, e.EndDate!!)
             var i = 0
             while (i <= datesBetweenStartAndEnd) {
-                val event = e.clone();
+                val event = e.clone()
                 when (i) {
                     0 -> {
                         val specifiedDate = Calendar.getInstance().apply {
@@ -252,7 +252,7 @@ class Event(
                         specifiedDate.set(Calendar.HOUR_OF_DAY, 23)
                         specifiedDate.set(Calendar.MINUTE, 59)
                         specifiedDate.set(Calendar.SECOND, 59)
-                        event.EndDate = specifiedDate.time;
+                        event.EndDate = specifiedDate.time
                         outputEventArr.add(event)
                     }
                     datesBetweenStartAndEnd -> {
@@ -262,7 +262,7 @@ class Event(
                         specifiedDate.set(Calendar.HOUR_OF_DAY, 0)
                         specifiedDate.set(Calendar.MINUTE, 0)
                         specifiedDate.set(Calendar.SECOND, 0)
-                        event.StartDate = specifiedDate.time;
+                        event.StartDate = specifiedDate.time
                         outputEventArr.add(event)
                     }
                     else -> {
@@ -286,7 +286,7 @@ class Event(
                         outputEventArr.add(event)
                     }
                 }
-                i++;
+                i++
             }
             return outputEventArr
         }

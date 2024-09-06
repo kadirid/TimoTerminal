@@ -1,20 +1,21 @@
 package com.timo.timoterminal.viewModel
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
-import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
-import com.zkteco.android.core.interfaces.FingerprintListener
-import com.zkteco.android.core.sdk.service.FingerprintService
+import com.zkteco.android.lcdk.data.IFingerprintListener
+import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -25,7 +26,7 @@ class InfoFragmentViewModel(
     private val soundSource: SoundSource,
     private val userService: UserService,
     private val sharedPrefService: SharedPrefService
-) : ViewModel(), TimoRfidListener, FingerprintListener {
+) : ViewModel(), IRfidListener, IFingerprintListener {
 
     private var isTimerRunning = true
     private val timer = object : CountDownTimer(9999, 950) {
@@ -171,28 +172,9 @@ class InfoFragmentViewModel(
         liveDismissInfoSheet.postValue(true)
     }
 
-    override fun onFingerprintPressed(
-        fingerprint: String,
-        template: String,
-        width: Int,
-        height: Int
-    ) {
+    override fun onRfidRead(text: String) {
         viewModelScope.launch {
-            // get Key associated to the fingerprint
-            FingerprintService.identify(template)?.run {
-                soundSource.playSound(SoundSource.successSound)
-                liveShowMask.postValue(true)
-                loadUserInfoById(this.substring(0, this.length - 2))
-                return@launch
-            }
-            soundSource.playSound(SoundSource.authenticationFailed)
-            liveShowMessageSheet.postValue(languageService.getText("#VerificationFailed"))
-        }
-    }
-
-    override fun onRfidRead(rfidInfo: String) {
-        viewModelScope.launch {
-            val rfidCode = rfidInfo.toLongOrNull(16)
+            val rfidCode = text.toLongOrNull(16)
             if (rfidCode != null) {
                 soundSource.playSound(SoundSource.successSound)
                 var oct = rfidCode.toString(8)
@@ -216,4 +198,20 @@ class InfoFragmentViewModel(
         }
         return "${languageService.getText("#CurrentVersion")}: $version"
     }
+
+    override fun onFingerprintPressed(template: ByteArray): Boolean {
+        viewModelScope.launch {
+            MainApplication.lcdk.identifyFingerPrint(template, 70).run {
+                if(this.isNotEmpty()) {
+                    soundSource.playSound(SoundSource.successSound)
+                    liveShowMask.postValue(true)
+                    loadUserInfoById(this.substring(0, this.length - 2))
+                    return@launch
+                }
+            }
+        }
+        return true
+    }
+
+    override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
 }
