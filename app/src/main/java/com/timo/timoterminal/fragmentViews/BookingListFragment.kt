@@ -56,6 +56,7 @@ class BookingListFragment : Fragment() {
             emptyList(),
             emptyMap(),
             emptyMap(),
+            emptyMap(),
             object : BookingBUEntityAdapter.OnItemClickListener {
                 override fun onItemClick(entity: BookingBUEntity) {}
             })
@@ -76,8 +77,10 @@ class BookingListFragment : Fragment() {
             bookingListFragmentViewModel.viewModelScope.launch {
                 val userEntities = userRepository.getAllAsList()
                 val userMap = HashMap<String, String>()
+                val userIdMap = HashMap<Long, String>()
                 for (user in userEntities) {
                     userMap[user.card] = user.name()
+                    userIdMap[user.id] = user.name()
                 }
                 val statusMap = HashMap<Int, String>()
                 statusMap[100] = languageService.getText("#Kommt")
@@ -88,7 +91,7 @@ class BookingListFragment : Fragment() {
                 recyclerViewState =
                     binding.viewRecyclerBuBookingAll.layoutManager?.onSaveInstanceState()
                 binding.viewRecyclerBuBookingAll.adapter =
-                    BookingBUEntityAdapter(it, userMap, statusMap,
+                    BookingBUEntityAdapter(it, userMap, userIdMap, statusMap,
                         object : BookingBUEntityAdapter.OnItemClickListener {
                             override fun onItemClick(entity: BookingBUEntity) {
                                 (activity as MainActivity?)?.restartTimer()

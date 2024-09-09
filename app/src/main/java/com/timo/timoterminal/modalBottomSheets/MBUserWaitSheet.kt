@@ -137,6 +137,10 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), IRfidListener, IFingerprint
             binding.buttonClose.setSafeOnClickListener {
                 this@MBUserWaitSheet.dismiss()
             }
+            viewModel.getUserName(id) { name ->
+                binding.textViewFPUserName.text = name
+                null
+            }
         }
     }
 

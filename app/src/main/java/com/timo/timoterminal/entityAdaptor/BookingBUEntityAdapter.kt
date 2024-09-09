@@ -12,6 +12,7 @@ import com.timo.timoterminal.entityClasses.BookingBUEntity
 class BookingBUEntityAdapter(
     private val entities: List<BookingBUEntity>,
     private val userMap: Map<String, String>,
+    private val userIdMap: Map<Long, String>,
     private val statusMap: Map<Int, String>,
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<BookingBUEntityAdapter.BookingBUEntityViewHolder>() {
@@ -40,7 +41,7 @@ class BookingBUEntityAdapter(
         holder.bind(
             entity,
             listener,
-            userMap[entity.card] ?: "",
+            userMap[entity.card] ?: userIdMap[entity.card.toLong()] ?: "",
             statusMap[entity.status] ?: ""
         )
     }
@@ -61,7 +62,7 @@ class BookingBUEntityAdapter(
         ) {
             nameView.text = userName
             dateView.text = entity.date
-            idView.text = "${entity.id}"
+            idView.text = entity.id.toString()
             statusView.text = status
 
             imageView.setImageResource(

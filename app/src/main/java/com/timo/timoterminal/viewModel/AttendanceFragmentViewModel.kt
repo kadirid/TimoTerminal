@@ -51,7 +51,7 @@ class AttendanceFragmentViewModel(
         obj: JSONObject
     ) {
         viewModelScope.launch {
-            val user = getUserByCard(card)
+            val user = getUserByCard(card) ?: getUser(card.toLong())
             if (user != null || obj.has("error")) {
                 fragment.activity?.runOnUiThread {
                     val bundle = Bundle()
@@ -60,7 +60,6 @@ class AttendanceFragmentViewModel(
                         bundle.putInt("status", obj.getInt("bookingType"))
                     if(obj.has("adjusted"))
                         bundle.putBoolean("adjusted", obj.getBoolean("adjusted"))
-                    bundle.putBoolean("success", obj.getBoolean("success"))
                     if(obj.has("error"))
                         bundle.putString("error", obj.getString("error"))
                     bundle.putBoolean("success", obj.getBoolean("success"))
@@ -119,10 +118,9 @@ class AttendanceFragmentViewModel(
         viewModelScope.launch {
             MainApplication.lcdk.identifyFingerPrint(template, 70).run {
                 if(this.isNotEmpty()) {
-                    val id = this.substring(0, this.length - 2).toLong()
-                    val user = getUser(id)
-                    if (user != null) {
-                        liveUserCard.postValue(Pair(user.card, 2))
+                    val id = this.substring(0, this.length - 2)
+                    if(id.isNotEmpty()) {
+                        liveUserCard.postValue(Pair(id, 2))
                     }
                     return@launch
                 }

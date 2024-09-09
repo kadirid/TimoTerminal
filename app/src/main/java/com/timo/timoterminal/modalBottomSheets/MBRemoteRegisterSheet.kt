@@ -180,6 +180,11 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), IRfidListener, IFinge
                 viewModel.delFP(id, finger)
             }
             animate()
+
+            viewModel.getUserName(id) { name ->
+                binding.textViewFPUserName.text = name
+                null
+            }
         }
     }
 
@@ -261,6 +266,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), IRfidListener, IFinge
 
     override fun onRfidRead(text: String) {
         if (!isFP) {
+            MainApplication.lcdk.setRfidListener(null)
             timer.cancel()
             val rfidCode = text.toLongOrNull(16)
             if (rfidCode != null) {

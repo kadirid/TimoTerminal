@@ -132,7 +132,7 @@ class InfoFragmentViewModel(
                 if (success) {
                     val bundle = Bundle()
                     bundle.putParcelable("res", it)
-                    bundle.putString("card", user.card)
+                    bundle.putString("card", user.card.ifEmpty { user.id.toString() })
                     liveInfoSuccess.postValue(bundle)
                     timer.start()
                 } else {
@@ -184,7 +184,7 @@ class InfoFragmentViewModel(
                 oct = oct.reversed()
                 liveShowMask.postValue(true)
                 loadUserInfoByCard(oct)
-            }else{
+            } else {
                 soundSource.playSound(SoundSource.authenticationFailed)
                 liveShowMessageSheet.postValue(languageService.getText("#VerificationFailed"))
             }
@@ -202,7 +202,7 @@ class InfoFragmentViewModel(
     override fun onFingerprintPressed(template: ByteArray): Boolean {
         viewModelScope.launch {
             MainApplication.lcdk.identifyFingerPrint(template, 70).run {
-                if(this.isNotEmpty()) {
+                if (this.isNotEmpty()) {
                     soundSource.playSound(SoundSource.successSound)
                     liveShowMask.postValue(true)
                     loadUserInfoById(this.substring(0, this.length - 2))

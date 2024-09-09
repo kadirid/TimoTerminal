@@ -84,7 +84,7 @@ class MBSheetFingerprintCardReaderViewModel(
                 liveShowMask.postValue(true)
                 sendBooking(
                     BookingEntity(
-                        user.card,
+                        id.toString(),
                         2,
                         Utils.getDateTimeFromGC(greg),
                         status
@@ -124,7 +124,7 @@ class MBSheetFingerprintCardReaderViewModel(
                 liveShowMask.postValue(true)
                 sendBooking(
                     BookingEntity(
-                        user.card,
+                        user.id.toString(),
                         0,
                         Utils.getDateTimeFromGC(greg),
                         status
@@ -177,7 +177,6 @@ class MBSheetFingerprintCardReaderViewModel(
                                 bundle.putInt("status", obj.getInt("bookingType"))
                             if (obj.has("adjusted"))
                                 bundle.putBoolean("adjusted", obj.getBoolean("adjusted"))
-                            bundle.putBoolean("success", obj.getBoolean("success"))
                             if (obj.has("error"))
                                 bundle.putString("error", obj.getString("error"))
                             bundle.putBoolean("success", obj.getBoolean("success"))

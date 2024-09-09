@@ -194,7 +194,8 @@ class UserService(
         val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
         if (!company.isNullOrEmpty() && !token.isNullOrEmpty()) {
             val params = HashMap<String, String>()
-            params["card"] = user.card
+            val card = user.card.ifEmpty { user.id.toString() }
+            params["card"] = card
             params["firma"] = company
             params["terminalSN"] = MainApplication.lcdk.getSerialNumber()
             params["terminalId"] = tId.toString()

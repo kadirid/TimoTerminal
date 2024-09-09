@@ -68,20 +68,15 @@ class MBRemoteRegisterSheetViewModel(
     ) {
         if (id != null) {
             viewModelScope.launch {
-                var user = "-1"
-                val users = userService.getEntity(id.toLong())
-                if (users.isNotEmpty()) {
-                    user = users[0].card.ifEmpty { id }
-                }
 
                 val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
                 val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID,-1)
                 val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
                 val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
 
-                if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty() && user != "-1") {
+                if (!url.isNullOrEmpty() && !company.isNullOrEmpty() && !token.isNullOrEmpty() && id != "-1") {
                     val paramMap = mutableMapOf(Pair("fp", template))
-                    paramMap["user"] = user
+                    paramMap["user"] = id
                     paramMap["fingerNo"] = "$finger"
                     paramMap["company"] = company
                     paramMap["token"] = token
@@ -98,7 +93,7 @@ class MBRemoteRegisterSheetViewModel(
                                 languageService.getText("#TimoServiceNotReachable") + " " +
                                         languageService.getText("#ChangesReverted")
                             )
-                            MainApplication.lcdk.unregisterFingerPrint("$user|$finger")
+                            MainApplication.lcdk.unregisterFingerPrint("$id|$finger")
                         }
                     )
                 } else {
@@ -106,8 +101,18 @@ class MBRemoteRegisterSheetViewModel(
                         languageService.getText("#TimoServiceNotReachable") + " " +
                                 languageService.getText("#ChangesReverted")
                     )
-                    MainApplication.lcdk.unregisterFingerPrint("$user|$finger")
+                    MainApplication.lcdk.unregisterFingerPrint("$id|$finger")
                 }
+            }
+        }
+    }
+
+    fun getUserName(id: String?, callback: (name: String) -> Unit?){
+        if (id != null){
+            viewModelScope.launch {
+                val users = userService.getEntity(id.toLong())
+                if(users.isNotEmpty())
+                    callback(users[0].name())
             }
         }
     }
