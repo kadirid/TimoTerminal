@@ -28,12 +28,13 @@ import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.MbSheetFingerprintCardReaderBinding
 import com.timo.timoterminal.fragmentViews.UserSettingsFragment
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBUserWaitSheetViewModel
+import com.zkteco.android.core.sdk.service.RfidService
 import com.zkteco.android.lcdk.data.IFingerprintListener
-import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -43,7 +44,7 @@ private const val ARG_EDITOR = "editor"
 private const val ARG_IS_FP = "isFP"
 private const val ARG_IS_DELETE = "isDelete"
 
-class MBUserWaitSheet : BottomSheetDialogFragment(), IRfidListener, IFingerprintListener {
+class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, IFingerprintListener {
 
     private var enrollCount: Int = 0
     private val viewModel: MBUserWaitSheetViewModel by sharedViewModel()
@@ -296,16 +297,17 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), IRfidListener, IFingerprint
     override fun onResume() {
         super.onResume()
 
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
+        RfidService.setListener(this)
+        RfidService.register()
         MainApplication.lcdk.setFingerprintListener(null)
-        MainApplication.lcdk.setRfidListener(this)
         MainApplication.lcdk.setFingerprintListener(this)
         timer?.start()
     }
 
     override fun onPause() {
         if (nDismiss) {
-            MainApplication.lcdk.setRfidListener(null)
+            RfidService.unregister()
             MainApplication.lcdk.setFingerprintListener(null)
         }
         timer?.cancel()
@@ -442,7 +444,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), IRfidListener, IFingerprint
                             obj.getBoolean("success"),
                             obj.optString("message", "")
                         )
-                        MainApplication.lcdk.setRfidListener(null)
+                        RfidService.unregister()
                         MainApplication.lcdk.setFingerprintListener(null)
                     } else {
                         activity?.runOnUiThread {
@@ -485,7 +487,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), IRfidListener, IFingerprint
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         nDismiss = false
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
         MainApplication.lcdk.setFingerprintListener(null)
         val frag = parentFragmentManager.findFragmentByTag(UserSettingsFragment.TAG)
         if (frag != null && frag.isVisible) {

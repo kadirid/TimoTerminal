@@ -21,6 +21,7 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
+import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -81,8 +82,7 @@ class MBSheetFingerprintCardReader(
 
         viewModel.status = 0
         ranCancel = true
-        MainApplication.lcdk.setRfidListener(null)
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
         MainApplication.lcdk.setFingerprintListener(null)
         timer.cancel()
         callback()
@@ -143,9 +143,10 @@ class MBSheetFingerprintCardReader(
         super.onResume()
         binding.buttonClose.visibility = View.VISIBLE
 
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
+        RfidService.setListener(viewModel)
+        RfidService.register()
         MainApplication.lcdk.setFingerprintListener(null)
-        MainApplication.lcdk.setRfidListener(viewModel)
         MainApplication.lcdk.setFingerprintListener(viewModel)
         timer.start()
     }
@@ -153,7 +154,7 @@ class MBSheetFingerprintCardReader(
     // remove listener on pause
     override fun onPause() {
         if (!ranCancel) {
-            MainApplication.lcdk.setRfidListener(null)
+            RfidService.unregister()
             MainApplication.lcdk.setFingerprintListener(null)
             ranCancel = false
         }

@@ -24,12 +24,13 @@ import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.MbRemoteRegisterSheetBinding
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MBRemoteRegisterSheetViewModel
+import com.zkteco.android.core.sdk.service.RfidService
 import com.zkteco.android.lcdk.data.IFingerprintListener
-import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -42,7 +43,7 @@ private const val ARG_IS_FP = "isFP"
 private const val ARG_FINGER = "finger"
 private const val ARG_COMMAND_ID = "commandId"
 
-class MBRemoteRegisterSheet : BottomSheetDialogFragment(), IRfidListener, IFingerprintListener {
+class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, IFingerprintListener {
 
     private val viewModel: MBRemoteRegisterSheetViewModel by sharedViewModel()
     private lateinit var binding: MbRemoteRegisterSheetBinding
@@ -266,7 +267,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), IRfidListener, IFinge
 
     override fun onRfidRead(text: String) {
         if (!isFP) {
-            MainApplication.lcdk.setRfidListener(null)
+            RfidService.unregister()
             timer.cancel()
             val rfidCode = text.toLongOrNull(16)
             if (rfidCode != null) {
@@ -342,7 +343,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), IRfidListener, IFinge
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         nDismiss = false
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
         MainApplication.lcdk.setFingerprintListener(null)
         val frag = parentFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
         if (frag == null || !frag.isVisible) {
@@ -357,16 +358,17 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), IRfidListener, IFinge
     override fun onResume() {
         super.onResume()
 
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
+        RfidService.setListener(this)
+        RfidService.register()
         MainApplication.lcdk.setFingerprintListener(null)
-        MainApplication.lcdk.setRfidListener(this)
         MainApplication.lcdk.setFingerprintListener(this)
         restartTimer()
     }
 
     override fun onPause() {
         if (nDismiss) {
-            MainApplication.lcdk.setRfidListener(null)
+            RfidService.unregister()
             MainApplication.lcdk.setFingerprintListener(null)
         }
         timer.cancel()

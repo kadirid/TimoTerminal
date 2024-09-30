@@ -20,6 +20,7 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
+import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -80,7 +81,7 @@ class AttendanceFragment : Fragment() {
 
     // remove listener on pause
     override fun onPause() {
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
         MainApplication.lcdk.setFingerprintListener(null)
 
         super.onPause()
@@ -120,7 +121,7 @@ class AttendanceFragment : Fragment() {
     }
 
     private fun executeClick() {
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
         MainApplication.lcdk.setFingerprintListener(null)
         val bundle = Bundle()
         bundle.putInt("status", funcCode)
@@ -146,9 +147,10 @@ class AttendanceFragment : Fragment() {
 
     // start listening to card reader
     private fun setListener() {
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
+        RfidService.setListener(viewModel)
+        RfidService.register()
         MainApplication.lcdk.setFingerprintListener(null)
-        MainApplication.lcdk.setRfidListener(viewModel)
         MainApplication.lcdk.setFingerprintListener(viewModel)
     }
 

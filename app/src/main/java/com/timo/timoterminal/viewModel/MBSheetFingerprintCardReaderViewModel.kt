@@ -14,10 +14,11 @@ import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
+import com.zkteco.android.core.sdk.service.RfidService
 import com.zkteco.android.lcdk.data.IFingerprintListener
-import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 
 class MBSheetFingerprintCardReaderViewModel(
@@ -27,7 +28,7 @@ class MBSheetFingerprintCardReaderViewModel(
     private val bookingService: BookingService,
     private val languageService: LanguageService,
     private val soundSource: SoundSource,
-) : ViewModel(), IRfidListener, IFingerprintListener {
+) : ViewModel(), TimoRfidListener, IFingerprintListener {
 
     val liveHideMask: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowMask: MutableLiveData<Boolean> = MutableLiveData()
@@ -179,11 +180,13 @@ class MBSheetFingerprintCardReaderViewModel(
                                 bundle.putBoolean("adjusted", obj.getBoolean("adjusted"))
                             if (obj.has("error"))
                                 bundle.putString("error", obj.getString("error"))
+                            if(obj.has("bookingTime"))
+                                bundle.putString("bookingTime", obj.getString("bookingTime"))
                             bundle.putBoolean("success", obj.getBoolean("success"))
                             bundle.putString("message", obj.getString("message"))
                             bundle.putString("name", name)
                             liveShowMessageSheet.postValue(bundle)
-                            MainApplication.lcdk.setRfidListener(null)
+                            RfidService.unregister()
                             MainApplication.lcdk.setFingerprintListener(null)
                             if (!obj.getBoolean("success")) {
                                 soundSource.playSound(SoundSource.failedSound)
@@ -203,7 +206,7 @@ class MBSheetFingerprintCardReaderViewModel(
     private fun processOffline(entity: BookingEntity, name: String) {
         viewModelScope.launch {
             soundSource.playSound(SoundSource.offlineSaved)
-            MainApplication.lcdk.setRfidListener(null)
+            RfidService.unregister()
             MainApplication.lcdk.setFingerprintListener(null)
             val bundle = Bundle()
             bundle.putInt(

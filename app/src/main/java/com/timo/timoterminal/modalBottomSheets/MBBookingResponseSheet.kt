@@ -59,6 +59,7 @@ class MBBookingResponseSheet : BottomSheetDialogFragment() {
         val offline = arguments?.getBoolean("offline", false) == true
         val failure = arguments?.getBoolean("success", true) == false
         val message = arguments?.getString("message") ?: ""
+        val bookingTime = arguments?.getString("bookingTime")
 
         val successText = binding.bookingMessageSuccessTypeTextView
         val infoMessage = binding.bookingMessageInfoMessageTextView
@@ -107,7 +108,7 @@ class MBBookingResponseSheet : BottomSheetDialogFragment() {
             userText.text = arguments?.getString("name") ?: ""
         }
 
-        val timeTextValue = Utils.getTimeFromGC(Utils.getCal()) + timeAddon
+        val timeTextValue = (bookingTime ?: Utils.getTimeFromGC(Utils.getCal())) + timeAddon
         if(adjusted){
             timeText.visibility = View.GONE
             infoMessage.visibility = View.GONE

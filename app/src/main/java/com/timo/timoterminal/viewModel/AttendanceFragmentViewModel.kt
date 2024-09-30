@@ -13,9 +13,9 @@ import com.timo.timoterminal.modalBottomSheets.MBBookingResponseSheet
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.lcdk.data.IFingerprintListener
-import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -24,7 +24,7 @@ class AttendanceFragmentViewModel(
     private val userRepository: UserRepository,
     private val soundSource: SoundSource,
     private val languageService: LanguageService
-) : ViewModel(), IRfidListener, IFingerprintListener {
+) : ViewModel(), TimoRfidListener, IFingerprintListener {
 
     val liveUserCard: MutableLiveData<Pair<String, Int>> = MutableLiveData()
     val liveErrorMsg: MutableLiveData<String> = MutableLiveData()
@@ -62,6 +62,8 @@ class AttendanceFragmentViewModel(
                         bundle.putBoolean("adjusted", obj.getBoolean("adjusted"))
                     if(obj.has("error"))
                         bundle.putString("error", obj.getString("error"))
+                    if(obj.has("bookingTime"))
+                        bundle.putString("bookingTime", obj.getString("bookingTime"))
                     bundle.putBoolean("success", obj.getBoolean("success"))
                     bundle.putString("message", obj.getString("message"))
                     bundle.putString("name", user?.name() ?: "")

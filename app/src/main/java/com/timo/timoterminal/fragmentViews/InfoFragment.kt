@@ -24,6 +24,7 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
+import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -65,9 +66,10 @@ class InfoFragment : Fragment() {
     }
 
     private fun register() {
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
+        RfidService.setListener(viewModel)
+        RfidService.register()
         MainApplication.lcdk.setFingerprintListener(null)
-        MainApplication.lcdk.setRfidListener(viewModel)
         MainApplication.lcdk.setFingerprintListener(viewModel)
     }
 
@@ -78,7 +80,7 @@ class InfoFragment : Fragment() {
     }
 
     private fun unregister() {
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
         MainApplication.lcdk.setFingerprintListener(null)
     }
 

@@ -111,6 +111,7 @@ class SettingsFragment : Fragment() {
                 viewModel.loadSound()
             }
             binding.buttonReboot.setSafeOnClickListener {
+                binding.buttonReboot.isEnabled = false
                 MainApplication.lcdk.reboot()
             }
             binding.buttonSound.visibility = if (userId < 0) View.VISIBLE else View.GONE

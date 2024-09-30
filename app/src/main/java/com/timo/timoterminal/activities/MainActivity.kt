@@ -33,6 +33,7 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MainActivityViewModel
+import com.zkteco.android.core.sdk.service.RfidService
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -313,9 +314,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private fun showVerificationAlert() {
         timer.cancel()
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
-        MainApplication.lcdk.setRfidListener(null)
-         MainApplication.lcdk.setRfidListener(mainActivityViewModel)
-         
+        RfidService.unregister()
+        RfidService.setListener(mainActivityViewModel)
+        RfidService.register()
+
         MainApplication.lcdk.setFingerprintListener(null)
         MainApplication.lcdk.setFingerprintListener(mainActivityViewModel)
         dialogBinding.textInputLayoutVerificationId.hint =
@@ -377,7 +379,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             dialogBinding.textInputEditTextVerificationPin.isFocusableInTouchMode = true
         }
         dialog!!.setOnDismissListener {
-            MainApplication.lcdk.setRfidListener(null)
+            RfidService.unregister()
             MainApplication.lcdk.setFingerprintListener(null)
             alertTimer?.cancel()
             val frag = supportFragmentManager.findFragmentByTag(AttendanceFragment.TAG)

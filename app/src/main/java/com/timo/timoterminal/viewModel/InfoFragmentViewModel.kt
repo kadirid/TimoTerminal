@@ -13,9 +13,9 @@ import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.lcdk.data.IFingerprintListener
-import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -26,7 +26,7 @@ class InfoFragmentViewModel(
     private val soundSource: SoundSource,
     private val userService: UserService,
     private val sharedPrefService: SharedPrefService
-) : ViewModel(), IRfidListener, IFingerprintListener {
+) : ViewModel(), TimoRfidListener, IFingerprintListener {
 
     private var isTimerRunning = true
     private val timer = object : CountDownTimer(9999, 950) {

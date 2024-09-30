@@ -16,9 +16,9 @@ import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HeartbeatService
 import com.timo.timoterminal.service.HttpService
 import com.timo.timoterminal.service.SharedPrefService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.lcdk.data.IFingerprintListener
-import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -29,7 +29,7 @@ class MainActivityViewModel(
     private val heartbeatService: HeartbeatService,
     private val sharedPrefService: SharedPrefService,
     private val httpService: HttpService
-) : ViewModel(), KoinComponent, IFingerprintListener, IRfidListener {
+) : ViewModel(), KoinComponent, IFingerprintListener, TimoRfidListener {
     private val soundSource: SoundSource by inject()
 
     val liveUserEntity: MutableLiveData<UserEntity> = MutableLiveData()

@@ -57,7 +57,7 @@ class Utils {
         private var dayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         private var timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
         private var dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-        private var dateNameFormatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
+        private var dateNameFormatter = SimpleDateFormat("EE dd.MM.yyyy", Locale.getDefault())
         private var databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
 
         private val handlerThread = HandlerThread("backgroundTimerThread")
@@ -501,6 +501,20 @@ class Utils {
                 3 -> (parts[0].toFloat() * 60) + parts[1].toFloat() + if (parts[2].toInt() > 29) 1 else 0
                 else -> 0f
             }
+        }
+
+        fun hexStringToByteArray(hexString: String): ByteArray {
+            return hexString.chunked(2)
+                .map { it.toInt(16).toByte() }
+                .toByteArray()
+        }
+
+        fun byteArrayToHex(byteArray: ByteArray): String {
+            return StringBuilder().apply {
+                byteArray.forEach { byte ->
+                    append(String.format("%02x", byte.toInt() and 0xFF))
+                }
+            }.toString()
         }
     }
 }

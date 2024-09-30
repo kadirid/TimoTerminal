@@ -53,9 +53,9 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_settings"
             style="?attr/materialIconButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="52dp"
-            android:layout_marginBottom="50dp"
+            android:layout_width="0dp"
+            android:layout_height="77dp"
+            android:layout_marginBottom="25dp"
             android:drawableTop="@drawable/outline_settings_26"
             app:iconTint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"

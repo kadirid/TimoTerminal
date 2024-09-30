@@ -27,11 +27,12 @@ import com.timo.timoterminal.entityAdaptor.UserEntityAdaptor.OnItemClickListener
 import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.modalBottomSheets.MBUserWaitSheet
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.UserSettingsFragmentViewModel
+import com.zkteco.android.core.sdk.service.RfidService
 import com.zkteco.android.lcdk.data.IFingerprintListener
-import com.zkteco.android.lcdk.data.IRfidListener
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -39,7 +40,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 private const val ARG_USERID = "userId"
 
-class UserSettingsFragment : Fragment(), IRfidListener, IFingerprintListener {
+class UserSettingsFragment : Fragment(), TimoRfidListener, IFingerprintListener {
 
     private val userSettingsFragmentViewModel: UserSettingsFragmentViewModel by viewModel()
     private lateinit var binding: FragmentUserSettingsBinding
@@ -157,14 +158,15 @@ class UserSettingsFragment : Fragment(), IRfidListener, IFingerprintListener {
     override fun onResume() {
         super.onResume()
 
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
+        RfidService.setListener(this)
+        RfidService.register()
         MainApplication.lcdk.setFingerprintListener(null)
-        MainApplication.lcdk.setRfidListener(this)
         MainApplication.lcdk.setFingerprintListener(this)
     }
 
     override fun onPause() {
-        MainApplication.lcdk.setRfidListener(null)
+        RfidService.unregister()
         MainApplication.lcdk.setFingerprintListener(null)
 
         super.onPause()
