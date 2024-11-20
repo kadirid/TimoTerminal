@@ -45,4 +45,8 @@
     <string name="invalid_value">Ungültiger Wert</string>
     <string name="please_wait">Bitte warten Sie, die automatische Anmeldung kann einige Zeit dauern.</string>
     <string name="timeout_second">Anzeige Zeit der Buchungsmaske in Sekunden</string>
+    <string name="dark_screen_saver">Dunkler Bildschirmschoner ohne Animation</string>
+    <string name="animated_screen_saver">Animierter Bildschirmschoner</string>
+    <string name="volume">"Lautstärke: "</string>
+    <string name="screen_saver">"Bildschirmschoner: "</string>
 </resources>

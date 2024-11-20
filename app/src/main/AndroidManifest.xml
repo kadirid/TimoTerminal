@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -20,6 +19,9 @@
         tools:ignore="ScopedStorage" />
     <uses-permission
         android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission
+        android:name="android.permission.BIND_DREAM_SERVICE"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
@@ -44,6 +46,8 @@
         <activity
             android:name=".activities.NoInternetNetworkSettingsActivity"
             android:exported="false" />
+        <activity android:name=".activities.TestActivity"
+            android:exported="false" />
         <activity
             android:name=".activities.LoginActivity"
             android:windowSoftInputMode="stateHidden|adjustResize"
@@ -60,6 +64,33 @@
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
             tools:node="remove" />
+
+        <service android:name=".service.DarkScreenSaverService"
+            android:exported="true"
+            android:permission="android.permission.BIND_DREAM_SERVICE"
+            android:label="@string/dark_screen_saver"
+            android:icon="@drawable/baseline_rectangle_24">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.dream.dark"
+                android:resource="@xml/dark_dream_settings" />
+        </service>
+
+        <service android:name=".service.AnimatedDreamSaverService"
+            android:exported="true"
+            android:permission="android.permission.BIND_DREAM_SERVICE"
+            android:label="@string/animated_screen_saver">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.dream.animated"
+                android:resource="@xml/animated_dream_settings" />
+        </service>
 
         <activity
             android:name=".activities.MainActivity"

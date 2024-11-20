@@ -1,8 +1,10 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.media.AudioManager
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -13,10 +15,12 @@ import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import android.widget.SeekBar
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.BuildConfig
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.activities.NoInternetNetworkSettingsActivity
@@ -50,7 +54,9 @@ class LoginFragment : Fragment() {
     private val viewModel: LoginFragmentViewModel =
         LoginFragmentViewModel(loginService, settingsService, languageService, sharedPrefService)
     private lateinit var binding: FragmentLoginBinding
+    private lateinit var audioManager: AudioManager
     private var first = true
+    private var firstRes = true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -61,12 +67,16 @@ class LoginFragment : Fragment() {
         initLanguageDropdown()
         initTimezoneDropdown()
         initDebugFields()
+        setUpSeekBar()
         return binding.root
     }
 
     override fun onResume() {
         super.onResume()
         Utils.hideStatusAndNavbar(requireActivity())
+        if(!firstRes)
+            MainApplication.lcdk.hideSystemUI()
+        firstRes = false
         viewModel.onResume { isOnline ->
             if (isOnline) {
                 showLogin()
@@ -96,6 +106,25 @@ class LoginFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun setUpSeekBar() {
+        audioManager = requireActivity().getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+        binding.volumeSeekBar.max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        binding.volumeSeekBar.progress = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+
+        binding.volumeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
     }
 
     private fun openMainView(isNewTerminal: Boolean?) {
@@ -143,6 +172,11 @@ class LoginFragment : Fragment() {
                 override fun onAnimationEnd(p0: Animation?) {
                     binding.dropdownMenuLayoutLanguage.visibility = View.GONE
                     binding.dropdownMenuLayoutTimezone.visibility = View.GONE
+                    binding.volumeTextView.visibility = View.GONE
+                    binding.volumeSeekBar.visibility = View.GONE
+                    binding.buttonPlaySound.visibility = View.GONE
+                    binding.screenSaverContainerText.visibility = View.GONE
+                    binding.screenSaverBtn.visibility = View.GONE
 
                     binding.textInputLayoutLoginCompany.startAnimation(fadeInAnimation)
                     binding.textInputLayoutLoginCompany.visibility = View.VISIBLE
@@ -181,6 +215,11 @@ class LoginFragment : Fragment() {
         } else {
             binding.dropdownMenuLayoutLanguage.visibility = View.GONE
             binding.dropdownMenuLayoutTimezone.visibility = View.GONE
+            binding.volumeTextView.visibility = View.GONE
+            binding.volumeSeekBar.visibility = View.GONE
+            binding.buttonPlaySound.visibility = View.GONE
+            binding.screenSaverContainerText.visibility = View.GONE
+            binding.screenSaverBtn.visibility = View.GONE
             binding.textInputLayoutLoginCompany.visibility = View.VISIBLE
             binding.textInputLayoutLoginPassword.visibility = View.VISIBLE
             binding.textInputLayoutLoginUser.visibility = View.VISIBLE
@@ -246,6 +285,16 @@ class LoginFragment : Fragment() {
                 val goToInetSettingsActivity =
                     Intent(context, NoInternetNetworkSettingsActivity::class.java)
                 startActivity(goToInetSettingsActivity)
+            }
+
+            binding.screenSaverBtn.setSafeOnClickListener {
+                MainApplication.lcdk.showSystemUI()
+                val goToScreenSaver = Intent(android.provider.Settings.ACTION_DREAM_SETTINGS)
+                startActivity(goToScreenSaver);
+            }
+
+            binding.buttonPlaySound.setOnClickListener {
+                soundSource.playSound(SoundSource.successSound)
             }
 
             binding.imageViewLogoBig.setOnLongClickListener {

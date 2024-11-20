@@ -63,7 +63,7 @@ class SettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        if(!first) {
+        if (!first) {
             (requireActivity() as MainActivity).getViewModel().hideSystemUI()
         }
         first = false
@@ -83,7 +83,7 @@ class SettingsFragment : Fragment() {
             binding.buttonTerminalBooking.text = languageService.getText("TERMINAL#Booking list")
             binding.buttonLogout.text = languageService.getText("#RenewLogin", "Logout")
             binding.buttonBack.text = languageService.getText("hints#zurueck", "Back")
-            binding.buttonInternalSettings.text = languageService.getText("#TimeSettings")
+            binding.buttonInternalSettings.text = languageService.getText("#OtherSettings", "Sonstige Einstellungen")
             active = viewModel.getSoundActive()
             binding.buttonSound.text =
                 if (active)
@@ -240,6 +240,7 @@ class SettingsFragment : Fragment() {
             binding.buttonBack.setOnClickListener {
                 parentFragmentManager.popBackStack()
             }
+            binding.buttonInternalSettings.visibility = if (userId < 0) View.VISIBLE else View.GONE
             binding.buttonInternalSettings.setOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
                 parentFragmentManager.commit {
@@ -254,7 +255,8 @@ class SettingsFragment : Fragment() {
                 val passCodeEditText = EditText(requireContext())
                 passCodeEditText.isFocusableInTouchMode = false
                 passCodeEditText.isFocusable = false
-                passCodeEditText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_FILTER
+                passCodeEditText.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_FILTER
                 passCodeEditText.privateImeOptions = "nm"
 
                 val dlgAlert: AlertDialog.Builder =

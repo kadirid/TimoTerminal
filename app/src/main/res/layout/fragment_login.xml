@@ -68,6 +68,8 @@
         android:id="@+id/button_submit"
         android:layout_width="400dp"
         android:layout_height="60dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:text="@string/save"
         android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="@id/text_input_layout_login_user"
@@ -92,19 +94,18 @@
         android:layout_width="147dp"
         android:layout_height="147dp"
         android:layout_marginTop="5dp"
+        android:layout_marginEnd="120dp"
         android:scaleType="centerCrop"
         android:src="@drawable/logo_nur_o_hell_blau_4096x2304"
-        app:layout_constraintBottom_toBottomOf="@id/text_input_layout_login_user"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/text_input_layout_login_user"
-        app:layout_constraintTop_toTopOf="@id/text_input_layout_login_user" />
+        app:layout_constraintBottom_toBottomOf="@id/text_input_layout_login_password"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/text_input_layout_login_company"
         android:layout_width="600dp"
-        android:layout_height="70dp"
+        android:layout_height="60dp"
         android:hint="@string/company"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@id/text_input_layout_login_user"
         app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
         tools:visibility="invisible">
@@ -114,15 +115,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:inputType="textFilter"
+            android:padding="0dp"
             android:privateImeOptions="nm"
-            android:textSize="30sp" />
+            android:textSize="25sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/text_input_layout_login_user"
         android:layout_width="600dp"
-        android:layout_height="70dp"
+        android:layout_height="60dp"
         android:hint="@string/loginname"
         android:visibility="invisible"
         app:layout_constraintEnd_toStartOf="@id/image_view_logo_big"
@@ -135,15 +137,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:inputType="textFilter"
+            android:padding="0dp"
             android:privateImeOptions="nm"
-            android:textSize="30sp" />
+            android:textSize="25sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/text_input_layout_login_password"
         android:layout_width="600dp"
-        android:layout_height="70dp"
+        android:layout_height="60dp"
         android:hint="@string/password"
         android:visibility="invisible"
         app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
@@ -156,19 +159,78 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:inputType="textPassword"
+            android:padding="0dp"
             android:privateImeOptions="nm"
-            android:textSize="30sp" />
+            android:textSize="25sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/volume_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:text="@string/volume"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="@id/dropdown_menu_layout_language"
+        app:layout_constraintTop_toTopOf="@id/volume_seek_bar" />
+
+    <SeekBar
+        android:id="@+id/volume_seek_bar"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="10dp"
+        android:max="100"
+        android:progress="50"
+        app:layout_constraintBottom_toTopOf="@id/dropdown_menu_layout_language"
+        app:layout_constraintEnd_toStartOf="@id/button_play_sound"
+        app:layout_constraintStart_toEndOf="@id/volume_text_view" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_play_sound"
+        android:layout_width="50dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/square_button_background"
+        app:backgroundTint="#10000000"
+        app:icon="@drawable/baseline_play_arrow_24"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="24dp"
+        app:iconTint="#000000"
+        app:layout_constraintEnd_toStartOf="@id/screen_saver_container_text"
+        app:layout_constraintTop_toTopOf="@id/volume_seek_bar" />
+
+    <TextView
+        android:id="@+id/screen_saver_container_text"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_marginEnd="10dp"
+        android:text="@string/screen_saver"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toStartOf="@id/screen_saver_btn"
+        app:layout_constraintTop_toTopOf="@id/volume_seek_bar" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/screen_saver_btn"
+        android:layout_width="50dp"
+        android:layout_height="30dp"
+        android:background="@drawable/square_button_background"
+        app:backgroundTint="#10000000"
+        app:icon="@drawable/baseline_screen_lock_landscape_24"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="24dp"
+        app:iconTint="#000000"
+        app:layout_constraintBottom_toBottomOf="@id/screen_saver_container_text"
+        app:layout_constraintEnd_toEndOf="@id/text_input_layout_login_user" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/dropdown_menu_layout_language"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="600dp"
-        android:layout_height="70dp"
-        android:layout_marginBottom="5dp"
+        android:layout_height="60dp"
         android:hint="@string/language"
-        app:layout_constraintBottom_toTopOf="@id/dropdown_menu_layout_timezone"
+        app:layout_constraintBottom_toBottomOf="@id/text_input_layout_login_user"
         app:layout_constraintEnd_toEndOf="@id/text_input_layout_login_user"
         app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
         app:layout_constraintTop_toTopOf="@id/text_input_layout_login_user"
@@ -180,7 +242,9 @@
             android:layout_height="match_parent"
             android:imeOptions="actionDone"
             android:inputType="none"
-            android:textSize="30sp" />
+            android:padding="0dp"
+            android:textSize="25sp"
+            tools:text="Test" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -188,13 +252,12 @@
         android:id="@+id/dropdown_menu_layout_timezone"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="600dp"
-        android:layout_height="70dp"
-        android:layout_marginTop="5dp"
+        android:layout_height="60dp"
         android:hint="@string/timezone"
-        app:layout_constraintBottom_toBottomOf="@id/text_input_layout_login_user"
-        app:layout_constraintEnd_toEndOf="@id/text_input_layout_login_user"
-        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_user"
-        app:layout_constraintTop_toBottomOf="@id/dropdown_menu_layout_language"
+        app:layout_constraintBottom_toBottomOf="@id/text_input_layout_login_password"
+        app:layout_constraintEnd_toEndOf="@id/text_input_layout_login_password"
+        app:layout_constraintStart_toStartOf="@id/text_input_layout_login_password"
+        app:layout_constraintTop_toTopOf="@id/text_input_layout_login_password"
         tools:visibility="visible">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -204,8 +267,9 @@
             android:dropDownWidth="800dp"
             android:imeOptions="actionDone"
             android:inputType="textFilter"
+            android:padding="0dp"
             android:privateImeOptions="nm"
-            android:textSize="30sp" />
+            android:textSize="25sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

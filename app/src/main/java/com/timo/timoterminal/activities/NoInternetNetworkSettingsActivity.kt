@@ -43,10 +43,6 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
             loginActivityViewModel.viewModelScope.launch {
                 if (Utils.isOnline(this@NoInternetNetworkSettingsActivity)) {
                     finish()
-                    Handler(this@NoInternetNetworkSettingsActivity.mainLooper).postDelayed(900) {
-                        Log.d("NoInternetNetworkSettingsActivity","hideSystemUi")
-                        MainApplication.lcdk.hideSystemUI()
-                    }
                 }
             }
         }
@@ -58,10 +54,6 @@ class NoInternetNetworkSettingsActivity : AppCompatActivity() {
             loginActivityViewModel.viewModelScope.launch {
                 if (Utils.isOnline(this@NoInternetNetworkSettingsActivity)) {
                     finish()
-                    Handler(this@NoInternetNetworkSettingsActivity.mainLooper).postDelayed(900) {
-                        Log.d("NoInternetNetworkSettingsActivity", "hideSystemUi")
-                        MainApplication.lcdk.hideSystemUI()
-                    }
                 }
             }
         }

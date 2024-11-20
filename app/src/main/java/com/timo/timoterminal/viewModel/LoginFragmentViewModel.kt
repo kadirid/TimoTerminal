@@ -53,7 +53,7 @@ class LoginFragmentViewModel(
 
     fun onResume(callback: (isOnline: Boolean) -> Unit) {
         viewModelScope.launch {
-            val saved: Boolean = !sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE, "").isNullOrEmpty()
+            val saved: Boolean = !sharedPrefService.getString(SharedPreferenceKeys.LANGUAGE).isNullOrEmpty()
             if (saved) {
                 callback(true)
             }
