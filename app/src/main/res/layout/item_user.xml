@@ -52,7 +52,7 @@
             android:id="@+id/text_view_user_pin_label"
             android:layout_width="30dp"
             android:layout_height="wrap_content"
-            android:text="Pin:"
+            android:text="@string/pin"
             app:layout_constraintEnd_toStartOf="@id/text_view_user_pin"
             app:layout_constraintStart_toEndOf="@id/text_view_user_card"
             app:layout_constraintTop_toBottomOf="@id/text_view_user_id"/>

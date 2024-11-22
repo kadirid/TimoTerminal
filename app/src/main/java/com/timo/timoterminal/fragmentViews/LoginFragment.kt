@@ -290,7 +290,7 @@ class LoginFragment : Fragment() {
             binding.screenSaverBtn.setSafeOnClickListener {
                 MainApplication.lcdk.showSystemUI()
                 val goToScreenSaver = Intent(android.provider.Settings.ACTION_DREAM_SETTINGS)
-                startActivity(goToScreenSaver);
+                startActivity(goToScreenSaver)
             }
 
             binding.buttonPlaySound.setOnClickListener {

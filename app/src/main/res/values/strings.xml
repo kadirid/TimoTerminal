@@ -44,10 +44,10 @@
     <string name="invalid_value">Invalid value</string>
     <string name="please_wait">Please wait, automatic login can take some time.</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="timeout_second">Showing time of booking mask in seconds</string>
     <string name="dark_screen_saver">Dark Screen Saver without Animation</string>
     <string name="animated_screen_saver">Animated Screen Saver</string>
     <string name="volume">Volume:</string>
     <string name="screen_saver">Screen Saver</string>
+    <string name="pin">Pin:</string>
 </resources>

@@ -443,23 +443,21 @@ class Utils {
                 }
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        android.Manifest.permission.REQUEST_INSTALL_PACKAGES
-                    ) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    ActivityCompat.requestPermissions(
-                        activity,
-                        arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                        1
-                    )
-                    return
-                }
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.REQUEST_INSTALL_PACKAGES
+                ) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    activity,
+                    arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    1
+                )
+                return
             }
             val request = Request(Uri.parse(apkUrl))
                 .setTitle("APK Download")

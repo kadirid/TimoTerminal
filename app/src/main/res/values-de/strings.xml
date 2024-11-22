@@ -49,4 +49,5 @@
     <string name="animated_screen_saver">Animierter Bildschirmschoner</string>
     <string name="volume">"Lautstärke: "</string>
     <string name="screen_saver">"Bildschirmschoner: "</string>
+    <string name="pin">Pin:</string>
 </resources>

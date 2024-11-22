@@ -104,7 +104,7 @@ class InternalTerminalSettingsFragment : Fragment() {
         binding.screenSaverBtn.setSafeOnClickListener {
             (requireActivity() as MainActivity).getViewModel().showSystemUI()
             val goToScreenSaver = Intent(android.provider.Settings.ACTION_DREAM_SETTINGS)
-            startActivity(goToScreenSaver);
+            startActivity(goToScreenSaver)
         }
 
         binding.buttonPlaySound.setOnClickListener {
