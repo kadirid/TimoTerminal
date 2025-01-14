@@ -109,17 +109,17 @@ var appModule = module {
     single { LoginService(get(), get(), get(), get(), get(), get(), get()) }
 
 
-    viewModel { InternalTerminalSettingsFragmentViewModel(get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBUserWaitSheetViewModel(get(), get(), get(), get()) }
     viewModel { SettingsFragmentViewModel(get(), get(), get(), get()) }
+    viewModel { InternalTerminalSettingsFragmentViewModel(get(), get()) }
     viewModel { AttendanceFragmentViewModel(get(), get(), get(), get()) }
     viewModel { InfoFragmentViewModel(get(), get(), get(), get(), get()) }
     viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBRemoteRegisterSheetViewModel(get(), get(), get(), get()) }
-    viewModel { MBSheetFingerprintCardReaderViewModel(get(),get(),get(),get(),get(),get()) }
+    viewModel { MBSheetFingerprintCardReaderViewModel(get(), get(), get(), get(), get(), get()) }
 
     worker(named<HeartbeatWorker>()) {
         HeartbeatWorker(

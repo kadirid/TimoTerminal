@@ -110,6 +110,8 @@ class InternalTerminalSettingsFragment : Fragment() {
         binding.buttonPlaySound.setOnClickListener {
             soundSource.playSound(SoundSource.successSound)
         }
+
+        binding.infoVersionText.text = viewModel.getVersionName()
     }
 
     override fun onResume() {
