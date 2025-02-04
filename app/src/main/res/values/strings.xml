@@ -20,7 +20,7 @@
     <string name="login">Login</string>
     <string name="save_settings">Save Settings</string>
     <string name="save">Save</string>
-    <string name="wilkommen_bei_timo">Welcome to TimO®</string>
+    <string name="wilkommen_bei_timo">Welcome to Time Management Office</string>
     <string name="info_intial_ethernet_settigns">Could not access internet\nPlease verify settings.</string>
     <string name="ethernet_settings">Ethernet Settings</string>
     <string name="mobile_network_settings">Mobile Network Settings</string>
@@ -29,7 +29,7 @@
     <string name="user_passcode">Pin Code</string>
     <string name="timo_login_name">Login Name</string>
     <string name="company">Company</string>
-    <string name="loginname">Loginname</string>
+    <string name="loginname" translatable="false">Loginname</string>
     <string name="password">Password</string>
     <string name="timo_service_not_reachable">TimO service is not reachable!</string>
     <string name="company_does_not_exists_or_is_wrong">Company does not exist or company name is wrong!</string>
@@ -50,4 +50,5 @@
     <string name="volume">Volume:</string>
     <string name="screen_saver">Screen Saver</string>
     <string name="pin">Pin:</string>
+    <string name="next">Next</string>
 </resources>

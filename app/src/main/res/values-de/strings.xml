@@ -21,7 +21,7 @@
     <string name="login">Anmelden</string>
     <string name="save_settings">Einstellungen speichern</string>
     <string name="save">Speichern</string>
-    <string name="wilkommen_bei_timo">Willkommen bei TimO®</string>
+    <string name="wilkommen_bei_timo">Willkommen bei Time Management Office</string>
     <string name="info_intial_ethernet_settigns">Auf das Internet konnte nicht zugegriffen werden.\nBitte überprüfen Sie die Einstellungen.</string>
     <string name="ethernet_settings">LAN Einstellungen</string>
     <string name="mobile_network_settings">Mobile Interneteinstellungen</string>
@@ -50,4 +50,5 @@
     <string name="volume">"Lautstärke: "</string>
     <string name="screen_saver">"Bildschirmschoner: "</string>
     <string name="pin">Pin:</string>
+    <string name="next">Weiter</string>
 </resources>

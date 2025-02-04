@@ -3,51 +3,47 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/welcome_constraint_layout"
     android:layout_width="match_parent"
-    android:backgroundTint="#fff"
-    android:background="@drawable/rounded_container_16dp"
     android:layout_height="match_parent"
-    >
+    android:background="@drawable/rounded_container_16dp"
+    android:backgroundTint="#fff">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/logo_image"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             android:layout_width="400dp"
             android:layout_height="225dp"
             android:background="@drawable/logo_nur_o_hell_blau_4096x2304"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/welcome_text"
             style="@style/TextAppearance.Material3.DisplaySmall"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/logo_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="40dp"
-            android:text="@string/wilkommen_bei_timo" />
+            android:text="@string/wilkommen_bei_timo"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/logo_image" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/iconButton"
-            style="?attr/materialIconButtonFilledStyle"
+            style="@style/SettingsViewButtons"
+            android:layout_marginTop="40dp"
+            android:text="@string/next"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/welcome_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            android:backgroundTint="@color/welcome_green"
-            android:drawableLeft="@drawable/round_chevron_right_24" />
+            app:layout_constraintTop_toBottomOf="@id/welcome_text" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

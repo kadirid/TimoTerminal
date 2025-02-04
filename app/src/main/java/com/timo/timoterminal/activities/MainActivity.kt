@@ -34,6 +34,7 @@ import com.timo.timoterminal.utils.classes.SoundSource
 import com.timo.timoterminal.utils.classes.setSafeOnClickListener
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.zkteco.android.core.sdk.service.RfidService
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -151,6 +152,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }else{
             binding.terminalHasUpdateButton.visibility = View.VISIBLE
         }
+        testLanguage(mainActivityViewModel.viewModelScope)
 
         super.onResume()
     }
@@ -475,4 +477,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     fun getBinding() = binding
+
+    private fun testLanguage(coroutineScope: CoroutineScope){
+        if(languageService.getText("#Attendance","ErrorDefault") == "ErrorDefault"){
+            languageService.requestLanguageFromServer(coroutineScope, this)
+        }
+    }
 }

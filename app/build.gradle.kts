@@ -13,7 +13,7 @@ android {
         minSdk = 23
         targetSdk = 33
         versionCode = 1
-        versionName = "1.3"
+        versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -137,5 +137,4 @@ dependencies {
 
     // optional - RxJava3 support
     implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
-
 }
