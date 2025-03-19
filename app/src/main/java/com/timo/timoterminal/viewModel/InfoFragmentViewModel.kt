@@ -144,7 +144,7 @@ class InfoFragmentViewModel(
             liveHideMask.postValue(true)
             soundSource.playSound(SoundSource.failedSound)
             liveErrorMessage.postValue(
-                languageService.getText("#TimoServiceNotReachable")
+                languageService.getText("MOBILE#NoServerResponse")
             )
         }
     }

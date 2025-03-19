@@ -202,7 +202,7 @@ class AttendanceFragment : Fragment() {
                                 res,
                                 context,
                                 output,
-                                languageService.getText("#TimoServiceNotReachable")
+                                languageService.getText("#SelectTypeForOffline")
                             )
                         }
                     )
