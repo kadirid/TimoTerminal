@@ -84,7 +84,6 @@ class InfoFragmentViewModel(
         viewModelScope.launch {
             val user = getUserEntityById(id.toLong())
             if (user != null) {
-                soundSource.playSound(SoundSource.successSound)
                 liveUser.postValue(Pair(true, user))
                 type = 2
             } else {
@@ -98,7 +97,6 @@ class InfoFragmentViewModel(
         viewModelScope.launch {
             val user = getUserEntityByCard(card)
             if (user != null) {
-                soundSource.playSound(SoundSource.successSound)
                 liveUser.postValue(Pair(true, user))
                 type = 1
             } else {
@@ -111,7 +109,6 @@ class InfoFragmentViewModel(
         viewModelScope.launch {
             val user = getUserForPin(pin)
             if (user != null) {
-                soundSource.playSound(SoundSource.successSound)
                 liveUser.postValue(Pair(true, user))
                 type = 3
             } else {
