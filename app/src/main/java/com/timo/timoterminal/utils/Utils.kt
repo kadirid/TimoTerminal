@@ -59,6 +59,7 @@ class Utils {
         private var dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
         private var dateNameFormatter = SimpleDateFormat("EE dd.MM.yyyy", Locale.getDefault())
         private var databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+        private var dayTransferFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
         private val handlerThread = HandlerThread("backgroundTimerThread")
         private val calendar = GregorianCalendar()
@@ -241,8 +242,28 @@ class Utils {
             return greg
         }
 
+        fun parseGCFromDate(date: String): GregorianCalendar {
+            val greg = GregorianCalendar()
+            val pDate = dayFormatter.parse(date)
+            if (pDate != null)
+                greg.time = pDate
+            return greg
+        }
+
+        fun getDateForDB(gc: GregorianCalendar): String {
+            return databaseFormatter.format(gc.time)
+        }
+
         fun getDateFromTimestamp(date: Long): String {
             return dayFormatter.format(Date(date))
+        }
+
+        fun getDateFromGC(gc: GregorianCalendar): String {
+            return dayFormatter.format(gc.time)
+        }
+
+        fun getDateForTransfer(gc: GregorianCalendar): String {
+            return dayTransferFormatter.format(gc.time)
         }
 
         fun convertTime(zeit: Double): String {
@@ -298,6 +319,7 @@ class Utils {
             dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
             dateNameFormatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
             databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+            dayTransferFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         }
 
         private fun secTimer() {

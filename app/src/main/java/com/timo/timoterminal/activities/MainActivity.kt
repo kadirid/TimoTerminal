@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
@@ -165,16 +166,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     private fun setUpListeners() {
         binding.buttonSettings.setSafeOnClickListener {
-            showVerificationAlert()
+            showVerificationAlert(::showSettings)
         }
 
         mainActivityViewModel.liveUserEntity.value = null
-        mainActivityViewModel.liveUserEntity.observe(this@MainActivity) {
-            if (it != null) {
-                showSettings(it)
-                mainActivityViewModel.liveUserEntity.value = null
-            }
-        }
         binding.terminalHasUpdateButton.setOnClickListener {
             if (mainActivityViewModel.hasUpdate()) {
                 val launchIntent: Intent? =
@@ -196,9 +191,9 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private fun initNavbarListener() {
         // use loaded permission to hide project menu entry as example
         mainActivityViewModel.viewModelScope.launch {
-//            val projectPermission = mainActivityViewModel.permission("projekt.use")
+            val projectPermission = mainActivityViewModel.permission("projekt.use")
             binding.navigationRail.menu.findItem(R.id.project).isVisible =
-                false// projectPermission == "true" // currently no functionality
+                projectPermission == "true" // currently no functionality
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
             binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
@@ -218,8 +213,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             it.isChecked = false
             val fragment: Fragment? = when (it.itemId) {
                 R.id.attendance -> AttendanceFragment()
+                R.id.project -> ProjectFragment.newInstance(-1, false, -1, false)
                 R.id.absence -> AbsenceFragment.newInstance("", "")
-                R.id.project -> ProjectFragment.newInstance("", "")
                 R.id.info -> InfoFragment()
 
                 else -> null
@@ -228,17 +223,39 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             if (fragment == null) {
                 return@setOnItemSelectedListener false
             } else {
-                if (it.itemId == R.id.attendance) {
-                    supportFragmentManager.commit {
-                        replace(R.id.fragment_container_view, fragment, AttendanceFragment.TAG)
+                when (it.itemId) {
+                    R.id.attendance -> {
+                        supportFragmentManager.commit {
+                            replace(R.id.fragment_container_view, fragment, AttendanceFragment.TAG)
+                        }
+                        timer.cancel()
                     }
-                    timer.cancel()
-                } else {
-                    supportFragmentManager.commit {
-                        addToBackStack(null)
-                        replace(R.id.fragment_container_view, fragment)
+                    R.id.project -> {
+                        showVerificationAlert { user ->
+                            if (user != null) {
+                                supportFragmentManager.commit {
+                                    addToBackStack(null)
+                                    replace(
+                                        R.id.fragment_container_view,
+                                        ProjectFragment.newInstance(
+                                            user.id,
+                                            user.customerBasedProjectTime,
+                                            user.timeEntryType,
+                                            user.crossDay
+                                        )
+                                    )
+                                }
+                                restartTimer()
+                            }
+                        }
                     }
-                    restartTimer()
+                    else -> {
+                        supportFragmentManager.commit {
+                            addToBackStack(null)
+                            replace(R.id.fragment_container_view, fragment)
+                        }
+                        restartTimer()
+                    }
                 }
             }
             true
@@ -251,7 +268,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         } else if (binding.navigationRail.menu.findItem(R.id.project).isVisible) {
             supportFragmentManager.commit {
                 addToBackStack(null)
-                replace(R.id.fragment_container_view, ProjectFragment.newInstance("", ""))
+                replace(R.id.fragment_container_view, ProjectFragment.newInstance(-1, false, -1, false))
             }
             restartTimer()
         } else if (binding.navigationRail.menu.findItem(R.id.absence).isVisible) {
@@ -316,8 +333,16 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         mainActivityViewModel.loadSoundForFP(finger)
     }
 
-    // verify user if present before opening settings page
-    private fun showVerificationAlert() {
+    // verify user if present before executing action
+    private fun showVerificationAlert(action: (UserEntity?) -> Unit) {
+        val observer = Observer<UserEntity?> {
+            if (it != null) {
+                action(it)
+                mainActivityViewModel.liveUserEntity.value = null
+            }
+        }
+        mainActivityViewModel.liveUserEntity.observe(this@MainActivity, observer)
+
         timer.cancel()
         val dialogBinding = DialogVerificationBinding.inflate(layoutInflater)
         RfidService.unregister()
@@ -345,15 +370,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             if (login.isNotEmpty() && pin.isNotEmpty()) {
                 mainActivityViewModel.viewModelScope.launch {
                     val user = mainActivityViewModel.getUserForLogin(login)
-                    if (user != null && user.pin == pin && user.seeMenu) {
-                        supportFragmentManager.commit {
-                            addToBackStack(null)
-                            replace(
-                                R.id.fragment_container_view,
-                                SettingsFragment.newInstance(user.id)
-                            )
-                        }
-                        restartTimer()
+                    if (user != null && user.pin == pin) {
+                        action(user)
                     } else {
                         soundSource.playSound(SoundSource.authenticationFailed)
                         Utils.showMessage(
@@ -387,6 +405,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         dialog!!.setOnDismissListener {
             RfidService.unregister()
             MainApplication.lcdk.setFingerprintListener(null)
+            mainActivityViewModel.liveUserEntity.removeObserver(observer)
             alertTimer?.cancel()
             val frag = supportFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
             if (!isInit && (frag == null || !frag.isVisible))

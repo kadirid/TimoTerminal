@@ -51,4 +51,27 @@
     <string name="screen_saver">"Bildschirmschoner: "</string>
     <string name="pin">Pin:</string>
     <string name="next">Weiter</string>
+    <string name="from">Von</string>
+    <string name="to">Bis</string>
+    <string name="hours">Stunden</string>
+    <string name="orderNo">Auftr.-Nr.</string>
+    <string name="units">Einheiten</string>
+    <string name="task">Vorgang</string>
+    <string name="customer">Kunde</string>
+    <string name="team">Team</string>
+    <string name="ticket">Ticket</string>
+    <string name="activityType">Leistungsart</string>
+    <string name="activityTypeMatrix">Leistungsart Matrix</string>
+    <string name="skill">Skill</string>
+    <string name="description">Beschreibung</string>
+    <string name="placeOfWork">Leistungsort</string>
+    <string name="journey">Reise</string>
+    <string name="travelTime">Fahrtzeit</string>
+    <string name="traveldKm">gef. km</string>
+    <string name="kmAllowance">km pausch.</string>
+    <string name="estimation">% Fertig</string>
+    <string name="billable">Abrechenbar</string>
+    <string name="premiumable">Prämienrelevant</string>
+    <string name="ignoreTimedBreaks">Fest hinterlegte Pausen ignorieren</string>
+    <string name="manDays">Personentag</string>
 </resources>

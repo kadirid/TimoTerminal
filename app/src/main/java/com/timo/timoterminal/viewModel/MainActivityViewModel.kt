@@ -119,24 +119,16 @@ class MainActivityViewModel(
                     -1,
                     "Terminal",
                     "Admin",
-                    "",
                     permission("terminal.zkteco.admin.pin"),
                     login,
-                    1L,
-                    seeMenu = true,
-                    assignedToTerminal = true
                 )
             } else if (login == "admin:2004") {
                 return UserEntity(
                     -2,
                     "TimO",
                     "Admin",
-                    "",
                     permission("terminal.zkteco.support.admin.pin"),
                     login,
-                    1L,
-                    seeMenu = true,
-                    assignedToTerminal = true
                 )
             }
         }

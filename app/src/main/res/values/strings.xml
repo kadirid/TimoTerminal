@@ -51,4 +51,27 @@
     <string name="screen_saver">Screen Saver</string>
     <string name="pin">Pin:</string>
     <string name="next">Next</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+    <string name="hours">Hours</string>
+    <string name="orderNo">Order no.</string>
+    <string name="units">Units</string>
+    <string name="task">Task</string>
+    <string name="customer">Customer</string>
+    <string name="team">Team</string>
+    <string name="ticket">Ticket</string>
+    <string name="activityType">Activity Type</string>
+    <string name="activityTypeMatrix">Activity Type Matrix</string>
+    <string name="skill">Skill</string>
+    <string name="description">Description</string>
+    <string name="placeOfWork">Place of work</string>
+    <string name="journey">Journey</string>
+    <string name="travelTime">Travel time</string>
+    <string name="traveldKm">km</string>
+    <string name="kmAllowance">km blan.</string>
+    <string name="estimation">Estimation</string>
+    <string name="billable">Billable</string>
+    <string name="premiumable">Premiumable</string>
+    <string name="ignoreTimedBreaks">Ignore Timed Breaks</string>
+    <string name="manDays">Man-day</string>
 </resources>

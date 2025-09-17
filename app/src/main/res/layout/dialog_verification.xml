@@ -54,7 +54,7 @@
             android:layout_height="match_parent"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:imeOptions="actionDone"
+            android:imeOptions="actionSend"
             android:inputType="numberPassword"
             android:privateImeOptions="nm"
             android:textSize="20sp"

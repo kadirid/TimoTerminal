@@ -33,6 +33,7 @@ class HeartbeatService : KoinComponent {
     private val languageService: LanguageService by inject()
     private val loginService: LoginService by inject()
     private val bookingService: BookingService by inject()
+    private val projectTimeService: ProjectTimeService by inject()
     private val httpService: HttpService by inject()
     private lateinit var handler: Handler
     private var firstError = false
@@ -120,6 +121,8 @@ class HeartbeatService : KoinComponent {
     }
 
     private fun handelHeartBeatResponse(obj: JSONObject, activity: MainActivity) {
+        checkDaySwitch(activity)
+
         val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
         if (obj.has("timezone") && !obj.isNull("timezone") && !timezone.equals(obj.getString("timezone"))) {
             settingsService.setTimeZone(activity, obj.getString("timezone")) {}
@@ -138,6 +141,7 @@ class HeartbeatService : KoinComponent {
         val updateIds = arrayListOf<Pair<String, String>>()
         val deleteIds = arrayListOf<Pair<String, String>>()
         val deleteFP = arrayListOf<Pair<String, String>>()
+        val updateProjectUserValues = arrayListOf<Pair<String, String>>()
         var lang = Pair("", "")
         var url = ""
         var updateAPK = Pair("", "")
@@ -193,6 +197,10 @@ class HeartbeatService : KoinComponent {
                         TerminalCommands.COMMAND_UPDATE_APK.ordinal -> {
                             updateAPK = Pair(command, id)
                         }
+
+                        TerminalCommands.COMMAND_UPDATE_PROJECT_USER_VALUES.ordinal -> {
+                            updateProjectUserValues.add(Pair(command, id))
+                        }
                     }
                 } else if (type == TerminalCommands.COMMAND_UPDATE_URL.ordinal) {
                     url = command
@@ -246,6 +254,8 @@ class HeartbeatService : KoinComponent {
                     if (updateIds.size > 0) {
                         httpService.responseForMultiCommand(resIds)
                         userService.processUserArray(array, scope, "")
+                    }else if(updateProjectUserValues.size > 0) {
+                        userService.updateProjectUserValues(updateProjectUserValues, scope)
                     }else if(deleteIds.size > 0) {
                         for (no in deleteIds) {
                             userService.deleteUser(no.first, no.second)
@@ -353,6 +363,7 @@ class HeartbeatService : KoinComponent {
                         }
                     } else {
                         bookingService.sendSavedBooking(scope)
+                        projectTimeService.sendSavedProjectTimes(scope)
                     }
                 }
             }
@@ -361,5 +372,35 @@ class HeartbeatService : KoinComponent {
 
     fun stopHeartBeat() {
         handler.removeCallbacksAndMessages(null)
+    }
+
+    private fun checkDaySwitch(activity: MainActivity) {
+        val lastDate = sharedPrefService.getString(SharedPreferenceKeys.LAST_DATE, "")
+        val currentDate = Utils.getDateFromGC(Utils.getCal())
+        if (lastDate != currentDate) {
+            val editor = sharedPrefService.getEditor()
+            editor.putString(SharedPreferenceKeys.LAST_DATE.name, currentDate)
+            editor.apply()
+            val url = getURl()
+            val tId = getTerminalId()
+            val company = getCompany() ?: ""
+            val token = getToken()
+            val parameters = mapOf(
+                Pair("company", company),
+                Pair("date", currentDate),
+                Pair("terminalSN", MainApplication.lcdk.getSerialNumber()),
+                Pair("terminalId", "$tId"),
+                Pair("token", token)
+            )
+            httpService.get(
+                "${url}services/rest/zktecoTerminal/getCrossDayForTerminal",
+                parameters,
+                activity,
+                { _, arr, _ ->
+                    if(arr != null && arr.length() > 0)
+                        userService.processCrossDayValues(arr, activity.getViewModel().viewModelScope)
+                }, { _, _, _, _ -> null }
+            )
+        }
     }
 }

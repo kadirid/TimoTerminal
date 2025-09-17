@@ -6,6 +6,7 @@ import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.serviceUtils.classes.UserInformation
+import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.ResponseToJSON
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -286,5 +287,40 @@ class UserService(
             return
         }
         MainApplication.lcdk.registerFingerPrint(key, template)
+    }
+
+    fun updateProjectUserValues(data: ArrayList<Pair<String, String>>, coroutineScope: CoroutineScope) {
+        val commIds = JSONArray()
+
+        coroutineScope.launch {
+            for (d in data) {
+                commIds.put(d.second)
+                val resObj = Utils.parseResponseToJSON(d.first).obj
+                if (resObj == null || !resObj.has("id")) {
+                    continue
+                }
+                userRepository.updateProjectValues(
+                    resObj.getLong("id"),
+                    resObj.getBoolean("customerBasedProjectTime"),
+                    resObj.getLong("timeEntryType")
+                )
+            }
+        }
+
+        httpService.responseForMultiCommand(commIds)
+    }
+
+    fun processCrossDayValues(data: JSONArray, coroutineScope: CoroutineScope){
+        coroutineScope.launch {
+            for (i in 0 until data.length()) {
+                val obj = data.getJSONObject(i)
+                if (!obj.has("id")) {
+                    continue
+                }
+                val userId = obj.getLong("id")
+                val crossDay = obj.optBoolean("crossDay", false)
+                userRepository.updateCrossDay(userId, crossDay)
+            }
+        }
     }
 }

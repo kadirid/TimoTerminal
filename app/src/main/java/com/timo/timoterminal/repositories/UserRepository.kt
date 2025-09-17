@@ -30,4 +30,9 @@ class UserRepository(private val userDAO: UserDAO) {
     suspend fun deleteAll() = userDAO.deleteAll()
 
     suspend fun getPageAsList(pageNo: Int): List<UserEntity> = userDAO.getPageAsList(pageNo * 50)
+
+    suspend fun updateProjectValues(id: Long, customerBasedProjectTime: Boolean, timeEntryType: Long) =
+        userDAO.updateProjectValues(id, customerBasedProjectTime, timeEntryType)
+
+    suspend fun updateCrossDay(id: Long, crossDay: Boolean) = userDAO.updateCrossDay(id, crossDay)
 }

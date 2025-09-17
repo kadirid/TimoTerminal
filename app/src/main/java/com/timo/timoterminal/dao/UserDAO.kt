@@ -46,4 +46,10 @@ interface UserDAO {
 
     @Query("SELECT * FROM UserEntity LIMIT :pageNo, 50 ")
     suspend fun getPageAsList(pageNo: Int): List<UserEntity>
+
+    @Query("UPDATE UserEntity SET customerBasedProjectTime = :customerBasedProjectTime, timeEntryType = :timeEntryType WHERE id = :id")
+    suspend fun updateProjectValues(id: Long, customerBasedProjectTime: Boolean, timeEntryType: Long): Int
+
+    @Query("UPDATE UserEntity SET crossDay = :crossDay WHERE id = :id")
+    suspend fun updateCrossDay(id: Long, crossDay: Boolean): Int
 }

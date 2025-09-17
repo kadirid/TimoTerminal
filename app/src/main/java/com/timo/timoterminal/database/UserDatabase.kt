@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.timo.timoterminal.dao.UserDAO
 import com.timo.timoterminal.entityClasses.UserEntity
 
-@Database(entities = [UserEntity::class], version = 1)
+@Database(entities = [UserEntity::class], version = 2)
 abstract class UserDatabase  : RoomDatabase() {
     abstract fun userDao(): UserDAO
 }

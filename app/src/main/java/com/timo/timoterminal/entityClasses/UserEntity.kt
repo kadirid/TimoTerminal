@@ -15,7 +15,10 @@ class UserEntity(
     @ColumnInfo("hireDate") var hireDate: Long,
     @ColumnInfo("seeMenu") var seeMenu: Boolean,
     @ColumnInfo("assignedToTerminal") var assignedToTerminal: Boolean,
-    @PrimaryKey(autoGenerate = false) var id: Long
+    @ColumnInfo("customerBasedProjectTime") var customerBasedProjectTime: Boolean = false,
+    @ColumnInfo("timeEntryType") var timeEntryType: Long = -1L,
+    @ColumnInfo("crossDay") var crossDay: Boolean = false,
+    @PrimaryKey var id: Long
 ) {
 
     companion object {
@@ -29,7 +32,23 @@ class UserEntity(
             val hireDate = obj.getLong("einstellungsDatum")
             val seeMenu = obj.getBoolean("seeMenu")
             val assignedToTerminal = obj.getBoolean("assignedToTerminal")
-            return UserEntity(id, firstName, lastName, card, pin, login, hireDate, seeMenu, assignedToTerminal)
+            val customerBasedProjectTime = obj.getBoolean("customerBasedProjectTime")
+            val timeEntryType = obj.optLong("timeEntryType", -1L)
+            val crossDay = obj.optBoolean("crossDay", false)
+            return UserEntity(
+                id,
+                firstName,
+                lastName,
+                card,
+                pin,
+                login,
+                hireDate,
+                seeMenu,
+                assignedToTerminal,
+                customerBasedProjectTime,
+                timeEntryType,
+                crossDay
+            )
         }
     }
 
@@ -42,8 +61,45 @@ class UserEntity(
         login: String,
         hireDate: Long,
         seeMenu: Boolean,
-        assignedToTerminal: Boolean
-    ) : this(firstName, lastName, card, pin, login, hireDate, seeMenu, assignedToTerminal, id)
+        assignedToTerminal: Boolean,
+        customerBasedProjectTime: Boolean,
+        timeEntryType: Long = -1,
+        crossDay: Boolean = false
+    ) : this(
+        firstName,
+        lastName,
+        card,
+        pin,
+        login,
+        hireDate,
+        seeMenu,
+        assignedToTerminal,
+        customerBasedProjectTime,
+        timeEntryType,
+        crossDay,
+        id
+    )
+
+    constructor(
+        id: Long,
+        firstName: String,
+        lastName: String,
+        pin: String,
+        login: String,
+    ) : this(
+        firstName,
+        lastName,
+        card = "",
+        pin,
+        login,
+        hireDate = 1L,
+        seeMenu = true,
+        assignedToTerminal = true,
+        customerBasedProjectTime = false,
+        timeEntryType = -1,
+        crossDay = false,
+        id
+    )
 
     fun name(): String = "$firstName $lastName"
 

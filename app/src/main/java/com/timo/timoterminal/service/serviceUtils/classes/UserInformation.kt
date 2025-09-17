@@ -13,9 +13,6 @@ data class UserInformation(
     val ist: String,
     val zeitTyp: Int,
     val zeitLB: Date,
-    val kommen: String,
-    val pause: String,
-    val gehen: String,
     val overtime: String,
     val vacation: String,
     val gVacation: String,
@@ -34,9 +31,6 @@ data class UserInformation(
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
-        parcel.readString()!!,
         ArrayList<Event>().apply {
             parcel.readList(this, Event::class.java.classLoader)
         }
@@ -48,9 +42,6 @@ data class UserInformation(
         parcel.writeString(ist)
         parcel.writeInt(zeitTyp)
         parcel.writeLong(zeitLB.time)
-        parcel.writeString(kommen)
-        parcel.writeString(pause)
-        parcel.writeString(gehen)
         parcel.writeString(overtime)
         parcel.writeString(vacation)
         parcel.writeString(gVacation)
@@ -90,9 +81,6 @@ data class UserInformation(
                 }
             }
 
-            val kommen = jsonObject.getString("kommen")
-            val pause = jsonObject.getString("pause")
-            val gehen = jsonObject.getString("gehen")
             val overtime = jsonObject.getString("overtime")
             val vacation = jsonObject.getString("vacation")
             val gVacation = jsonObject.getString("gVacation")
@@ -110,9 +98,6 @@ data class UserInformation(
                 ist,
                 zeitTyp,
                 zeitLB,
-                kommen,
-                pause,
-                gehen,
                 overtime,
                 vacation,
                 gVacation,

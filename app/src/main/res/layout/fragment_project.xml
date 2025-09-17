@@ -1,15 +1,511 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/fragment_project_root_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".fragmentViews.ProjectFragment">
+    android:layout_height="match_parent">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/fragment_project_root_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="hello project fragment" />
+        tools:context=".fragmentViews.ProjectFragment"
+        tools:layout_marginStart="200dp"
+        tools:padding="60dp">
 
-</FrameLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_fromDate"
+            android:layout_width="125dp"
+            android:layout_height="45dp"
+            android:hint="@string/from"
+            android:labelFor="@id/fromDate"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/fromDate"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="false"
+                android:imeOptions="actionDone"
+                android:inputType="date"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_from"
+            android:layout_width="85dp"
+            android:layout_height="45dp"
+            android:hint="@string/from"
+            android:labelFor="@id/from"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_toDate"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/from"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="5dp"
+                android:focusable="false"
+                android:imeOptions="actionDone"
+                android:inputType="time"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_toDate"
+            android:layout_width="120dp"
+            android:layout_height="45dp"
+            android:hint="@string/to"
+            android:labelFor="@id/toDate"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_to"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/toDate"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="5dp"
+                android:focusable="false"
+                android:imeOptions="actionDone"
+                android:inputType="date"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_to"
+            android:layout_width="85dp"
+            android:layout_height="45dp"
+            android:hint="@string/to"
+            android:labelFor="@id/to"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_hours"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_marginEnd="5dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/to"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="false"
+                android:imeOptions="actionDone"
+                android:inputType="time"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_hours"
+            android:layout_width="120dp"
+            android:layout_height="45dp"
+            android:hint="@string/hours"
+            android:labelFor="@id/hours"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/hours"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="false"
+                android:imeOptions="actionDone"
+                android:inputType="time"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_project"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="5dp"
+            android:hint="@string/project"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_order_no"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_fromDate">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/project"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_order_no"
+            android:layout_width="120dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="5dp"
+            android:hint="@string/orderNo"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_unit"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_fromDate">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/order_no"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_unit"
+            android:layout_width="120dp"
+            android:layout_height="45dp"
+            android:hint="@string/units"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_fromDate">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/unit"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_task"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:hint="@string/task"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_project">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/task"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_customer"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="5dp"
+            android:hint="@string/customer"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_team"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_task">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/customer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_team"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="120dp"
+            android:layout_height="45dp"
+            android:hint="@string/team"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_task">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/team"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_ticket"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:hint="@string/ticket"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_team">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/ticket"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_activity_type"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="230dp"
+            android:layout_height="45dp"
+            android:hint="@string/activityType"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_ticket">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/activity_type"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_activity_type_matrix"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="230dp"
+            android:layout_height="45dp"
+            android:layout_marginStart="5dp"
+            android:hint="@string/activityTypeMatrix"
+            app:layout_constraintStart_toEndOf="@id/text_input_Layout_project_time_activity_type"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_ticket">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/activity_type_matrix"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownAnchor="@id/text_input_Layout_project_time_activity_type"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_skill_level"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginStart="5dp"
+            android:hint="@string/skill"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/text_input_Layout_project_time_activity_type_matrix"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_ticket">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/skill_level"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_description"
+            android:layout_width="0dp"
+            android:layout_height="75dp"
+            android:layout_marginEnd="5dp"
+            android:hint="@string/description"
+            app:layout_constraintEnd_toStartOf="@+id/description_close_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_activity_type">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/description"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="textMultiLine"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/description_close_button"
+            android:layout_width="45dp"
+            android:layout_height="46dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/square_button_background"
+            android:textAllCaps="false"
+            app:icon="@drawable/icon_keyboard_hide_inset"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
+            app:layout_constraintTop_toTopOf="@id/text_input_Layout_project_time_description"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_performance_location"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:hint="@string/placeOfWork"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_description">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/performance_location"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_journey"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="5dp"
+            android:hint="@string/journey"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_travel_time"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_performance_location">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/journey"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:dropDownWidth="704dp"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_travel_time"
+            android:layout_width="125dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="5dp"
+            android:hint="@string/travelTime"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_driven_km"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_performance_location">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/travel_time"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="false"
+                android:imeOptions="actionDone"
+                android:inputType="time"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_driven_km"
+            android:layout_width="100dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="5dp"
+            android:hint="@string/traveldKm"
+            app:layout_constraintEnd_toStartOf="@id/km_flat_rate"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_performance_location">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/driven_km"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <CheckBox
+            android:id="@+id/km_flat_rate"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/kmAllowance"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_performance_location" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_evaluation"
+            android:layout_width="125dp"
+            android:layout_height="45dp"
+            android:hint="@string/estimation"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_journey">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/evaluation"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <CheckBox
+            android:id="@+id/billable"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_marginStart="5dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/billable"
+            app:layout_constraintStart_toEndOf="@id/text_input_Layout_project_time_evaluation"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_journey" />
+
+        <CheckBox
+            android:id="@+id/premiumable"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_marginStart="5dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/premiumable"
+            app:layout_constraintStart_toEndOf="@id/billable"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_journey" />
+
+        <Button
+            android:id="@+id/saveProjectTimeButton"
+            android:layout_width="245dp"
+            android:layout_height="45dp"
+            android:text="@string/save"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_journey" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>
