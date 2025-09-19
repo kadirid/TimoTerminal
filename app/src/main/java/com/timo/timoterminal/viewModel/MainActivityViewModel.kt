@@ -15,6 +15,7 @@ import com.timo.timoterminal.repositories.ConfigRepository
 import com.timo.timoterminal.repositories.UserRepository
 import com.timo.timoterminal.service.HeartbeatService
 import com.timo.timoterminal.service.HttpService
+import com.timo.timoterminal.service.ProjectPrefService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.utils.TimoRfidListener
 import com.timo.timoterminal.utils.classes.SoundSource
@@ -28,6 +29,7 @@ class MainActivityViewModel(
     private val configRepository: ConfigRepository,
     private val heartbeatService: HeartbeatService,
     private val sharedPrefService: SharedPrefService,
+    private val projPrefService: ProjectPrefService,
     private val httpService: HttpService
 ) : ViewModel(), KoinComponent, IFingerprintListener, TimoRfidListener {
     private val soundSource: SoundSource by inject()
@@ -204,5 +206,10 @@ class MainActivityViewModel(
     }
 
     override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
+    fun getProjectTimeTrackSetting() {
+        viewModelScope.launch {
+            projPrefService.getProjectTimeTrackSetting(true)
+        }
+    }
 }
 

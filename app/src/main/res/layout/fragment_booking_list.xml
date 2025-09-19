@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".fragmentViews.BookingListFragment"
     tools:layout_marginStart="200dp"
-    tools:padding="60dp">
+    android:padding="60dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"

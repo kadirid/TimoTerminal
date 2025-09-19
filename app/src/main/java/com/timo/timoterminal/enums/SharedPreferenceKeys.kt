@@ -16,7 +16,8 @@ enum class SharedPreferenceKeys {
     HAS_UPDATE,
     UPDATE_VERSION,
     LAST_VERSION,
-    LAST_DATE
+    LAST_DATE,
+    DARK_MODE_ENABLED
 }
 
 enum class ProjectPreferenceKeys {// Always start with PROJECT_ to avoid conflicts with other keys

@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit
 class HeartbeatService : KoinComponent {
 
     private val sharedPrefService: SharedPrefService by inject()
+
+    private val projectPrefService: ProjectPrefService by inject()
     private val settingsService: SettingsService by inject()
     private val userService: UserService by inject()
     private val languageService: LanguageService by inject()
@@ -144,7 +146,9 @@ class HeartbeatService : KoinComponent {
         val updateProjectUserValues = arrayListOf<Pair<String, String>>()
         var lang = Pair("", "")
         var url = ""
+        var updateProjectSettings = Pair("", "")
         var updateAPK = Pair("", "")
+
         if (!obj.isNull("commands") && obj.getJSONArray("commands").length() > 0) {
             val array = obj.getJSONArray("commands")
             for (i in 0 until array.length()) {
@@ -200,6 +204,10 @@ class HeartbeatService : KoinComponent {
 
                         TerminalCommands.COMMAND_UPDATE_PROJECT_USER_VALUES.ordinal -> {
                             updateProjectUserValues.add(Pair(command, id))
+                        }
+
+                        TerminalCommands.COMMAND_UPDATE_PROJECT_TIME_TRACK_SETTING.ordinal -> {
+                            updateProjectSettings = Pair(command, id)
                         }
                     }
                 } else if (type == TerminalCommands.COMMAND_UPDATE_URL.ordinal) {
@@ -310,6 +318,14 @@ class HeartbeatService : KoinComponent {
                                 }
                             }
                         }
+                    }
+                }
+
+                if (updateProjectSettings.first.isNotEmpty()) {
+                    projectPrefService.getProjectTimeTrackSetting(true)
+                    httpService.responseForCommand(updateProjectSettings.second)
+                    activity.runOnUiThread {
+                        activity.onProjectSettingsChanged()
                     }
                 }
                 if (enrollFinger.first.isNotEmpty()) {

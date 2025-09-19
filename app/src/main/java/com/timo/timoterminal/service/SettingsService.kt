@@ -3,9 +3,11 @@ package com.timo.timoterminal.service
 import android.app.Activity
 import android.app.AlarmManager
 import android.content.Context
+import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.enums.SharedPreferenceKeys
 import com.timo.timoterminal.utils.LocaleHelper
 import com.timo.timoterminal.utils.Utils
+import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import java.util.Locale
 
@@ -91,6 +93,31 @@ class SettingsService(
             //If we set no correct timezone identifier, just set Europe/Berlin as standard
             sharedPrefService.getEditor().putString(SharedPreferenceKeys.TIMEZONE.name, "Europe/Berlin")
             am.setTimeZone("Europe/Berlin")
+        }
+    }
+
+    fun getSettingForProjectTimeTrack(onResult: (Boolean, JSONObject?) -> Unit) {
+        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
+        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
+        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
+        if (!company.isNullOrEmpty() && !token.isNullOrEmpty()) {
+            val params = HashMap<String, String>()
+            params["company"] = company
+            params["terminalSN"] = MainApplication.lcdk.getSerialNumber()
+            params["terminalId"] = tId.toString()
+            params["token"] = token
+            httpService.get(
+                "${url}services/rest/zktecoTerminal/getSettingForProjectTimeTrack",
+                params,
+                null,
+                { obj, _, _ ->
+                    onResult(true, obj)
+                },
+                { _, _, _, _ ->
+                    onResult(false, null)
+                }
+            )
         }
     }
 

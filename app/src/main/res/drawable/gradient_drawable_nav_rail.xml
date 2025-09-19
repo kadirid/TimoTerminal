@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <gradient
         android:startColor="@color/zxing_transparent"
-        android:centerColor="@color/black_overlay"
+        android:centerColor="@color/black"
         android:endColor="@color/zxing_transparent"
         android:angle="90"
         />

@@ -23,10 +23,13 @@ import com.timo.timoterminal.fragmentViews.AbsenceFragment
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
 import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.fragmentViews.ProjectFragment
+import com.timo.timoterminal.fragmentViews.ProjectFragmentStopwatch
 import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
 import com.timo.timoterminal.service.LanguageService
+import com.timo.timoterminal.service.ProjectPrefService
 import com.timo.timoterminal.service.PropertyService
+import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
@@ -49,6 +52,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     private val mainActivityViewModel: MainActivityViewModel by viewModel()
     private val languageService: LanguageService by inject()
+
+    private val projectPrefService: ProjectPrefService by inject()
     private val userService: UserService by inject()
     private val soundSource: SoundSource by inject()
     private val propertyService: PropertyService by inject()
@@ -75,6 +80,12 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         timer.schedule(timerLength) {
             showAttendanceFragment()
         }
+    }
+
+    private var useProjectStopwatch: Boolean = true
+
+    private fun refreshProjectMode() {
+        useProjectStopwatch = projectPrefService.isStopwatchMode()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -189,11 +200,12 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     }
 
     private fun initNavbarListener() {
-        // use loaded permission to hide project menu entry as example
+        refreshProjectMode()
+
         mainActivityViewModel.viewModelScope.launch {
             val projectPermission = mainActivityViewModel.permission("projekt.use")
             binding.navigationRail.menu.findItem(R.id.project).isVisible =
-                projectPermission == "true" // currently no functionality
+                projectPermission == "true"
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
             binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
@@ -205,19 +217,26 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         }
 
         setText()
-        binding.navigationRail.menu.findItem(R.id.absence).isVisible =
-            false// currently no functionality
+        binding.navigationRail.menu.findItem(R.id.absence).isVisible = false
 
         binding.navigationRail.setOnItemSelectedListener {
 
             it.isChecked = false
             val fragment: Fragment? = when (it.itemId) {
                 R.id.attendance -> AttendanceFragment()
-                R.id.project -> ProjectFragment.newInstance(-1, false, -1, false)
+                R.id.project -> null // handled below to choose correct fragment
                 R.id.absence -> AbsenceFragment.newInstance("", "")
                 R.id.info -> InfoFragment()
-
                 else -> null
+            }
+
+            if (it.itemId == R.id.project) {
+                showVerificationAlert { user ->
+                    if (user != null) {
+                        openProjectForUser(user)
+                    }
+                }
+                return@setOnItemSelectedListener true
             }
 
             if (fragment == null) {
@@ -229,25 +248,6 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                             replace(R.id.fragment_container_view, fragment, AttendanceFragment.TAG)
                         }
                         timer.cancel()
-                    }
-                    R.id.project -> {
-                        showVerificationAlert { user ->
-                            if (user != null) {
-                                supportFragmentManager.commit {
-                                    addToBackStack(null)
-                                    replace(
-                                        R.id.fragment_container_view,
-                                        ProjectFragment.newInstance(
-                                            user.id,
-                                            user.customerBasedProjectTime,
-                                            user.timeEntryType,
-                                            user.crossDay
-                                        )
-                                    )
-                                }
-                                restartTimer()
-                            }
-                        }
                     }
                     else -> {
                         supportFragmentManager.commit {
@@ -261,16 +261,12 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             true
         }
 
-        //init correct fragment, this could be also configurable if needed, but this is for the future
+        // Initiales Fragment: wenn Attendance sichtbar -> Attendance, sonst Projekt nach aktuellem Modus
         if (binding.navigationRail.menu.findItem(R.id.attendance).isVisible) {
             showAttendanceFragment()
             timer.cancel()
         } else if (binding.navigationRail.menu.findItem(R.id.project).isVisible) {
-            supportFragmentManager.commit {
-                addToBackStack(null)
-                replace(R.id.fragment_container_view, ProjectFragment.newInstance(-1, false, -1, false))
-            }
-            restartTimer()
+            openProjectDefault()
         } else if (binding.navigationRail.menu.findItem(R.id.absence).isVisible) {
             supportFragmentManager.commit {
                 addToBackStack(null)
@@ -501,5 +497,64 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         if(languageService.getText("#Attendance","ErrorDefault") == "ErrorDefault"){
             languageService.requestLanguageFromServer(coroutineScope, this)
         }
+    }
+
+
+    // NEU: Öffnet das passende Projekt-Fragment nach erfolgreicher Verifikation
+    private fun openProjectForUser(user: UserEntity) {
+        if (useProjectStopwatch) {
+            supportFragmentManager.commit {
+                addToBackStack(null)
+                replace(
+                    R.id.fragment_container_view,
+                    ProjectFragmentStopwatch.newInstance(
+                        user.id,
+                        user.customerBasedProjectTime,
+                        user.timeEntryType,
+                        user.crossDay
+                    )
+                )
+            }
+        } else {
+            supportFragmentManager.commit {
+                addToBackStack(null)
+                replace(
+                    R.id.fragment_container_view,
+                    ProjectFragment.newInstance(
+                        user.id,
+                        user.customerBasedProjectTime,
+                        user.timeEntryType,
+                        user.crossDay
+                    )
+                )
+            }
+        }
+        restartTimer()
+    }
+
+    // NEU: Öffnet die Projektseite ohne User-Kontext (Initialfall / Fallback)
+    private fun openProjectDefault() {
+        if (useProjectStopwatch) {
+            supportFragmentManager.commit {
+                addToBackStack(null)
+                replace(
+                    R.id.fragment_container_view,
+                    ProjectFragmentStopwatch.newInstance(-1, false, -1, false)
+                )
+            }
+        } else {
+            supportFragmentManager.commit {
+                addToBackStack(null)
+                replace(
+                    R.id.fragment_container_view,
+                    ProjectFragment.newInstance(-1, false, -1, false)
+                )
+            }
+        }
+        restartTimer()
+    }
+
+    fun onProjectSettingsChanged() {
+        refreshProjectMode()
     }
 }

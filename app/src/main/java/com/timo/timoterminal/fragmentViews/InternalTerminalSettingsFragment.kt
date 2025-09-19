@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentInternalTerminalSettingsBinding
@@ -112,6 +113,22 @@ class InternalTerminalSettingsFragment : Fragment() {
         }
 
         binding.infoVersionText.text = viewModel.getVersionName()
+
+        binding.darkModeSwitch.isChecked = sharedPrefService.getBoolean(
+            SharedPreferenceKeys.DARK_MODE_ENABLED,
+            false
+        )
+        binding.darkModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            val editor = sharedPrefService.getEditor()
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                editor.putBoolean(SharedPreferenceKeys.DARK_MODE_ENABLED.name, true)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                editor.putBoolean(SharedPreferenceKeys.DARK_MODE_ENABLED.name, false)
+            }
+            editor.apply()
+        }
     }
 
     override fun onResume() {

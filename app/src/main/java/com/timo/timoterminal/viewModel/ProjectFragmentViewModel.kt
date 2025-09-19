@@ -36,6 +36,7 @@ import com.timo.timoterminal.repositories.User2TaskRepository
 import com.timo.timoterminal.service.ProjectPrefService
 import com.timo.timoterminal.service.ProjectService
 import com.timo.timoterminal.service.ProjectTimeService
+import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -43,6 +44,7 @@ import java.util.GregorianCalendar
 
 class ProjectFragmentViewModel(
     private val projectService: ProjectService,
+    private val settingsService: SettingsService,
     private val projectRepository: ProjectRepository,
     private val taskRepository: TaskRepository,
     private val user2TaskRepository: User2TaskRepository,
@@ -248,18 +250,8 @@ class ProjectFragmentViewModel(
             }
         }
 
-        projectService.getSettingForProjectTimeTrack { success, obj ->
-            val setting: ProjectTimeTrackSetting
-            if (success) {
-                if (obj == null) {
-                    return@getSettingForProjectTimeTrack
-                }
-                setting = projectPrefService.saveProjectTimeTrackSetting(obj)
-            } else {
-                setting = projectPrefService.getProjectTimeTrackSetting()
-            }
-            liveProjectTimeTrackSetting.postValue(setting)
-        }
+        val setting = projectPrefService.getProjectTimeTrackSetting(false)
+        liveProjectTimeTrackSetting.postValue(setting)
 
         getJourneys(Utils.getDateFromGC(Utils.getCal()))
     }

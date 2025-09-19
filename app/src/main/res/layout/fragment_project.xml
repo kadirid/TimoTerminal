@@ -9,9 +9,9 @@
         android:id="@+id/fragment_project_root_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".fragmentViews.ProjectFragment"
+        tools:context=".fragmentViews.ProjectFragmentBck"
         tools:layout_marginStart="200dp"
-        tools:padding="60dp">
+        android:padding="60dp">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/text_input_Layout_project_time_fromDate"

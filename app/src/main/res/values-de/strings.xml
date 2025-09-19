@@ -74,4 +74,5 @@
     <string name="premiumable">Prämienrelevant</string>
     <string name="ignoreTimedBreaks">Fest hinterlegte Pausen ignorieren</string>
     <string name="manDays">Personentag</string>
+    <string name="details">Details</string>
 </resources>

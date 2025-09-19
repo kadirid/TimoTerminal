@@ -1,7 +1,21 @@
 <resources>
 
     <style name="Widget.AppTheme.ButtonBar.Fullscreen" parent="">
-        <item name="android:background">@color/black_overlay</item>
+        <item name="android:background">@color/black</item>
         <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
+    </style>
+
+    <style name="ThemeOverlay.TimoTerminal.FullscreenContainer" parent="">
+        <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
+        <item name="fullscreenTextColor">@color/light_blue_A200</item>
+    </style>
+
+    <style name="AppTheme.NavigationBar.TextSize" parent="AppTheme">
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="ThemeOverlay.App.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="android:navigationBarColor">@color/greyed_out_background</item>
+        <item name="paddingBottomSystemWindowInsets">false</item>
     </style>
 </resources>

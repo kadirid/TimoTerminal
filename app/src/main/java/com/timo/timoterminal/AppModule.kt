@@ -278,7 +278,7 @@ var appModule = module {
     single { HeartbeatService() }
     single { PropertyService(androidContext()) }
     single { SharedPrefService(androidContext()) }
-    single { ProjectPrefService(androidContext()) }
+    single { ProjectPrefService(get(),androidContext()) }
     single { WorkerService(get()) }
     single { SoundSource(get(), androidContext()) }
     single { ProjectService(get(), get()) }
@@ -296,7 +296,7 @@ var appModule = module {
     viewModel { InternalTerminalSettingsFragmentViewModel(get(), get()) }
     viewModel { AttendanceFragmentViewModel(get(), get(), get(), get()) }
     viewModel { InfoFragmentViewModel(get(), get(), get(), get(), get()) }
-    viewModel { MainActivityViewModel(get(), get(), get(), get(), get()) }
+    viewModel { MainActivityViewModel(get(), get(), get(), get(), get(), get()); }
     viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBRemoteRegisterSheetViewModel(get(), get(), get(), get()) }
     viewModel { MBSheetFingerprintCardReaderViewModel(get(), get(), get(), get(), get(), get()) }
@@ -318,7 +318,8 @@ var appModule = module {
             get(),
             get(),
             get(),
-            get()
+            get(),
+            get(),
         )
     }
 

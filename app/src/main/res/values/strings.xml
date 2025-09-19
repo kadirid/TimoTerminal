@@ -74,4 +74,5 @@
     <string name="premiumable">Premiumable</string>
     <string name="ignoreTimedBreaks">Ignore Timed Breaks</string>
     <string name="manDays">Man-day</string>
+    <string name="details">Details</string>
 </resources>

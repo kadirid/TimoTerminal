@@ -39,31 +39,6 @@ class ProjectService(
         }
     }
 
-    fun getSettingForProjectTimeTrack(onResult: (Boolean, JSONObject?) -> Unit) {
-        val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
-        val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-        val company = sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
-        val token = sharedPrefService.getString(SharedPreferenceKeys.TOKEN)
-        if (!company.isNullOrEmpty() && !token.isNullOrEmpty()) {
-            val params = HashMap<String, String>()
-            params["company"] = company
-            params["terminalSN"] = MainApplication.lcdk.getSerialNumber()
-            params["terminalId"] = tId.toString()
-            params["token"] = token
-            httpService.get(
-                "${url}services/rest/zktecoTerminal/getSettingForProjectTimeTrack",
-                params,
-                null,
-                { obj, _, _ ->
-                    onResult(true, obj)
-                },
-                { _, _, _, _ ->
-                    onResult(false, null)
-                }
-            )
-        }
-    }
-
     fun getJourneysForProjectTimeTrack(userId: Int, date: String, onResult: (Boolean, JSONObject?) -> Unit) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)

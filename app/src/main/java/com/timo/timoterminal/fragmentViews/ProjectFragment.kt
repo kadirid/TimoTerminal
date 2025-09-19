@@ -43,7 +43,7 @@ private const val ARG_CUSTOMER_TIME_TRACK = "customerTimeTrack"
 private const val ARG_TIME_ENTRY_TYPE = "timeEntryType"
 private const val ARG_CROSS_DAY = "crossDay"
 
-class ProjectFragment : Fragment() {
+class ProjectFragment: Fragment() {
     private val languageService: LanguageService by inject()// TODO Use Language Service to set hints and texts depending on external data
     private var userId: Long? = null
     private var isCustomerTimeTrack: Boolean = false
