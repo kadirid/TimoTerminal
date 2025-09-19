@@ -242,7 +242,7 @@ class ProjectFragment : Fragment() {
 
     private fun saveData() {
         val data = HashMap<String, String>()
-        if(!isValid()){
+        if (!isValid()) {
             return
         }
 
@@ -252,6 +252,7 @@ class ProjectFragment : Fragment() {
         data["from"] = binding.from.text.toString()
         data["to"] = binding.to.text.toString()
         data["hours"] = binding.hours.text.toString()
+        data["manDays"] = binding.manDays.text.toString()
         data["description"] = binding.description.text.toString()
         val cAdapter = binding.customer.adapter as? CustomerEntityAdapter
         data["customerId"] =
@@ -317,7 +318,7 @@ class ProjectFragment : Fragment() {
             } else {
                 binding.billable.isEnabled = true
             }
-            if(binding.textInputLayoutProjectTimeDescription.visibility == v) {
+            if (binding.textInputLayoutProjectTimeDescription.visibility == v) {
                 var hint = binding.textInputLayoutProjectTimeDescription.hint
                 if (!hint.isNullOrEmpty()) {
                     if (hint.last() == '*') {
@@ -335,7 +336,7 @@ class ProjectFragment : Fragment() {
                     if (hint.last() == '*') {
                         hint = hint.dropLast(1)
                     }
-                    if(selectedItem.activityTypeMust) {
+                    if (selectedItem.activityTypeMust) {
                         hint = "${hint}*"
                     }
                 }
@@ -574,6 +575,7 @@ class ProjectFragment : Fragment() {
             binding.textInputLayoutProjectTimeFrom.visibility = g
             binding.textInputLayoutProjectTimeTo.visibility = g
             binding.textInputLayoutProjectTimeHours.visibility = g
+            binding.textInputLayoutProjectTimeManDays.visibility = g
         } else {
             when (timeEntryType) {
                 1L -> {
@@ -582,6 +584,7 @@ class ProjectFragment : Fragment() {
                     binding.textInputLayoutProjectTimeFrom.visibility = v
                     binding.textInputLayoutProjectTimeTo.visibility = v
                     binding.textInputLayoutProjectTimeHours.visibility = g
+                    binding.textInputLayoutProjectTimeManDays.visibility = g
                 }
 
                 3L, 5L, 8L -> {
@@ -590,20 +593,16 @@ class ProjectFragment : Fragment() {
                     binding.textInputLayoutProjectTimeFrom.visibility = g
                     binding.textInputLayoutProjectTimeTo.visibility = g
                     binding.textInputLayoutProjectTimeHours.visibility = v
+                    binding.textInputLayoutProjectTimeManDays.visibility = g
                 }
 
                 6L -> {
-                    binding.textInputLayoutProjectTimeHours.hint =
-                        languageService.getText(
-                            "CLIENT#CompData_ManDay",
-                            getText(R.string.manDays).toString()
-                        )
-                    binding.textInputLayoutProjectTimeHours.layoutParams.width = 140
                     binding.textInputLayoutProjectTimeFromDate.visibility = v
                     binding.textInputLayoutProjectTimeToDate.visibility = g
                     binding.textInputLayoutProjectTimeFrom.visibility = g
                     binding.textInputLayoutProjectTimeTo.visibility = g
-                    binding.textInputLayoutProjectTimeHours.visibility = v
+                    binding.textInputLayoutProjectTimeHours.visibility = g
+                    binding.textInputLayoutProjectTimeManDays.visibility = v
                 }
 
                 10L -> {
@@ -612,6 +611,7 @@ class ProjectFragment : Fragment() {
                     binding.textInputLayoutProjectTimeFrom.visibility = g
                     binding.textInputLayoutProjectTimeTo.visibility = g
                     binding.textInputLayoutProjectTimeHours.visibility = g
+                    binding.textInputLayoutProjectTimeManDays.visibility = g
                 }
             }
         }
@@ -703,22 +703,22 @@ class ProjectFragment : Fragment() {
         }
 
         if (!it.orderNo && !it.unit) {
-                if (isCustomerTimeTrack) {
-                    constraintSet.setMargin(
-                        binding.textInputLayoutProjectTimeCustomer.id,
-                        ConstraintSet.END,
-                        0
-                    )
-                } else {
-                    constraintSet.setMargin(
-                        binding.textInputLayoutProjectTimeProject.id,
-                        ConstraintSet.END,
-                        0
-                    )
-                }
+            if (isCustomerTimeTrack) {
+                constraintSet.setMargin(
+                    binding.textInputLayoutProjectTimeCustomer.id,
+                    ConstraintSet.END,
+                    0
+                )
+            } else {
+                constraintSet.setMargin(
+                    binding.textInputLayoutProjectTimeProject.id,
+                    ConstraintSet.END,
+                    0
+                )
+            }
         }
 
-        if(it.orderNo && !it.unit) {
+        if (it.orderNo && !it.unit) {
             constraintSet.setMargin(
                 binding.textInputLayoutProjectTimeOrderNo.id,
                 ConstraintSet.END,
@@ -1279,10 +1279,14 @@ class ProjectFragment : Fragment() {
         val bTeam = perm("teams.show") && perm("zeiterfassung.teamauswahl.use")
         if (!bTeam) binding.textInputLayoutProjectTimeTeam.visibility = g
         if (!perm("tickets.use")) binding.textInputLayoutProjectTimeTicket.visibility = g
-        if (!perm("zeiterfassung.leistungsart.use")) binding.textInputLayoutProjectTimeActivityType.visibility = g
-        val bActivityTypeMatrix = perm("zeiterfassung.leistungsart.use") && perm("leistungsart.matrix.use")
-        if (!bActivityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility = g
-        if (!perm("zeiterfassung.skilllevel.use")) binding.textInputLayoutProjectTimeSkillLevel.visibility = g
+        if (!perm("zeiterfassung.leistungsart.use")) binding.textInputLayoutProjectTimeActivityType.visibility =
+            g
+        val bActivityTypeMatrix =
+            perm("zeiterfassung.leistungsart.use") && perm("leistungsart.matrix.use")
+        if (!bActivityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility =
+            g
+        if (!perm("zeiterfassung.skilllevel.use")) binding.textInputLayoutProjectTimeSkillLevel.visibility =
+            g
         val bJourney = perm("zeiterfassung.reise.use")
         val bJourneyCost = perm("reisekosten.use")
         if (!bJourney) binding.textInputLayoutProjectTimePerformanceLocation.visibility = g
@@ -1358,6 +1362,9 @@ class ProjectFragment : Fragment() {
                     if (binding.textInputLayoutProjectTimeHours.visibility == v) {
                         return binding.textInputLayoutProjectTimeHours.id
                     }
+                    if (binding.textInputLayoutProjectTimeManDays.visibility == v) {
+                        return binding.textInputLayoutProjectTimeManDays.id
+                    }
                 }
                 return -1
             }
@@ -1379,6 +1386,9 @@ class ProjectFragment : Fragment() {
                         }
                         if (binding.textInputLayoutProjectTimeHours.visibility == v) {
                             return binding.textInputLayoutProjectTimeHours.id
+                        }
+                        if (binding.textInputLayoutProjectTimeManDays.visibility == v) {
+                            return binding.textInputLayoutProjectTimeManDays.id
                         }
                     }
                     return -1
@@ -1455,6 +1465,8 @@ class ProjectFragment : Fragment() {
         binding.textInputLayoutProjectTimeToDate.hint = languageService.getText("ALLGEMEIN#Bis")
         binding.textInputLayoutProjectTimeTo.hint = languageService.getText("ALLGEMEIN#Bis")
         binding.textInputLayoutProjectTimeHours.hint = languageService.getText("ALLGEMEIN#Stunden")
+        binding.textInputLayoutProjectTimeManDays.hint =
+            languageService.getText("CLIENT#CompData_ManDay")
         binding.textInputLayoutProjectTimeProject.hint =
             languageService.getText("ALLGEMEIN#Projekt")
         binding.textInputLayoutProjectTimeOrderNo.hint =
@@ -1505,7 +1517,7 @@ class ProjectFragment : Fragment() {
             binding.textInputLayoutProjectTimeTask.error = null
         }
 
-        if(binding.textInputLayoutProjectTimeFromDate.visibility == v) {
+        if (binding.textInputLayoutProjectTimeFromDate.visibility == v) {
             if (binding.fromDate.text.isNullOrEmpty()) {
                 error = true
                 binding.textInputLayoutProjectTimeFromDate.error = "Required"
@@ -1513,7 +1525,7 @@ class ProjectFragment : Fragment() {
                 binding.textInputLayoutProjectTimeFromDate.error = null
             }
         }
-        if(binding.textInputLayoutProjectTimeToDate.visibility == v) {
+        if (binding.textInputLayoutProjectTimeToDate.visibility == v) {
             if (binding.toDate.text.isNullOrEmpty()) {
                 error = true
                 binding.textInputLayoutProjectTimeToDate.error = "Required"
@@ -1521,7 +1533,7 @@ class ProjectFragment : Fragment() {
                 binding.textInputLayoutProjectTimeToDate.error = null
             }
         }
-        if(binding.textInputLayoutProjectTimeFrom.visibility == v) {
+        if (binding.textInputLayoutProjectTimeFrom.visibility == v) {
             if (binding.from.text.isNullOrEmpty()) {
                 error = true
                 binding.textInputLayoutProjectTimeFrom.error = "Required"
@@ -1529,7 +1541,7 @@ class ProjectFragment : Fragment() {
                 binding.textInputLayoutProjectTimeFrom.error = null
             }
         }
-        if(binding.textInputLayoutProjectTimeTo.visibility == v) {
+        if (binding.textInputLayoutProjectTimeTo.visibility == v) {
             if (binding.to.text.isNullOrEmpty()) {
                 error = true
                 binding.textInputLayoutProjectTimeTo.error = "Required"
@@ -1537,7 +1549,7 @@ class ProjectFragment : Fragment() {
                 binding.textInputLayoutProjectTimeTo.error = null
             }
         }
-        if(binding.textInputLayoutProjectTimeHours.visibility == v) {
+        if (binding.textInputLayoutProjectTimeHours.visibility == v) {
             if (binding.hours.text.isNullOrEmpty()) {
                 error = true
                 binding.textInputLayoutProjectTimeHours.error = "Required"
@@ -1545,8 +1557,16 @@ class ProjectFragment : Fragment() {
                 binding.textInputLayoutProjectTimeHours.error = null
             }
         }
+        if (binding.textInputLayoutProjectTimeManDays.visibility == v) {
+            if (binding.manDays.text.isNullOrEmpty()) {
+                error = true
+                binding.textInputLayoutProjectTimeManDays.error = "Required"
+            } else {
+                binding.textInputLayoutProjectTimeManDays.error = null
+            }
+        }
 
-        if(binding.textInputLayoutProjectTimeDescription.visibility == v) {
+        if (binding.textInputLayoutProjectTimeDescription.visibility == v) {
             if (binding.textInputLayoutProjectTimeDescription.hint?.last() == '*') {
                 if (binding.description.text.isNullOrEmpty()) {
                     error = true
@@ -1558,7 +1578,7 @@ class ProjectFragment : Fragment() {
         }
         if (binding.textInputLayoutProjectTimeActivityType.visibility == v) {
             if (binding.textInputLayoutProjectTimeActivityType.hint?.last() == '*') {
-                if(binding.activityType.text.isNullOrEmpty()) {
+                if (binding.activityType.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeActivityType.error = "Required"
                 } else {
@@ -1568,7 +1588,7 @@ class ProjectFragment : Fragment() {
         }
         if (binding.textInputLayoutProjectTimeOrderNo.visibility == v) {
             if (binding.textInputLayoutProjectTimeOrderNo.hint?.last() == '*') {
-                if(binding.orderNo.text.isNullOrEmpty()) {
+                if (binding.orderNo.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeOrderNo.error = "Required"
                 } else {
@@ -1579,7 +1599,7 @@ class ProjectFragment : Fragment() {
 
         if (binding.textInputLayoutProjectTimeTo.visibility == v) {
             if (binding.textInputLayoutProjectTimeTo.hint?.last() == '*') {
-                if(binding.to.text.isNullOrEmpty()) {
+                if (binding.to.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeTo.error = "Required"
                 } else {
@@ -1589,7 +1609,7 @@ class ProjectFragment : Fragment() {
         }
         if (binding.textInputLayoutProjectTimeUnit.visibility == v) {
             if (binding.textInputLayoutProjectTimeUnit.hint?.last() == '*') {
-                if(binding.unit.text.isNullOrEmpty()) {
+                if (binding.unit.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeUnit.error = "Required"
                 } else {
@@ -1599,7 +1619,7 @@ class ProjectFragment : Fragment() {
         }
         if (binding.textInputLayoutProjectTimeCustomer.visibility == v) {
             if (binding.textInputLayoutProjectTimeCustomer.hint?.last() == '*') {
-                if(binding.customer.text.isNullOrEmpty()) {
+                if (binding.customer.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeCustomer.error = "Required"
                 } else {
@@ -1609,7 +1629,7 @@ class ProjectFragment : Fragment() {
         }
         if (binding.textInputLayoutProjectTimeSkillLevel.visibility == v) {
             if (binding.textInputLayoutProjectTimeSkillLevel.hint?.last() == '*') {
-                if(binding.skillLevel.text.isNullOrEmpty()) {
+                if (binding.skillLevel.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeSkillLevel.error = "Required"
                 } else {
@@ -1619,7 +1639,7 @@ class ProjectFragment : Fragment() {
         }
         if (binding.textInputLayoutProjectTimePerformanceLocation.visibility == v) {
             if (binding.textInputLayoutProjectTimePerformanceLocation.hint?.last() == '*') {
-                if(binding.performanceLocation.text.isNullOrEmpty()) {
+                if (binding.performanceLocation.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimePerformanceLocation.error = "Required"
                 } else {

@@ -13,6 +13,7 @@ class ProjectTimeEntity(
     @ColumnInfo(name = "from") var from: String,
     @ColumnInfo(name = "to") var to: String,
     @ColumnInfo(name = "hours") var hours: String,
+    @ColumnInfo(name = "manDays") var manDays: String,
     @ColumnInfo(name = "description") var description: String,
     @ColumnInfo(name = "customerId") var customerId: String,
     @ColumnInfo(name = "ticketId") var ticketId: String,
@@ -50,6 +51,7 @@ class ProjectTimeEntity(
         if (from != other.from) return false
         if (to != other.to) return false
         if (hours != other.hours) return false
+        if (manDays != other.manDays) return false
         if (description != other.description) return false
         if (customerId != other.customerId) return false
         if (ticketId != other.ticketId) return false
@@ -83,6 +85,7 @@ class ProjectTimeEntity(
         result = 31 * result + from.hashCode()
         result = 31 * result + to.hashCode()
         result = 31 * result + hours.hashCode()
+        result = 31 * result + manDays.hashCode()
         result = 31 * result + description.hashCode()
         result = 31 * result + customerId.hashCode()
         result = 31 * result + ticketId.hashCode()
@@ -108,7 +111,7 @@ class ProjectTimeEntity(
     }
 
     override fun toString(): String {
-        return "ProjectTimeEntity(id=$id, userId=$userId, date='$date', dateTo='$dateTo', from='$from', to='$to', hours='$hours', description='$description', customerId='$customerId', ticketId='$ticketId', projectId='$projectId', taskId='$taskId', orderNo='$orderNo', activityType='$activityType', activityTypeMatrix='$activityTypeMatrix', skillLevel='$skillLevel', performanceLocation='$performanceLocation', teamId='$teamId', journeyId='$journeyId', travelTime='$travelTime', drivenKm='$drivenKm', kmFlatRate='$kmFlatRate', billable='$billable', premium='$premium', units='$units', evaluation='$evaluation', isSend=$isSend, createdTime='$createdTime')"
+        return "ProjectTimeEntity(id=$id, userId=$userId, date='$date', dateTo='$dateTo', from='$from', to='$to', hours='$hours', manDays='$manDays', description='$description', customerId='$customerId', ticketId='$ticketId', projectId='$projectId', taskId='$taskId', orderNo='$orderNo', activityType='$activityType', activityTypeMatrix='$activityTypeMatrix', skillLevel='$skillLevel', performanceLocation='$performanceLocation', teamId='$teamId', journeyId='$journeyId', travelTime='$travelTime', drivenKm='$drivenKm', kmFlatRate='$kmFlatRate', billable='$billable', premium='$premium', units='$units', evaluation='$evaluation', isSend=$isSend, createdTime='$createdTime')"
     }
 
     fun toMap(): Map<String, String> {
@@ -119,6 +122,7 @@ class ProjectTimeEntity(
             "from" to from,
             "to" to to,
             "hours" to hours,
+            "manDays" to manDays,
             "description" to description,
             "customerId" to customerId,
             "ticketId" to ticketId,
@@ -151,6 +155,7 @@ class ProjectTimeEntity(
                 from = map["from"] ?: "",
                 to = map["to"] ?: "",
                 hours = map["hours"] ?: "",
+                manDays = map["manDays"] ?: "",
                 description = map["description"] ?: "",
                 customerId = map["customerId"] ?: "",
                 ticketId = map["ticketId"] ?: "",
