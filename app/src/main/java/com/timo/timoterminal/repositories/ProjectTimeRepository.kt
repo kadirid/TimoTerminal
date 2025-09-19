@@ -6,6 +6,8 @@ import com.timo.timoterminal.entityClasses.ProjectTimeEntity
 
 class ProjectTimeRepository(private val projectTimeDAO: ProjectTimeDAO) {
 
+    suspend fun getNextNotSend() = projectTimeDAO.getNextNotSend()
+
     suspend fun getAllAsList() = projectTimeDAO.getAllAsList()
 
     @WorkerThread
@@ -21,4 +23,6 @@ class ProjectTimeRepository(private val projectTimeDAO: ProjectTimeDAO) {
     suspend fun getPageAsList(currentPage: Int) = projectTimeDAO.getPageAsList(currentPage * 50)
 
     suspend fun count(): Int = projectTimeDAO.count()
+
+    suspend fun deleteById(id: Long) = projectTimeDAO.deleteById(id)
 }

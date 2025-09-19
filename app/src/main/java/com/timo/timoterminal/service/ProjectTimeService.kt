@@ -10,7 +10,6 @@ import com.timo.timoterminal.repositories.ProjectTimeRepository
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 
@@ -97,32 +96,31 @@ class ProjectTimeService (
             val token = getToken()
 
             if (company.isNotEmpty() && token.isNotEmpty()) {
-                val projectTimes = projectTimeRepository.getAllAsList()
+                val projectTime = projectTimeRepository.getNextNotSend() ?: return
                 val params = JSONObject()
                 params.put("terminalSN" , MainApplication.lcdk.getSerialNumber())
                 params.put("terminalId" , "$tId")
                 params.put("token" , token)
                 params.put("firma" , company)
-                val arr = JSONArray()
-                for (pt in projectTimes) {
-                    val map = pt.toMap()
-                    val obj = JSONObject()
-                    for ((key, value) in map) {
-                        obj.put(key, value)
-                    }
-                    arr.put(obj)
+                val map = projectTime.toMap()
+                val jObj = JSONObject()
+                for ((key, value) in map) {
+                    jObj.put(key, value)
                 }
-                params.put("data" , arr)
+                params.put("data" , jObj)
                 httpService.postJson(
                     "${url}services/rest/zktecoTerminal/offlineWorkingTime",
                     params.toString(),
                     null,
-                    { _, _, msg ->
-                        if(msg != null && msg.toLong() == projectTimes.size.toLong()) {
+                    { obj, _, _ ->
+                        if(obj?.getBoolean("success") == true) {
                             scope.launch {
-                                for (projectTime in projectTimes) {
-                                    if (projectTime.id != null)
+                                if (projectTime.id != null) {
+                                    if (obj.getBoolean("isSend")) {
+                                        projectTimeRepository.deleteById(projectTime.id!!)
+                                    } else {
                                         projectTimeRepository.setIsSend(projectTime.id!!)
+                                    }
                                 }
                             }
                         }

@@ -102,7 +102,8 @@
             android:layout_height="45dp"
             android:hint="@string/hours"
             android:labelFor="@id/hours"
-            app:layout_constraintEnd_toEndOf="parent"
+            tools:layout_marginEnd="5dp"
+            app:layout_constraintEnd_toStartOf="@id/text_input_Layout_project_time_man_days"
             app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -112,6 +113,25 @@
                 android:focusable="false"
                 android:imeOptions="actionDone"
                 android:inputType="time"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_project_time_man_days"
+            android:layout_width="140dp"
+            android:layout_height="45dp"
+            android:hint="@string/manDays"
+            android:labelFor="@id/man_days"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/man_days"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="numberDecimal"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp" />
         </com.google.android.material.textfield.TextInputLayout>

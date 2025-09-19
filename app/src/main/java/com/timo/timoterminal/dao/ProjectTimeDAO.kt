@@ -9,6 +9,9 @@ import com.timo.timoterminal.entityClasses.ProjectTimeEntity
 @Dao
 interface ProjectTimeDAO {
 
+    @Query("SELECT * FROM ProjectTimeEntity WHERE isSend = 0 ORDER BY id LIMIT 1")
+    suspend fun getNextNotSend(): ProjectTimeEntity?
+
     @Query("SELECT * FROM ProjectTimeEntity ORDER BY id")
     suspend fun getAllAsList(): List<ProjectTimeEntity>
 
@@ -29,4 +32,7 @@ interface ProjectTimeDAO {
 
     @Query("SELECT COUNT(*) FROM ProjectTimeEntity")
     suspend fun count(): Int
+
+    @Query("DELETE FROM ProjectTimeEntity WHERE id = :id" )
+    suspend fun deleteById(id: Long)
 }
