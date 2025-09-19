@@ -7,6 +7,7 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.core.os.postDelayed
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.MainApplication
@@ -125,10 +126,13 @@ class HeartbeatService : KoinComponent {
     private fun handelHeartBeatResponse(obj: JSONObject, activity: MainActivity) {
         checkDaySwitch(activity)
 
+        var hasConfigUpdate = false
+
         val timezone = sharedPrefService.getString(SharedPreferenceKeys.TIMEZONE, "Europe/Berlin")
         if (obj.has("timezone") && !obj.isNull("timezone") && !timezone.equals(obj.getString("timezone"))) {
             settingsService.setTimeZone(activity, obj.getString("timezone")) {}
             Utils.updateLocale()
+            hasConfigUpdate = true
         }
         if (obj.has("time") && !obj.isNull("time")) {
             val tTime = Utils.parseDBDateTime(obj.getString("time"))
@@ -227,6 +231,7 @@ class HeartbeatService : KoinComponent {
                     editor.putString(SharedPreferenceKeys.SERVER_URL.name, data[0])
                 }
                 editor.apply()
+                hasConfigUpdate = true
             } else {
                 val color = activity.resources?.getColorStateList(R.color.green, null)
                 if (activity.getBinding().serverConnectionIcon.imageTintList != color) {
@@ -242,6 +247,7 @@ class HeartbeatService : KoinComponent {
                         updateAllUser.second,
                         deleteOld = true
                     )
+                    hasConfigUpdate = true
                 } else {
                     val array = JSONArray()
                     val resIds = JSONArray()
@@ -258,16 +264,20 @@ class HeartbeatService : KoinComponent {
                                 userService.deleteFP(ids[0], ids[1].toInt(), no.second)
                             }
                         }
+                        hasConfigUpdate = true
                     }
                     if (updateIds.size > 0) {
                         httpService.responseForMultiCommand(resIds)
                         userService.processUserArray(array, scope, "")
+                        hasConfigUpdate = true
                     }else if(updateProjectUserValues.size > 0) {
                         userService.updateProjectUserValues(updateProjectUserValues, scope)
+                        hasConfigUpdate = true
                     }else if(deleteIds.size > 0) {
                         for (no in deleteIds) {
                             userService.deleteUser(no.first, no.second)
                         }
+                        hasConfigUpdate = true
                     }
                 }
                 if (loadPermissions.first.isNotEmpty()) {
@@ -278,6 +288,7 @@ class HeartbeatService : KoinComponent {
                             resObj.array,
                             scope
                         ) {}
+                        hasConfigUpdate = true
                     }
                 }
                 if (loadLanguage.first.isNotEmpty()) {
@@ -286,12 +297,14 @@ class HeartbeatService : KoinComponent {
                         scope,
                         loadLanguage.second
                     )
+                    hasConfigUpdate = true
                 }
                 if (lang.first.isNotEmpty()) {
                     settingsService.changeLanguage(activity, lang.first, lang.second)
                     activity.setText()
                     activity.reloadSoundSource()
                     Utils.updateLocale()
+                    hasConfigUpdate = true
                 }
                 if (enrollCard.first.isNotEmpty()) {
                     activity.cancelTimer()
@@ -327,6 +340,7 @@ class HeartbeatService : KoinComponent {
                     activity.runOnUiThread {
                         activity.onProjectSettingsChanged()
                     }
+                    hasConfigUpdate = true
                 }
                 if (enrollFinger.first.isNotEmpty()) {
                     val ids = enrollFinger.first.split(":")
@@ -381,6 +395,18 @@ class HeartbeatService : KoinComponent {
                         bookingService.sendSavedBooking(scope)
                         projectTimeService.sendSavedProjectTimes(scope)
                     }
+                }
+            }
+            if (hasConfigUpdate) {
+                activity.runOnUiThread {
+                    Toast.makeText(
+                        activity,
+                        languageService.getText(
+                            "TERMINAL#ConfigUpdated",
+                            "Terminal configuration updated"
+                        ),
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
