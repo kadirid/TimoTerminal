@@ -202,6 +202,7 @@ class ProjectFragmentStopwatch : Fragment() {
             hideNonVisibleItems()
         }
         addTextWatcher()
+        placeCustomerAtTopIfNeeded()
     }
 
     // --- Berechtigungsabfrage ---
@@ -724,5 +725,20 @@ class ProjectFragmentStopwatch : Fragment() {
     // --- Hilfsmethode: dp zu px ---
     private fun Int.dpToPx(): Int {
         return (this * resources.displayMetrics.density).toInt()
+    }
+
+    private fun placeCustomerAtTopIfNeeded() {
+        if (!true) return
+        val customerLayout = binding.textInputLayoutProjectTimeCustomer
+        val parent = customerLayout.parent as? LinearLayout ?: return
+        // set marginbottom to 5dp
+        val layoutParams = customerLayout.layoutParams as LinearLayout.LayoutParams
+        layoutParams.bottomMargin = 10.dpToPx()
+        customerLayout.layoutParams = layoutParams
+        // Move customerLayout to the top if it's not already there
+        if (parent.indexOfChild(customerLayout) != 0) {
+            parent.removeView(customerLayout)
+            parent.addView(customerLayout, 0)
+        }
     }
 }
