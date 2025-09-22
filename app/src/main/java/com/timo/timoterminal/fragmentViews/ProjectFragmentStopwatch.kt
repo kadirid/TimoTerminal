@@ -16,7 +16,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentProjectStopwatchBinding
@@ -52,6 +51,19 @@ private const val ARG_CUSTOMER_TIME_TRACK = "customerTimeTrack"
 private const val ARG_TIME_ENTRY_TYPE = "timeEntryType"
 private const val ARG_CROSS_DAY = "crossDay"
 
+/**
+ * Fragment for the project time tracking (stopwatch) screen.
+ *
+ * Responsibilities:
+ * - Displays current date/time and updates it every second while the view is visible
+ * - Hosts inputs for project, task, customer, tickets, activity types, journey, etc.
+ * - Reacts to permissions and server-side settings to dynamically show/hide UI parts
+ * - Collects and validates user input and delegates saving to the ViewModel
+ *
+ * Notes on lifecycle:
+ * - The time updater posts via a Handler and is stopped in onDestroyView to avoid leaks
+ * - Data is loaded in onResume to refresh when returning to the screen
+ */
 class ProjectFragmentStopwatch : Fragment() {
 
     private val logger = Logger.getLogger(ProjectFragmentStopwatch::class.java.name)
@@ -111,6 +123,14 @@ class ProjectFragmentStopwatch : Fragment() {
     }
 
     companion object {
+        /**
+         * Factory method to create a configured instance of this Fragment.
+         *
+         * @param userId Logged-in user id
+         * @param customerTimeTrack If true, customer selection drives project filtering
+         * @param timeEntryType Type id of the time entry to preconfigure behavior
+         * @param crossDay If true, allows booking across midnight
+         */
         fun newInstance(
             userId: Long,
             customerTimeTrack: Boolean,
@@ -127,7 +147,9 @@ class ProjectFragmentStopwatch : Fragment() {
             }
     }
 
-    private val updateTimeRunnable = object : Runnable {
+    // Updates the clock in the header once per second while the view is active.
+// The callback is removed in onDestroyView to avoid leaking the binding/context.
+private val updateTimeRunnable = object : Runnable {
         override fun run() {
             val currentTime = timeFormat.format(Date())
             val currentDate = dateFormat.format(Date())
@@ -137,7 +159,18 @@ class ProjectFragmentStopwatch : Fragment() {
         }
     }
 
-    private fun setUp() {
+    /**
+         * Initializes the view once binding is available.
+         * Sets up:
+         * - Root click to keep session alive
+         * - Page transition animations (first/second page)
+         * - Time pickers / input close button
+         * - Autocomplete item click listeners
+         * - Language texts
+         * - LiveData observers
+         * - Visibility based on permissions and settings
+         */
+        private fun setUp() {
         binding.fragmentProjectRootLayout.setOnClickListener {
             (activity as MainActivity?)?.restartTimer()
         }
@@ -217,7 +250,11 @@ class ProjectFragmentStopwatch : Fragment() {
         return viewModel.permission(name) == "true"
     }
 
-    private suspend fun hideNonVisibleItems() {
+    /**
+         * Applies user/role permissions to the UI by hiding components that should not be visible.
+         * Also updates spacing buffers and container visibilities to keep the layout compact.
+         */
+        private suspend fun hideNonVisibleItems() {
         val g = View.GONE
         val permKeys = mutableListOf<String>()
 
@@ -278,7 +315,12 @@ class ProjectFragmentStopwatch : Fragment() {
         updatePufferComponents()
     }
 
-    private fun processProjectTimeTrackSetting(it: ProjectTimeTrackSetting) {
+    /**
+         * Applies server-provided ProjectTimeTrackSetting flags to hide optional fields.
+         * This is combined with permission-based hiding (hideNonVisibleItems) to determine
+         * the final UI visibility. After applying, spacing buffers are recalculated.
+         */
+        private fun processProjectTimeTrackSetting(it: ProjectTimeTrackSetting) {
         val g = View.GONE
         // Hide values that should not be shown
         if (!it.activityType) {
@@ -504,7 +546,7 @@ class ProjectFragmentStopwatch : Fragment() {
                 viewModel.liveCustomerEntities.value = emptyList()
             }
         }
-        viewModel.liveProjectTimeTrackSetting.value = null
+        // Reset to avoid processing the same settings multiple times
         viewModel.liveProjectTimeTrackSetting.value = null
         viewModel.liveProjectTimeTrackSetting.observe(viewLifecycleOwner) {
             if (it != null) {
@@ -763,7 +805,12 @@ class ProjectFragmentStopwatch : Fragment() {
         binding.evaluation.addTextChangedListener(timerRestartTextWatcher)
     }
 
-    private fun updatePufferComponents() {
+    /**
+         * Computes visibility for all spacer views ("Puffer") and high-level containers to keep
+         * the layout visually balanced, even when permissions/settings hide specific fields.
+         * Also updates top margins so the first visible container has no extra spacing.
+         */
+        private fun updatePufferComponents() {
         val g = View.GONE
         val v = View.VISIBLE
 
