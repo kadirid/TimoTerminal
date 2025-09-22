@@ -13,11 +13,12 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
+import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
-import com.timo.timoterminal.databinding.FragmentProjectBinding
 import com.timo.timoterminal.databinding.FragmentProjectStopwatchBinding
 import com.timo.timoterminal.entityAdaptor.ActivityTypeEntityAdaptor
 import com.timo.timoterminal.entityAdaptor.ActivityTypeMatrixEntityAdaptor
@@ -31,6 +32,7 @@ import com.timo.timoterminal.entityAdaptor.TicketEntityAdaptor
 import com.timo.timoterminal.entityClasses.ActivityTypeEntity
 import com.timo.timoterminal.entityClasses.JourneyEntity
 import com.timo.timoterminal.entityClasses.ProjectEntity
+import com.timo.timoterminal.entityClasses.ProjectTimeTrackSetting
 import com.timo.timoterminal.entityClasses.TaskEntity
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
@@ -200,14 +202,13 @@ class ProjectFragmentStopwatch : Fragment() {
 
         setUpOnItemClickListeners()
 
-        //setLanguageTexts()
+        setLanguageTexts()
 
         observeLiveData()
-        viewModel.viewModelScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             hideNonVisibleItems()
-
             if (isCustomerTimeTrack) {
-                //changePositionForCustomerTimeTrack()
+                // changePositionForCustomerTimeTrack() // falls benötigt
             }
         }
         addTextWatcher()
@@ -218,30 +219,123 @@ class ProjectFragmentStopwatch : Fragment() {
 
     private suspend fun hideNonVisibleItems() {
         val g = View.GONE
+        val permKeys = mutableListOf<String>()
+
+        permKeys += "auftragsnummer.show"
+        permKeys += "einheiten.use"
+        permKeys += "kunde.use"
+        permKeys += "tab_zeiterfassung.kunde.show"
+        permKeys += "teams.show"
+        permKeys += "zeiterfassung.teamauswahl.use"
+        permKeys += "tickets.use"
+        permKeys += "zeiterfassung.leistungsart.use"
+        permKeys += "leistungsart.matrix.use"
+        permKeys += "zeiterfassung.skilllevel.use"
+        permKeys += "zeiterfassung.reise.use"
+        permKeys += "reisekosten.use"
+        permKeys += "fertigstellungsgrad.use"
+        permKeys += "zeiterfassung.abschaetzung.use"
+        permKeys += "abrechenbar.show"
+        permKeys += "praemienrelevant.show"
+        // permKeys += "leistungsort.use" // auskommentiert
+
+        val permValues = permKeys.associateWith { perm(it) }
+        logger.info("Permission-Keys und Werte: $permValues")
+
         if (!perm("auftragsnummer.show")) binding.textInputLayoutProjectTimeOrderNo.visibility = g
         if (!perm("einheiten.use")) binding.textInputLayoutProjectTimeUnit.visibility = g
+
         val bCustomer = perm("kunde.use") && perm("tab_zeiterfassung.kunde.show")
         if (!bCustomer) binding.textInputLayoutProjectTimeCustomer.visibility = g
+
         val bTeam = perm("teams.show") && perm("zeiterfassung.teamauswahl.use")
         if (!bTeam) binding.textInputLayoutProjectTimeTeam.visibility = g
+
         if (!perm("tickets.use")) binding.textInputLayoutProjectTimeTicket.visibility = g
         if (!perm("zeiterfassung.leistungsart.use")) binding.textInputLayoutProjectTimeActivityType.visibility = g
+
         val bActivityTypeMatrix = perm("zeiterfassung.leistungsart.use") && perm("leistungsart.matrix.use")
         if (!bActivityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility = g
+
         if (!perm("zeiterfassung.skilllevel.use")) binding.textInputLayoutProjectTimeSkillLevel.visibility = g
+
         val bJourney = perm("zeiterfassung.reise.use")
         val bJourneyCost = perm("reisekosten.use")
-        if (!bJourney) binding.textInputLayoutProjectTimePerformanceLocation.visibility = g
-        if (!bJourney || !bJourneyCost) {
+        // Reise/Journey‑Felder nur anzeigen, wenn mindestens eine der Funktionen erlaubt ist
+        if (!(bJourney || bJourneyCost)) {
             binding.textInputLayoutProjectTimeJourney.visibility = g
             binding.textInputLayoutProjectTimeTravelTime.visibility = g
             binding.textInputLayoutProjectTimeDrivenKm.visibility = g
             binding.kmFlatRate.visibility = g
         }
+
         val bEvaluation = perm("fertigstellungsgrad.use") && perm("zeiterfassung.abschaetzung.use")
         if (!bEvaluation) binding.textInputLayoutProjectTimeEvaluation.visibility = g
+
         if (!perm("abrechenbar.show")) binding.billable.visibility = g
         if (!perm("praemienrelevant.show")) binding.premiumable.visibility = g
+
+        updatePufferComponents()
+    }
+
+    private fun processProjectTimeTrackSetting(it: ProjectTimeTrackSetting) {
+        val g = View.GONE
+        // Hide values that should not be shown
+        if (!it.activityType) {
+            binding.textInputLayoutProjectTimeActivityType.visibility = g
+            binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility = g
+        }
+        if (!it.activityTypeMatrix) {
+            binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility = g
+        }
+        if (!it.billable) {
+            binding.billable.visibility = g
+        }
+        if (!it.customer) {
+            binding.textInputLayoutProjectTimeCustomer.visibility = g
+        }
+        if (!it.description) {
+            binding.textInputLayoutProjectTimeDescription.visibility = g
+            binding.descriptionCloseButton.visibility = g
+        }
+        if (!it.drivenKm) {
+            binding.textInputLayoutProjectTimeDrivenKm.visibility = g
+        }
+        if (!it.evaluation) {
+            binding.textInputLayoutProjectTimeEvaluation.visibility = g
+        }
+        if (!it.journey) {
+            binding.textInputLayoutProjectTimeJourney.visibility = g
+        }
+        if (!it.kmFlatRate) {
+            binding.kmFlatRate.visibility = g
+        }
+        if (!it.orderNo) {
+            binding.textInputLayoutProjectTimeOrderNo.visibility = g
+        }
+        if (!it.performanceLocation) {
+            binding.textInputLayoutProjectTimePerformanceLocation.visibility = g
+        }
+        if (!it.premiumable) {
+            binding.premiumable.visibility = g
+        }
+        if (!it.skillLevel) {
+            binding.textInputLayoutProjectTimeSkillLevel.visibility = g
+        }
+        if (!it.team) {
+            binding.textInputLayoutProjectTimeTeam.visibility = g
+        }
+        if (!it.ticket) {
+            binding.textInputLayoutProjectTimeTicket.visibility = g
+        }
+        if (!it.travelTime) {
+            binding.textInputLayoutProjectTimeTravelTime.visibility = g
+        }
+        if (!it.unit) {
+            binding.textInputLayoutProjectTimeUnit.visibility = g
+        }
+
+        updatePufferComponents()
     }
 
     private fun setUpOnItemClickListeners() {
@@ -411,9 +505,12 @@ class ProjectFragmentStopwatch : Fragment() {
             }
         }
         viewModel.liveProjectTimeTrackSetting.value = null
+        viewModel.liveProjectTimeTrackSetting.value = null
         viewModel.liveProjectTimeTrackSetting.observe(viewLifecycleOwner) {
             if (it != null) {
-                //processProjectTimeTrackSetting(it)
+                processProjectTimeTrackSetting(it)
+                // Nach dem Laden der Settings Berechtigungen erneut anwenden
+                viewLifecycleOwner.lifecycleScope.launch { hideNonVisibleItems() }
                 viewModel.liveProjectTimeTrackSetting.value = null
             }
         }
@@ -664,5 +761,127 @@ class ProjectFragmentStopwatch : Fragment() {
         binding.performanceLocation.addTextChangedListener(timerRestartTextWatcher)
         binding.drivenKm.addTextChangedListener(timerRestartTextWatcher)
         binding.evaluation.addTextChangedListener(timerRestartTextWatcher)
+    }
+
+    private fun updatePufferComponents() {
+        val g = View.GONE
+        val v = View.VISIBLE
+
+        // Puffer zwischen einzelnen Komponenten - prüfe sowohl links als auch rechts
+
+        // Puffer zwischen Ticket und Team
+        binding.pufferBetweenTeamAndUnit.visibility =
+            if (binding.textInputLayoutProjectTimeTicket.visibility == v &&
+                binding.textInputLayoutProjectTimeTeam.visibility == v) v else g
+
+        // Puffer zwischen Activity und Matrix
+        binding.pufferBetweenActivityAndMatrix.visibility =
+            if (binding.textInputLayoutProjectTimeActivityType.visibility == v &&
+                binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility == v) v else g
+
+        // Puffer zwischen Activity Matrix und Skill
+        binding.pufferBetweenActivityMatrixAndSkill.visibility =
+            if (binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility == v &&
+                binding.textInputLayoutProjectTimeSkillLevel.visibility == v) v else g
+
+        // Puffer zwischen Activity Skill und Units
+        binding.pufferBetweenActivitySkillAndUnits.visibility =
+            if (binding.textInputLayoutProjectTimeSkillLevel.visibility == v &&
+                binding.textInputLayoutProjectTimeUnit.visibility == v) v else g
+
+        // Puffer zwischen Journey und Travel Time
+        binding.pufferBetweenJourneyAndTraveltime.visibility =
+            if (binding.textInputLayoutProjectTimeJourney.visibility == v &&
+                binding.textInputLayoutProjectTimeTravelTime.visibility == v) v else g
+
+        // Puffer zwischen Travel Time und Km
+        binding.pufferBetweenTraveltimeAndKm.visibility =
+            if (binding.textInputLayoutProjectTimeTravelTime.visibility == v &&
+                binding.textInputLayoutProjectTimeDrivenKm.visibility == v) v else g
+
+        // Puffer zwischen Km und Km Pauschale
+        binding.pufferBetweenKmAndKmblan.visibility =
+            if (binding.textInputLayoutProjectTimeDrivenKm.visibility == v &&
+                binding.kmFlatRate.visibility == v) v else g
+
+        // Buffer zwischen Billable und Premiumable
+        binding.bufferBetweenBillablePremiumable.visibility =
+            if (binding.billable.visibility == v &&
+                binding.premiumable.visibility == v) v else g
+
+        // Buffer zwischen Place of Work und Evaluation
+        binding.bufferBetweenPlaceOfWorkAndEvaluation.visibility =
+            if (binding.textInputLayoutProjectTimePerformanceLocation.visibility == v &&
+                binding.textInputLayoutProjectTimeEvaluation.visibility == v) v else g
+
+        // LinearLayout Container ausblenden wenn alle Komponenten unsichtbar sind
+
+        // Assignment Container (ticket, team)
+        val assignmentVisible = binding.textInputLayoutProjectTimeTicket.visibility == v ||
+                binding.textInputLayoutProjectTimeTeam.visibility == v
+        binding.assignmentContainer.visibility = if (assignmentVisible) v else g
+
+        // Activity Container (activity_type, activity_type_matrix, skill_level, unit)
+        val activityVisible = binding.textInputLayoutProjectTimeActivityType.visibility == v ||
+                binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility == v ||
+                binding.textInputLayoutProjectTimeSkillLevel.visibility == v ||
+                binding.textInputLayoutProjectTimeUnit.visibility == v
+        binding.activityContainer.visibility = if (activityVisible) v else g
+
+        // Billable Container (order_no, billable, premiumable)
+        val billableVisible = binding.textInputLayoutProjectTimeOrderNo.visibility == v ||
+                binding.billable.visibility == v ||
+                binding.premiumable.visibility == v
+        binding.billableContainer.visibility = if (billableVisible) v else g
+
+        // Journey Container (journey, travel_time, driven_km, km_flat_rate)
+        val journeyVisible = binding.textInputLayoutProjectTimeJourney.visibility == v ||
+                binding.textInputLayoutProjectTimeTravelTime.visibility == v ||
+                binding.textInputLayoutProjectTimeDrivenKm.visibility == v ||
+                binding.kmFlatRate.visibility == v
+        binding.journeyContainer.visibility = if (journeyVisible) v else g
+
+        // Description Container (description, description_close_button)
+        val descriptionVisible = binding.textInputLayoutProjectTimeDescription.visibility == v ||
+                binding.descriptionCloseButton.visibility == v
+        binding.descriptionContainer.visibility = if (descriptionVisible) v else g
+
+        // Location/Evaluation Container (performance_location, evaluation)
+        val locationEvaluationVisible = binding.textInputLayoutProjectTimePerformanceLocation.visibility == v ||
+                binding.textInputLayoutProjectTimeEvaluation.visibility == v
+        binding.locationEvaluationContainer.visibility = if (locationEvaluationVisible) v else g
+
+        // DYNAMISCHE MARGIN-VERWALTUNG
+        updateContainerMargins()
+    }
+
+    private fun updateContainerMargins() {
+        val standardMargin = 10.dpToPx()
+        val firstContainerMargin = 0.dpToPx()
+
+        // Liste aller Container in der Reihenfolge ihres Erscheinens
+        val containers = listOf(
+            binding.assignmentContainer,
+            binding.activityContainer,
+            binding.billableContainer,
+            binding.journeyContainer,
+            binding.descriptionContainer,
+            binding.locationEvaluationContainer
+        )
+
+        var isFirstVisibleContainer = true
+
+        for (container in containers) {
+            if (container.visibility == View.VISIBLE) {
+                val layoutParams = container.layoutParams as LinearLayout.LayoutParams
+                layoutParams.topMargin = if (isFirstVisibleContainer) firstContainerMargin else standardMargin
+                container.layoutParams = layoutParams
+                isFirstVisibleContainer = false
+            }
+        }
+    }
+
+    private fun Int.dpToPx(): Int {
+        return (this * resources.displayMetrics.density).toInt()
     }
 }
