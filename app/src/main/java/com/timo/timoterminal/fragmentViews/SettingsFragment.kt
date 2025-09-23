@@ -82,7 +82,6 @@ class SettingsFragment : Fragment() {
             binding.buttonReboot.text = languageService.getText("#RebootTerminal")
             binding.buttonTerminalBooking.text = languageService.getText("TERMINAL#Booking list")
             binding.buttonLogout.text = languageService.getText("#RenewLogin", "Logout")
-            binding.buttonBack.text = languageService.getText("hints#zurueck", "Back")
             binding.buttonInternalSettings.text = languageService.getText("#OtherSettings", "Sonstige Einstellungen")
             active = viewModel.getSoundActive()
             binding.buttonSound.text =
@@ -297,6 +296,13 @@ class SettingsFragment : Fragment() {
                 }
                 dialog.show()
                 dialog.window?.setLayout(680, ViewGroup.LayoutParams.WRAP_CONTENT)
+            }
+            binding.buttonTerminalProjectTime.setOnClickListener {
+                (activity as MainActivity?)?.restartTimer()
+                parentFragmentManager.commit {
+                    addToBackStack(null)
+                    replace(R.id.fragment_container_view, ProjectTimeListFragment())
+                }
             }
         }
     }

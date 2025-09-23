@@ -112,8 +112,9 @@
     </style>
 
     <style name="SettingsViewButtons">
-        <item name="android:layout_width">300dp</item>
+        <item name="android:layout_width">330dp</item>
         <item name="android:layout_height">70dp</item>
         <item name="android:textSize">20sp</item>
+        <item name="cornerRadius">16dp</item>
     </style>
 </resources>

@@ -6,21 +6,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragmentViews.BookingListFragment"
-    tools:layout_marginStart="200dp"
-    android:padding="60dp">
+    android:layout_marginTop="75dp"
+    tools:layout_marginStart="200dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/button_close"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/view_recycler_bu_booking_all"
-            android:layout_width="640dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
@@ -29,7 +28,6 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:listitem="@layout/item_bu_booking"
             tools:visibility="visible"/>
-
 
         <TextView
             android:id="@+id/fragment_booking_list_empty_list_text_view"
@@ -49,15 +47,14 @@
         android:id="@+id/button_close"
         android:layout_width="60dp"
         android:layout_height="60dp"
+        android:layout_margin="24dp"
         android:background="@drawable/square_button_background"
         android:textAllCaps="false"
-        app:backgroundTint="#10000000"
         app:icon="@drawable/baseline_close_24"
         app:iconGravity="textStart"
         app:iconPadding="0dp"
         app:iconSize="24dp"
-        app:iconTint="#000000"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

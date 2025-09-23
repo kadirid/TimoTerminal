@@ -266,6 +266,14 @@ class Utils {
             return dayTransferFormatter.format(gc.time)
         }
 
+        fun parseDateFromTransfer(date: String): GregorianCalendar {
+            val greg = GregorianCalendar()
+            val pDate = dayTransferFormatter.parse(date)
+            if (pDate != null)
+                greg.time = pDate
+            return greg
+        }
+
         fun convertTime(zeit: Double): String {
             if (zeit == 0.toDouble()) {
                 return "00:00"

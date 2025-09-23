@@ -21,7 +21,6 @@ import org.koin.android.ext.android.inject
 
 class BookingListFragment : Fragment() {
     private lateinit var binding: FragmentBookingListBinding
-    private lateinit var adapter: BookingBUEntityAdapter
     private val bookingBURepository: BookingBURepository by inject()
     private val userRepository: UserRepository by inject()
     private val languageService: LanguageService by inject()
@@ -52,7 +51,7 @@ class BookingListFragment : Fragment() {
     }
 
     private fun setAdapter() {
-        adapter = BookingBUEntityAdapter(
+        binding.viewRecyclerBuBookingAll.adapter = BookingBUEntityAdapter(
             emptyList(),
             emptyMap(),
             emptyMap(),
@@ -60,7 +59,6 @@ class BookingListFragment : Fragment() {
             object : BookingBUEntityAdapter.OnItemClickListener {
                 override fun onItemClick(entity: BookingBUEntity) {}
             })
-        binding.viewRecyclerBuBookingAll.adapter = adapter
 
         binding.viewRecyclerBuBookingAll.addOnScrollListener(object :
             RecyclerView.OnScrollListener() {
