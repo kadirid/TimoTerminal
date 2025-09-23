@@ -728,7 +728,7 @@ class ProjectFragmentStopwatch : Fragment() {
     }
 
     private fun placeCustomerAtTopIfNeeded() {
-        if (!true) return
+        if (!isCustomerTimeTrack) return
         val customerLayout = binding.textInputLayoutProjectTimeCustomer
         val parent = customerLayout.parent as? LinearLayout ?: return
         // set marginbottom to 5dp
