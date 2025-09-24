@@ -38,5 +38,6 @@ enum class ProjectPreferenceKeys {// Always start with PROJECT_ to avoid conflic
     PROJECT_TEAM,
     PROJECT_TICKET,
     PROJECT_TRAVEL_TIME,
-    PROJECT_UNIT
+    PROJECT_UNIT,
+    PROJECT_FIELD_ORDER
 }

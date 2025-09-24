@@ -30,7 +30,6 @@ import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.logging.Logger
-import kotlin.getValue
 
 // --- Konstanten ---
 private const val ARG_USERID = "userId"
@@ -48,6 +47,8 @@ private const val ARG_CROSS_DAY = "crossDay"
  * - Validierung und Übergabe der Nutzereingaben an das ViewModel
  */
 class ProjectFragmentStopwatch : Fragment() {
+
+    private var flatReorderMode: Boolean = false
 
     // --- Felder ---
     private val logger = Logger.getLogger(ProjectFragmentStopwatch::class.java.name)
@@ -153,8 +154,8 @@ class ProjectFragmentStopwatch : Fragment() {
                 override fun onAnimationStart(animation: Animation?) {}
                 override fun onAnimationEnd(animation: Animation?) {
                     binding.firstPageDetailLayout.visibility = View.INVISIBLE
-                    binding.secondPageDetailLayout.visibility = View.VISIBLE
-                    binding.secondPageDetailLayout.startAnimation(fadeInSlideInRight)
+                    binding.secondPageContainer.visibility = View.VISIBLE
+                    binding.secondPageContainer.startAnimation(fadeInSlideInRight)
                 }
                 override fun onAnimationRepeat(animation: Animation?) {}
             })
@@ -164,13 +165,13 @@ class ProjectFragmentStopwatch : Fragment() {
             fadeOutSlideOutRight.setAnimationListener(object : Animation.AnimationListener {
                 override fun onAnimationStart(animation: Animation?) {}
                 override fun onAnimationEnd(animation: Animation?) {
-                    binding.secondPageDetailLayout.visibility = View.INVISIBLE
+                    binding.secondPageContainer.visibility = View.INVISIBLE
                     binding.firstPageDetailLayout.visibility = View.VISIBLE
                     binding.firstPageDetailLayout.startAnimation(fadeInSlideInLeft)
                 }
                 override fun onAnimationRepeat(animation: Animation?) {}
             })
-            binding.secondPageDetailLayout.startAnimation(fadeOutSlideOutRight)
+            binding.secondPageContainer.startAnimation(fadeOutSlideOutRight)
         }
         // Schließen-Button
         binding.fabClose.setOnClickListener { parentFragmentManager.popBackStack() }
@@ -202,7 +203,7 @@ class ProjectFragmentStopwatch : Fragment() {
             hideNonVisibleItems()
         }
         addTextWatcher()
-        placeCustomerAtTopIfNeeded()
+        // Customer position is controlled by arrangeInputsBasedOnSettings; do not force move here.
     }
 
     // --- Berechtigungsabfrage ---
@@ -367,6 +368,7 @@ class ProjectFragmentStopwatch : Fragment() {
             val selectedItem = parent.getItemAtPosition(position) as JourneyEntity
             binding.travelTime.setText(selectedItem.journeyTime)
             binding.drivenKm.setText(selectedItem.journeyKm)
+            binding.drivenKm.setText(selectedItem.journeyKm)
             binding.performanceLocation.setText(selectedItem.journeyLocation)
             binding.kmFlatRate.isChecked = selectedItem.journeyVehicle
         }
@@ -433,7 +435,10 @@ class ProjectFragmentStopwatch : Fragment() {
         viewModel.liveProjectTimeTrackSetting.observe(viewLifecycleOwner) {
             if (it != null) {
                 processProjectTimeTrackSetting(it)
-                viewLifecycleOwner.lifecycleScope.launch { hideNonVisibleItems() }
+                viewLifecycleOwner.lifecycleScope.launch {
+                    hideNonVisibleItems()
+                    arrangeInputsBasedOnSettings(it)
+                }
                 viewModel.liveProjectTimeTrackSetting.value = null
             }
         }
@@ -660,6 +665,7 @@ class ProjectFragmentStopwatch : Fragment() {
      * Berechnet die Sichtbarkeit der Puffer und Container.
      */
     private fun updatePufferComponents() {
+        if (flatReorderMode) return
         val g = View.GONE
         val v = View.VISIBLE
         // ... Logik für Puffer zwischen Komponenten ...
@@ -701,6 +707,7 @@ class ProjectFragmentStopwatch : Fragment() {
      * Setzt die oberen Abstände der Container dynamisch.
      */
     private fun updateContainerMargins() {
+        if (flatReorderMode) return
         val standardMargin = 10.dpToPx()
         val firstContainerMargin = 0.dpToPx()
         val containers = listOf(
@@ -727,18 +734,260 @@ class ProjectFragmentStopwatch : Fragment() {
         return (this * resources.displayMetrics.density).toInt()
     }
 
-    private fun placeCustomerAtTopIfNeeded() {
-        if (!isCustomerTimeTrack) return
-        val customerLayout = binding.textInputLayoutProjectTimeCustomer
-        val parent = customerLayout.parent as? LinearLayout ?: return
-        // set marginbottom to 5dp
-        val layoutParams = customerLayout.layoutParams as LinearLayout.LayoutParams
-        layoutParams.bottomMargin = 10.dpToPx()
-        customerLayout.layoutParams = layoutParams
-        // Move customerLayout to the top if it's not already there
-        if (parent.indexOfChild(customerLayout) != 0) {
-            parent.removeView(customerLayout)
-            parent.addView(customerLayout, 0)
+
+    /**
+     * Ordnet die Eingaben dynamisch anhand des ProjectTimeTrackSetting.field_order neu an.
+     * - Erste Seite: Reihenfolge der Felder Projekt, Vorgang, Kunde im dropdown_menu_layout
+     * - Zweite Seite: Reihenfolge der Container innerhalb von secondPageDetailLayout
+     *   (Button am Ende bleibt bestehen)
+     */
+    private fun arrangeInputsBasedOnSettings(settings: ProjectTimeTrackSetting) {
+        try {
+            // Prüfe, ob benutzerdefinierte Reihenfolge aktiv ist (nicht Default und nicht leer)
+            val normalized = settings.field_order.trim()
+            val isCustomOrder = normalized.isNotEmpty() && normalized != ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
+            flatReorderMode = isCustomOrder
+
+            // 1) Berechne die gewünschte Anordnung mit Hilfe des Settings-Helpers
+            val arrangement = settings.arrangeInputsBasedOnSettingsSimple(isCustomerTimeTrack)
+
+            // 2) Erste Seite: Felder neu sortieren (nur Projekt/Vorgang werden tatsächlich verschoben)
+            reorderFirstPageInputs(arrangement.firstPageOrder)
+
+            if (flatReorderMode) {
+                // 3a) Zweite Seite: Flache Reihenfolge aller Einzelfelder ohne Container
+                // Reihenfolge direkt aus field_order ableiten (nicht aus firstPageOrder, da dort max. 3 Einträge erlaubt sind)
+                val keysForSecondPage = (settings.field_order.takeIf { it.isNotBlank() } ?: ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER)
+                    .split(',')
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    // Alle Keys ausschließen, die bereits auf der ersten Seite platziert wurden
+                    .filter { it !in arrangement.firstPageOrder }
+                reorderSecondPageFlat(keysForSecondPage)
+            } else {
+                // 3b) Zweite Seite: Container wie gehabt sortieren
+                reorderSecondPageContainers(arrangement.secondPageContainerOrder)
+                // 4) Abstände nachziehen für Container-Modus
+                updateContainerMargins()
+            }
+        } catch (ex: Exception) {
+            logger.warning("arrangeInputsBasedOnSettings failed: ${ex.message}")
+        }
+    }
+
+    private fun reorderFirstPageInputs(order: List<String>) {
+        val parent = binding.dropdownMenuLayout
+        // Basis-Mapping für Seite 1 (Textfelder)
+        val baseMapping = mutableMapOf(
+            ProjectTimeTrackSetting.Keys.PROJECT to binding.textInputLayoutProjectTimeProject,
+            ProjectTimeTrackSetting.Keys.TASK to binding.textInputLayoutProjectTimeTask,
+            ProjectTimeTrackSetting.Keys.CUSTOMER to binding.textInputLayoutProjectTimeCustomer,
+        )
+        // Optional: weitere Felder im Flat-Mode zulassen
+        val checkboxMap: Map<String, View> = if (flatReorderMode) {
+            baseMapping.putAll(
+                mapOf(
+                    ProjectTimeTrackSetting.Keys.TICKET to binding.textInputLayoutProjectTimeTicket,
+                    ProjectTimeTrackSetting.Keys.TEAM to binding.textInputLayoutProjectTimeTeam,
+                    ProjectTimeTrackSetting.Keys.ACTIVITY_TYPE to binding.textInputLayoutProjectTimeActivityType,
+                    ProjectTimeTrackSetting.Keys.ACTIVITY_TYPE_MATRIX to binding.textInputLayoutProjectTimeActivityTypeMatrix,
+                    ProjectTimeTrackSetting.Keys.SKILL_LEVEL to binding.textInputLayoutProjectTimeSkillLevel,
+                    ProjectTimeTrackSetting.Keys.UNIT to binding.textInputLayoutProjectTimeUnit,
+                    ProjectTimeTrackSetting.Keys.ORDER_NO to binding.textInputLayoutProjectTimeOrderNo,
+                    ProjectTimeTrackSetting.Keys.JOURNEY to binding.textInputLayoutProjectTimeJourney,
+                    ProjectTimeTrackSetting.Keys.TRAVEL_TIME to binding.textInputLayoutProjectTimeTravelTime,
+                    ProjectTimeTrackSetting.Keys.DRIVEN_KM to binding.textInputLayoutProjectTimeDrivenKm,
+                    ProjectTimeTrackSetting.Keys.DESCRIPTION to binding.textInputLayoutProjectTimeDescription,
+                    ProjectTimeTrackSetting.Keys.PERFORMANCE_LOCATION to binding.textInputLayoutProjectTimePerformanceLocation,
+                    ProjectTimeTrackSetting.Keys.EVALUATION to binding.textInputLayoutProjectTimeEvaluation
+                )
+            )
+            mapOf(
+                ProjectTimeTrackSetting.Keys.BILLABLE to binding.billable,
+                ProjectTimeTrackSetting.Keys.PREMIUMABLE to binding.premiumable,
+                ProjectTimeTrackSetting.Keys.KM_FLAT_RATE to binding.kmFlatRate
+            )
+        } else emptyMap()
+
+        // Hilfsfunktionen für LayoutParams, damit Elemente aus horizontalen Zeilen korrekt angezeigt werden
+        fun firstPageRowLp(isFirst: Boolean): LinearLayout.LayoutParams {
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            lp.topMargin = if (isFirst) 0 else 10.dpToPx()
+            lp.bottomMargin = 10.dpToPx()
+            return lp
+        }
+        fun firstPageInlineLp(): LinearLayout.LayoutParams {
+            return LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        // Zuerst alle Kandidaten (Textfelder) lösen
+        for ((_, view) in baseMapping) {
+            (view.parent as? ViewGroup)?.removeView(view)
+        }
+        // Auch Checkboxen ggf. lösen
+        for ((_, cb) in checkboxMap) {
+            (cb.parent as? ViewGroup)?.removeView(cb)
+        }
+
+        // Dann in gewünschter Reihenfolge (max. 3, bereits durch order begrenzt) einfügen
+        var i = 0
+        var isFirstAdded = true
+        while (i < order.size) {
+            val key = order[i]
+            val cbView = checkboxMap[key]
+            if (cbView != null) {
+                // Checkbox(en) auf einer Zeile gruppieren
+                val row = LinearLayout(requireContext())
+                row.orientation = LinearLayout.HORIZONTAL
+                row.layoutParams = firstPageRowLp(isFirstAdded)
+                var added = false
+                var j = i
+                while (j < order.size) {
+                    val k = order[j]
+                    val v = checkboxMap[k] ?: break
+                    if (v.visibility == View.GONE) { j++; continue }
+                    (v.parent as? ViewGroup)?.removeView(v)
+                    row.addView(v, firstPageInlineLp())
+                    added = true
+                    j++
+                }
+                if (added) {
+                    parent.addView(row)
+                    isFirstAdded = false
+                }
+                i = j
+                continue
+            }
+            val view = baseMapping[key]
+            if (view != null && view.visibility != View.GONE) {
+                (view.parent as? ViewGroup)?.removeView(view)
+                view.layoutParams = firstPageRowLp(isFirstAdded)
+                parent.addView(view, parent.childCount)
+                isFirstAdded = false
+            }
+            i++
+        }
+    }
+
+    private fun reorderSecondPageContainers(order: List<ProjectTimeTrackSetting.ContainerId>) {
+        val parent = binding.secondPageDetailLayout
+        val backButton = binding.goBackToFirstPageButton
+        val containerMap = mapOf(
+            ProjectTimeTrackSetting.ContainerId.ASSIGNMENT to binding.assignmentContainer,
+            ProjectTimeTrackSetting.ContainerId.ACTIVITY to binding.activityContainer,
+            ProjectTimeTrackSetting.ContainerId.BILLABLE to binding.billableContainer,
+            ProjectTimeTrackSetting.ContainerId.JOURNEY to binding.journeyContainer,
+            ProjectTimeTrackSetting.ContainerId.DESCRIPTION to binding.descriptionContainer,
+            ProjectTimeTrackSetting.ContainerId.LOCATION_EVALUATION to binding.locationEvaluationContainer
+        )
+        for (id in order) {
+            val view = containerMap[id] ?: continue
+            if (view.visibility == View.GONE) continue
+            // detach and insert before the back button so it stays last
+            (view.parent as? ViewGroup)?.removeView(view)
+            val insertIndex = parent.indexOfChild(backButton).takeIf { it >= 0 } ?: parent.childCount
+            parent.addView(view, insertIndex)
+        }
+    }
+
+    // Flacher Aufbau der zweiten Seite ohne Container-Gruppierung
+    private fun reorderSecondPageFlat(keys: List<String>) {
+        val parent = binding.secondPageDetailLayout
+        val backButton = binding.goBackToFirstPageButton
+
+        // Container ausblenden, damit sie nicht doppelt erscheinen
+        binding.assignmentContainer.visibility = View.GONE
+        binding.activityContainer.visibility = View.GONE
+        binding.billableContainer.visibility = View.GONE
+        binding.journeyContainer.visibility = View.GONE
+        binding.locationEvaluationContainer.visibility = View.GONE
+        // Beschreibung darf als eigener Block sichtbar bleiben, wenn gewählt
+        // Wir fügen aber bevorzugt das Textfeld direkt ein; der Container wird nicht benötigt
+        binding.descriptionContainer.visibility = View.GONE
+
+        // Back-Button sichern und alle Kinder entfernen
+        parent.removeAllViews()
+
+        // Mapping von Keys zu Views
+        val viewMap: Map<String, View> = mapOf(
+            ProjectTimeTrackSetting.Keys.TICKET to binding.textInputLayoutProjectTimeTicket,
+            ProjectTimeTrackSetting.Keys.TEAM to binding.textInputLayoutProjectTimeTeam,
+            ProjectTimeTrackSetting.Keys.ACTIVITY_TYPE to binding.textInputLayoutProjectTimeActivityType,
+            ProjectTimeTrackSetting.Keys.ACTIVITY_TYPE_MATRIX to binding.textInputLayoutProjectTimeActivityTypeMatrix,
+            ProjectTimeTrackSetting.Keys.SKILL_LEVEL to binding.textInputLayoutProjectTimeSkillLevel,
+            ProjectTimeTrackSetting.Keys.UNIT to binding.textInputLayoutProjectTimeUnit,
+            ProjectTimeTrackSetting.Keys.ORDER_NO to binding.textInputLayoutProjectTimeOrderNo,
+            ProjectTimeTrackSetting.Keys.JOURNEY to binding.textInputLayoutProjectTimeJourney,
+            ProjectTimeTrackSetting.Keys.TRAVEL_TIME to binding.textInputLayoutProjectTimeTravelTime,
+            ProjectTimeTrackSetting.Keys.DRIVEN_KM to binding.textInputLayoutProjectTimeDrivenKm,
+            ProjectTimeTrackSetting.Keys.DESCRIPTION to binding.textInputLayoutProjectTimeDescription,
+            ProjectTimeTrackSetting.Keys.PERFORMANCE_LOCATION to binding.textInputLayoutProjectTimePerformanceLocation,
+            ProjectTimeTrackSetting.Keys.EVALUATION to binding.textInputLayoutProjectTimeEvaluation
+        )
+        val checkboxMap: Map<String, View> = mapOf(
+            ProjectTimeTrackSetting.Keys.BILLABLE to binding.billable,
+            ProjectTimeTrackSetting.Keys.PREMIUMABLE to binding.premiumable,
+            ProjectTimeTrackSetting.Keys.KM_FLAT_RATE to binding.kmFlatRate
+        )
+
+        fun lpRow(first: Boolean): LinearLayout.LayoutParams {
+            val p = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            p.topMargin = if (first) 0 else 10.dpToPx()
+            return p
+        }
+        fun lpWrap(): LinearLayout.LayoutParams {
+            return LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        fun lpMatch(): LinearLayout.LayoutParams {
+            return LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+
+        var first = true
+        var i = 0
+        while (i < keys.size) {
+            val key = keys[i]
+            // Überspringe ggf. unsichtbare Elemente
+            val cb = checkboxMap[key]
+            if (cb != null) {
+                // Starte eine Checkbox-Zeile und sammle alle aufeinanderfolgenden Checkbox-Keys
+                val row = LinearLayout(requireContext())
+                row.orientation = LinearLayout.HORIZONTAL
+                row.layoutParams = lpRow(first)
+                var added = false
+                var j = i
+                while (j < keys.size) {
+                    val k = keys[j]
+                    val v = checkboxMap[k] ?: break
+                    if (v.visibility == View.GONE) { j++; continue }
+                    // Aus altem Parent lösen und hinzufügen
+                    (v.parent as? ViewGroup)?.removeView(v)
+                    row.addView(v, lpWrap())
+                    added = true
+                    j++
+                }
+                if (added) {
+                    parent.addView(row)
+                    first = false
+                }
+                i = j
+                continue
+            }
+            val view = viewMap[key]
+            if (view == null) { i++; continue }
+            if (view.visibility == View.GONE) { i++; continue }
+            // Lösen und als volle Zeile einfügen
+            (view.parent as? ViewGroup)?.removeView(view)
+            val params = lpRow(first)
+            view.layoutParams = params
+            parent.addView(view)
+            first = false
+            i++
         }
     }
 }
