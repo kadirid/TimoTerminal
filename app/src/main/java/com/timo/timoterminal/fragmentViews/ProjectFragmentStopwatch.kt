@@ -744,12 +744,12 @@ class ProjectFragmentStopwatch : Fragment() {
     private fun arrangeInputsBasedOnSettings(settings: ProjectTimeTrackSetting) {
         try {
             // Prüfe, ob benutzerdefinierte Reihenfolge aktiv ist (nicht Default und nicht leer)
-            val normalized = settings.field_order.trim()
+            val normalized = settings.fieldOrder.trim()
             val isCustomOrder = normalized.isNotEmpty() && normalized != ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
             flatReorderMode = isCustomOrder
 
             // 1) Berechne die gewünschte Anordnung mit Hilfe des Settings-Helpers
-            val arrangement = settings.arrangeInputsBasedOnSettingsSimple(isCustomerTimeTrack)
+            val arrangement = settings.arrangeInputsBasedOnSettingsForStopwatch(isCustomerTimeTrack)
 
             // 2) Erste Seite: Felder neu sortieren (nur Projekt/Vorgang werden tatsächlich verschoben)
             reorderFirstPageInputs(arrangement.firstPageOrder)
@@ -757,7 +757,7 @@ class ProjectFragmentStopwatch : Fragment() {
             if (flatReorderMode) {
                 // 3a) Zweite Seite: Flache Reihenfolge aller Einzelfelder ohne Container
                 // Reihenfolge direkt aus field_order ableiten (nicht aus firstPageOrder, da dort max. 3 Einträge erlaubt sind)
-                val keysForSecondPage = (settings.field_order.takeIf { it.isNotBlank() } ?: ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER)
+                val keysForSecondPage = (settings.fieldOrder.takeIf { it.isNotBlank() } ?: ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER)
                     .split(',')
                     .map { it.trim() }
                     .filter { it.isNotEmpty() }
@@ -990,4 +990,5 @@ class ProjectFragmentStopwatch : Fragment() {
             i++
         }
     }
+
 }

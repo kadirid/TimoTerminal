@@ -19,7 +19,7 @@ class ProjectTimeTrackSetting(
     var ticket: Boolean,
     var travelTime: Boolean,
     var unit: Boolean,
-    var field_order: String
+    var fieldOrder: String
 ) {
 
     companion object {
@@ -32,7 +32,7 @@ class ProjectTimeTrackSetting(
     enum class ContainerId { ASSIGNMENT, ACTIVITY, BILLABLE, JOURNEY, DESCRIPTION, LOCATION_EVALUATION }
 
     /** Ergebnisstruktur für die UI-Anordnung. */
-    data class UiArrangement(
+    data class UiArrangementStopWatch(
         // Reihenfolge der drei Felder oben links (erste Seite)
         val firstPageOrder: List<String>, // keys: project, task
         // Reihenfolge der Container auf der zweiten Seite
@@ -72,9 +72,9 @@ class ProjectTimeTrackSetting(
      *   Für jeden Container zählt nur der zuerst in field_order erwähnte sichtbare Key. Nach dessen Index wird sortiert.
      *   Container ohne Treffer behalten eine stabile Default-Reihenfolge.
      */
-    fun arrangeInputsBasedOnSettingsSimple(isCustomerTimeTrack: Boolean): UiArrangement {
+    fun arrangeInputsBasedOnSettingsForStopwatch(isCustomerTimeTrack: Boolean): UiArrangementStopWatch {
         // 1) Reihenfolge-Quelle aufbereiten
-        val order = (field_order.takeIf { it.isNotBlank() } ?: DEFAULT_FIELD_ORDER)
+        val order = (fieldOrder.takeIf { it.isNotBlank() } ?: DEFAULT_FIELD_ORDER)
             .split(',')
             .map { it.trim() }
             .filter { it.isNotEmpty() }
@@ -163,7 +163,7 @@ class ProjectTimeTrackSetting(
         val secondPageContainerOrder = allContainers
             .sortedWith(compareBy({ firstIndexPerContainer[it] ?: Int.MAX_VALUE }, { defaultContainerIndex(it) }))
 
-        return UiArrangement(
+        return UiArrangementStopWatch(
             firstPageOrder = firstPageOrder,
             secondPageContainerOrder = secondPageContainerOrder
         )
@@ -180,7 +180,7 @@ class ProjectTimeTrackSetting(
     }
 
     override fun toString(): String {
-        return "ProjectTimeTrackSetting(entryType=$entryType, activityType=$activityType, activityTypeMatrix=$activityTypeMatrix, billable=$billable, customer=$customer, description=$description, drivenKm=$drivenKm, evaluation=$evaluation, journey=$journey, kmFlatRate=$kmFlatRate, orderNo=$orderNo, performanceLocation=$performanceLocation, premiumable=$premiumable, skillLevel=$skillLevel, team=$team, ticket=$ticket, travelTime=$travelTime, unit=$unit, field_order='$field_order')"
+        return "ProjectTimeTrackSetting(entryType=$entryType, activityType=$activityType, activityTypeMatrix=$activityTypeMatrix, billable=$billable, customer=$customer, description=$description, drivenKm=$drivenKm, evaluation=$evaluation, journey=$journey, kmFlatRate=$kmFlatRate, orderNo=$orderNo, performanceLocation=$performanceLocation, premiumable=$premiumable, skillLevel=$skillLevel, team=$team, ticket=$ticket, travelTime=$travelTime, unit=$unit, field_order='$fieldOrder')"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -207,7 +207,7 @@ class ProjectTimeTrackSetting(
         if (ticket != other.ticket) return false
         if (travelTime != other.travelTime) return false
         if (unit != other.unit) return false
-        if (field_order != other.field_order) return false
+        if (fieldOrder != other.fieldOrder) return false
 
         return true
     }
@@ -231,7 +231,7 @@ class ProjectTimeTrackSetting(
         result = 31 * result + ticket.hashCode()
         result = 31 * result + travelTime.hashCode()
         result = 31 * result + unit.hashCode()
-        result = 31 * result + field_order.hashCode()
+        result = 31 * result + fieldOrder.hashCode()
         return result
     }
 }

@@ -10,8 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
+import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
@@ -37,6 +36,7 @@ import com.timo.timoterminal.viewModel.ProjectFragmentViewModel
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.util.Calendar
+import kotlin.text.toInt
 
 private const val ARG_USERID = "userId"
 private const val ARG_CUSTOMER_TIME_TRACK = "customerTimeTrack"
@@ -514,6 +514,9 @@ class ProjectFragment: Fragment() {
     }
 
     private fun processProjectTimeTrackSetting(it: ProjectTimeTrackSetting) {
+        val v = View.VISIBLE
+        val g = View.GONE
+
         // Hide values that should not be shown
         if (!it.activityType) {
             binding.textInputLayoutProjectTimeActivityType.visibility = g
@@ -579,30 +582,30 @@ class ProjectFragment: Fragment() {
         } else {
             when (timeEntryType) {
                 1L -> {
-                    binding.textInputLayoutProjectTimeFromDate.visibility = v
-                    binding.textInputLayoutProjectTimeToDate.visibility = if (crossDay) v else g
-                    binding.textInputLayoutProjectTimeFrom.visibility = v
-                    binding.textInputLayoutProjectTimeTo.visibility = v
+                    binding.textInputLayoutProjectTimeFromDate.visibility = View.VISIBLE
+                    binding.textInputLayoutProjectTimeToDate.visibility = if (crossDay) View.VISIBLE else g
+                    binding.textInputLayoutProjectTimeFrom.visibility = View.VISIBLE
+                    binding.textInputLayoutProjectTimeTo.visibility = View.VISIBLE
                     binding.textInputLayoutProjectTimeHours.visibility = g
                     binding.textInputLayoutProjectTimeManDays.visibility = g
                 }
 
                 3L, 5L, 8L -> {
-                    binding.textInputLayoutProjectTimeFromDate.visibility = v
+                    binding.textInputLayoutProjectTimeFromDate.visibility = View.VISIBLE
                     binding.textInputLayoutProjectTimeToDate.visibility = g
                     binding.textInputLayoutProjectTimeFrom.visibility = g
                     binding.textInputLayoutProjectTimeTo.visibility = g
-                    binding.textInputLayoutProjectTimeHours.visibility = v
+                    binding.textInputLayoutProjectTimeHours.visibility = View.VISIBLE
                     binding.textInputLayoutProjectTimeManDays.visibility = g
                 }
 
                 6L -> {
-                    binding.textInputLayoutProjectTimeFromDate.visibility = v
+                    binding.textInputLayoutProjectTimeFromDate.visibility = View.VISIBLE
                     binding.textInputLayoutProjectTimeToDate.visibility = g
                     binding.textInputLayoutProjectTimeFrom.visibility = g
                     binding.textInputLayoutProjectTimeTo.visibility = g
                     binding.textInputLayoutProjectTimeHours.visibility = g
-                    binding.textInputLayoutProjectTimeManDays.visibility = v
+                    binding.textInputLayoutProjectTimeManDays.visibility = View.VISIBLE
                 }
 
                 10L -> {
@@ -637,7 +640,7 @@ class ProjectFragment: Fragment() {
                 binding.textInputLayoutProjectTimeSkillLevel.hint =
                     "${binding.textInputLayoutProjectTimeSkillLevel.hint ?: ""}*"
             }
-            if (binding.textInputLayoutProjectTimeDescription.visibility == v && perm("zeiterfassung.beschreibung.pflicht")) {
+            if (binding.descriptionContainer.visibility == v && perm("zeiterfassung.beschreibung.pflicht")) {
                 binding.textInputLayoutProjectTimeDescription.hint =
                     "${binding.textInputLayoutProjectTimeDescription.hint ?: ""}*"
             }
@@ -647,7 +650,7 @@ class ProjectFragment: Fragment() {
             }
         }
 
-        // Modify anchor of dropdowns not starting on the right
+        // Modify anchor of dropdowns for better positioning
         if (it.team) {
             if (it.customer && !isCustomerTimeTrack && binding.textInputLayoutProjectTimeCustomer.visibility == v) {
                 binding.team.dropDownAnchor = binding.customer.id
@@ -662,613 +665,126 @@ class ProjectFragment: Fragment() {
             }
         }
 
-        val constraintSet = ConstraintSet()
-        constraintSet.clone(binding.fragmentProjectRootLayout)
-
-        // Resolve issue of horizontal alignment
-        if (!it.team) {
-            if (isCustomerTimeTrack) {
-                constraintSet.setMargin(
-                    binding.textInputLayoutProjectTimeTask.id,
-                    ConstraintSet.END,
-                    0
-                )
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeTask.id,
-                    ConstraintSet.END,
-                    binding.fragmentProjectRootLayout.id,
-                    ConstraintSet.END,
-                    0
-                )
-            } else {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeCustomer.id,
-                    ConstraintSet.END,
-                    binding.fragmentProjectRootLayout.id,
-                    ConstraintSet.END,
-                    0
-                )
-            }
-        }
-
-        if (!it.customer && !isCustomerTimeTrack && it.team) {
-            constraintSet.constrainWidth(binding.textInputLayoutProjectTimeTeam.id, 0)
-            constraintSet.connect(
-                binding.textInputLayoutProjectTimeTeam.id,
-                ConstraintSet.START,
-                binding.fragmentProjectRootLayout.id,
-                ConstraintSet.START,
-                0
-            )
-        }
-
-        if (!it.orderNo && !it.unit) {
-            if (isCustomerTimeTrack) {
-                constraintSet.setMargin(
-                    binding.textInputLayoutProjectTimeCustomer.id,
-                    ConstraintSet.END,
-                    0
-                )
-            } else {
-                constraintSet.setMargin(
-                    binding.textInputLayoutProjectTimeProject.id,
-                    ConstraintSet.END,
-                    0
-                )
-            }
-        }
-
-        if (it.orderNo && !it.unit) {
-            constraintSet.setMargin(
-                binding.textInputLayoutProjectTimeOrderNo.id,
-                ConstraintSet.END,
-                0
-            )
-        }
-
-        if (!it.activityType) {
-            if (it.skillLevel) {
-                constraintSet.setMargin(
-                    binding.textInputLayoutProjectTimeSkillLevel.id,
-                    ConstraintSet.LEFT,
-                    0
-                )
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeSkillLevel.id,
-                    ConstraintSet.START,
-                    binding.fragmentProjectRootLayout.id,
-                    ConstraintSet.START,
-                    0
-                )
-            }
-        } else if (!it.activityTypeMatrix) {
-            constraintSet.constrainWidth(binding.textInputLayoutProjectTimeActivityType.id, 0)
-            if (!it.skillLevel) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeActivityType.id,
-                    ConstraintSet.END,
-                    binding.fragmentProjectRootLayout.id,
-                    ConstraintSet.END,
-                    0
-                )
-            } else {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeActivityType.id,
-                    ConstraintSet.END,
-                    binding.textInputLayoutProjectTimeSkillLevel.id,
-                    ConstraintSet.START,
-                    0
-                )
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeSkillLevel.id,
-                    ConstraintSet.START,
-                    binding.textInputLayoutProjectTimeActivityType.id,
-                    ConstraintSet.END,
-                    5
-                )
-            }
-        } else if (!it.skillLevel) {
-            constraintSet.constrainWidth(binding.textInputLayoutProjectTimeActivityTypeMatrix.id, 0)
-            constraintSet.connect(
-                binding.textInputLayoutProjectTimeActivityTypeMatrix.id,
-                ConstraintSet.END,
-                binding.fragmentProjectRootLayout.id,
-                ConstraintSet.END,
-                0
-            )
-        }
-
-        if (!it.journey) {
-            if (it.travelTime) {
-                constraintSet.clear(
-                    binding.textInputLayoutProjectTimeTravelTime.id,
-                    ConstraintSet.END
-                )
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeTravelTime.id,
-                    ConstraintSet.START,
-                    binding.fragmentProjectRootLayout.id,
-                    ConstraintSet.START,
-                    0
-                )
-            }
-            if (it.drivenKm) {
-                constraintSet.clear(
-                    binding.textInputLayoutProjectTimeDrivenKm.id,
-                    ConstraintSet.END
-                )
-                if (it.travelTime) {
-                    constraintSet.connect(
-                        binding.textInputLayoutProjectTimeDrivenKm.id,
-                        ConstraintSet.START,
-                        binding.textInputLayoutProjectTimeTravelTime.id,
-                        ConstraintSet.END,
-                        5
-                    )
-                } else {
-                    constraintSet.connect(
-                        binding.textInputLayoutProjectTimeDrivenKm.id,
-                        ConstraintSet.START,
-                        binding.fragmentProjectRootLayout.id,
-                        ConstraintSet.START,
-                        0
-                    )
-                }
-            }
-            if (it.kmFlatRate) {
-                constraintSet.clear(
-                    binding.kmFlatRate.id,
-                    ConstraintSet.END
-                )
-                if (it.drivenKm) {
-                    constraintSet.connect(
-                        binding.kmFlatRate.id,
-                        ConstraintSet.START,
-                        binding.textInputLayoutProjectTimeDrivenKm.id,
-                        ConstraintSet.END,
-                        5
-                    )
-                } else if (it.travelTime) {
-                    constraintSet.connect(
-                        binding.kmFlatRate.id,
-                        ConstraintSet.START,
-                        binding.textInputLayoutProjectTimeTravelTime.id,
-                        ConstraintSet.END,
-                        5
-                    )
-                } else {
-                    constraintSet.connect(
-                        binding.kmFlatRate.id,
-                        ConstraintSet.START,
-                        binding.fragmentProjectRootLayout.id,
-                        ConstraintSet.START,
-                        0
-                    )
-                }
-            }
-        } else {
-            if (!it.travelTime && !it.drivenKm && !it.kmFlatRate) {
-                constraintSet.setMargin(
-                    binding.textInputLayoutProjectTimeJourney.id,
-                    ConstraintSet.END,
-                    0
-                )
-            }
-        }
-
-        if (!it.evaluation) {
-            if (it.billable) {
-                constraintSet.connect(
-                    binding.billable.id,
-                    ConstraintSet.START,
-                    binding.fragmentProjectRootLayout.id,
-                    ConstraintSet.START,
-                    0
-                )
-            } else if (it.premiumable) {
-                constraintSet.connect(
-                    binding.premiumable.id,
-                    ConstraintSet.START,
-                    binding.fragmentProjectRootLayout.id,
-                    ConstraintSet.START,
-                    0
-                )
-            }
-        }
-
-        // Check and Resolve issues of vertical alignment
-        val pjParams =
-            binding.textInputLayoutProjectTimeProject.layoutParams as ConstraintLayout.LayoutParams
-        val pjNext = getNextTopId(binding.project.id, it)
-        if (pjParams.topToBottom != pjNext) {
-            if (pjNext == -1) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeProject.id,
-                    ConstraintSet.TOP,
-                    binding.fragmentProjectRootLayout.id,
-                    ConstraintSet.TOP,
-                    0
-                )
-            } else {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeProject.id,
-                    ConstraintSet.TOP,
-                    pjNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.orderNo) {
-            val oParams =
-                binding.textInputLayoutProjectTimeOrderNo.layoutParams as ConstraintLayout.LayoutParams
-            val oNext = getNextTopId(binding.orderNo.id, it)
-            if (oParams.topToBottom != oNext) {
-                if (oNext == -1) {
-                    constraintSet.connect(
-                        binding.textInputLayoutProjectTimeOrderNo.id,
-                        ConstraintSet.TOP,
-                        binding.fragmentProjectRootLayout.id,
-                        ConstraintSet.TOP,
-                        0
-                    )
-                } else {
-                    constraintSet.connect(
-                        binding.textInputLayoutProjectTimeOrderNo.id,
-                        ConstraintSet.TOP,
-                        oNext,
-                        ConstraintSet.BOTTOM
-                    )
-                }
-            }
-        }
-
-        if (it.unit) {
-            val uParams =
-                binding.textInputLayoutProjectTimeUnit.layoutParams as ConstraintLayout.LayoutParams
-            val uNext = getNextTopId(binding.unit.id, it)
-            if (uParams.topToBottom != uNext) {
-                if (uNext == -1) {
-                    constraintSet.connect(
-                        binding.textInputLayoutProjectTimeUnit.id,
-                        ConstraintSet.TOP,
-                        binding.fragmentProjectRootLayout.id,
-                        ConstraintSet.TOP,
-                        0
-                    )
-                } else {
-                    constraintSet.connect(
-                        binding.textInputLayoutProjectTimeUnit.id,
-                        ConstraintSet.TOP,
-                        uNext,
-                        ConstraintSet.BOTTOM
-                    )
-                }
-            }
-        }
-
-        if (it.customer) {
-            val cParams =
-                binding.textInputLayoutProjectTimeCustomer.layoutParams as ConstraintLayout.LayoutParams
-            val cNext = getNextTopId(binding.customer.id, it)
-            if (cParams.topToBottom != cNext) {
-                if (cNext == -1) {
-                    constraintSet.connect(
-                        binding.textInputLayoutProjectTimeCustomer.id,
-                        ConstraintSet.TOP,
-                        binding.fragmentProjectRootLayout.id,
-                        ConstraintSet.TOP,
-                        0
-                    )
-                } else {
-                    constraintSet.connect(
-                        binding.textInputLayoutProjectTimeCustomer.id,
-                        ConstraintSet.TOP,
-                        cNext,
-                        ConstraintSet.BOTTOM
-                    )
-                }
-            }
-        }
-
-        if (it.team) {
-            val tParams =
-                binding.textInputLayoutProjectTimeTeam.layoutParams as ConstraintLayout.LayoutParams
-            val tNext = getNextTopId(binding.team.id, it)
-            if (tParams.topToBottom != tNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeTeam.id,
-                    ConstraintSet.TOP,
-                    tNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.ticket) {
-            val tParams =
-                binding.textInputLayoutProjectTimeTicket.layoutParams as ConstraintLayout.LayoutParams
-            val tNext = getNextTopId(binding.ticket.id, it)
-            if (tParams.topToBottom != tNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeTicket.id,
-                    ConstraintSet.TOP,
-                    tNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.activityType) {
-            val aParams =
-                binding.textInputLayoutProjectTimeActivityType.layoutParams as ConstraintLayout.LayoutParams
-            val aNext = getNextTopId(binding.activityType.id, it)
-            if (aParams.topToBottom != aNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeActivityType.id,
-                    ConstraintSet.TOP,
-                    aNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.activityTypeMatrix) {
-            val aParams =
-                binding.textInputLayoutProjectTimeActivityTypeMatrix.layoutParams as ConstraintLayout.LayoutParams
-            val aNext = getNextTopId(binding.activityTypeMatrix.id, it)
-            if (aParams.topToBottom != aNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeActivityTypeMatrix.id,
-                    ConstraintSet.TOP,
-                    aNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.skillLevel) {
-            val sParams =
-                binding.textInputLayoutProjectTimeSkillLevel.layoutParams as ConstraintLayout.LayoutParams
-            val sNext = getNextTopId(binding.skillLevel.id, it)
-            if (sParams.topToBottom != sNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeSkillLevel.id,
-                    ConstraintSet.TOP,
-                    sNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.description) {
-            val dParams =
-                binding.textInputLayoutProjectTimeDescription.layoutParams as ConstraintLayout.LayoutParams
-            val dNext = getNextTopId(binding.description.id, it)
-            if (dParams.topToBottom != dNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeDescription.id,
-                    ConstraintSet.TOP,
-                    dNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.performanceLocation) {
-            val pParams =
-                binding.textInputLayoutProjectTimePerformanceLocation.layoutParams as ConstraintLayout.LayoutParams
-            val pNext = getNextTopId(binding.performanceLocation.id, it)
-            if (pParams.topToBottom != pNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimePerformanceLocation.id,
-                    ConstraintSet.TOP,
-                    pNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.journey) {
-            val jParams =
-                binding.textInputLayoutProjectTimeJourney.layoutParams as ConstraintLayout.LayoutParams
-            val jNext = getNextTopId(binding.journey.id, it)
-            if (jParams.topToBottom != jNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeJourney.id,
-                    ConstraintSet.TOP,
-                    jNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.travelTime) {
-            val tParams =
-                binding.textInputLayoutProjectTimeTravelTime.layoutParams as ConstraintLayout.LayoutParams
-            val tNext = getNextTopId(binding.travelTime.id, it)
-            if (tParams.topToBottom != tNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeTravelTime.id,
-                    ConstraintSet.TOP,
-                    tNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.drivenKm) {
-            val dParams =
-                binding.textInputLayoutProjectTimeDrivenKm.layoutParams as ConstraintLayout.LayoutParams
-            val dNext = getNextTopId(binding.drivenKm.id, it)
-            if (dParams.topToBottom != dNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeDrivenKm.id,
-                    ConstraintSet.TOP,
-                    dNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.kmFlatRate) {
-            val kParams = binding.kmFlatRate.layoutParams as ConstraintLayout.LayoutParams
-            val kNext = getNextTopId(binding.kmFlatRate.id, it)
-            if (kParams.topToBottom != kNext) {
-                constraintSet.connect(
-                    binding.kmFlatRate.id,
-                    ConstraintSet.TOP,
-                    kNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.evaluation) {
-            val eParams =
-                binding.textInputLayoutProjectTimeEvaluation.layoutParams as ConstraintLayout.LayoutParams
-            val eNext = getNextTopId(binding.evaluation.id, it)
-            if (eParams.topToBottom != eNext) {
-                constraintSet.connect(
-                    binding.textInputLayoutProjectTimeEvaluation.id,
-                    ConstraintSet.TOP,
-                    eNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.billable) {
-            val bParams = binding.billable.layoutParams as ConstraintLayout.LayoutParams
-            val bNext = getNextTopId(binding.billable.id, it)
-            if (bParams.topToBottom != bNext) {
-                constraintSet.connect(
-                    binding.billable.id,
-                    ConstraintSet.TOP,
-                    bNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        if (it.premiumable) {
-            val pParams = binding.premiumable.layoutParams as ConstraintLayout.LayoutParams
-            val pNext = getNextTopId(binding.premiumable.id, it)
-            if (pParams.topToBottom != pNext) {
-                constraintSet.connect(
-                    binding.premiumable.id,
-                    ConstraintSet.TOP,
-                    pNext,
-                    ConstraintSet.BOTTOM
-                )
-            }
-        }
-
-        val buParam = binding.saveProjectTimeButton.layoutParams as ConstraintLayout.LayoutParams
-        val buNext = getNextTopId(binding.saveProjectTimeButton.id, it)
-        if (buParam.topToBottom != buNext) {
-            constraintSet.connect(
-                binding.saveProjectTimeButton.id,
-                ConstraintSet.TOP,
-                buNext,
-                ConstraintSet.BOTTOM
-            )
-        }
-
-        constraintSet.applyTo(binding.fragmentProjectRootLayout)
-        if (!it.customer && !isCustomerTimeTrack && it.team) {
-            binding.textInputLayoutProjectTimeTeam.requestLayout()
-        }
-
-        if (!it.activityType) {
-            if (it.activityTypeMatrix) {
-                binding.textInputLayoutProjectTimeActivityTypeMatrix.requestLayout()
-            } else if (it.skillLevel) {
-                binding.textInputLayoutProjectTimeSkillLevel.requestLayout()
-            }
-        } else if (!it.activityTypeMatrix) {
-            binding.textInputLayoutProjectTimeActivityType.requestLayout()
-        } else if (!it.skillLevel) {
-            binding.textInputLayoutProjectTimeActivityTypeMatrix.requestLayout()
+        // Prüfe ob Layout-Neuanordnung nötig ist (wenn Einstellungen nicht dem Default entsprechen)
+        val hasCustomOrder = it.fieldOrder.isNotBlank() && it.fieldOrder != ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
+        if (hasCustomOrder) {
+            reorderProjectLayout(it)
         }
     }
 
-    private suspend fun changePositionForCustomerTimeTrack() {
-        val constraintSet = ConstraintSet()
-        constraintSet.clone(binding.fragmentProjectRootLayout)
-        val bTeam = perm("teams.show") && perm("zeiterfassung.teamauswahl.use")
-        val bInvoice = perm("auftragsnummer.show")
-        val bUnit = perm("einheiten.use")
+    private fun reorderProjectLayout(settings: ProjectTimeTrackSetting) {
+        // Überprüfe, ob die Einstellungen vom Default abweichen
+        val defaultOrder = ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
+        val currentOrder = settings.fieldOrder.takeIf { it.isNotBlank() } ?: defaultOrder
 
-        if (bTeam) {
-            constraintSet.connect(
-                binding.textInputLayoutProjectTimeTeam.id,
-                ConstraintSet.TOP,
-                binding.textInputLayoutProjectTimeTask.id,
-                ConstraintSet.TOP
-            )
-            constraintSet.connect(
-                binding.textInputLayoutProjectTimeTask.id,
-                ConstraintSet.END,
-                binding.textInputLayoutProjectTimeTeam.id,
-                ConstraintSet.START,
-                5
-            )
-        } else {
-            constraintSet.connect(
-                binding.textInputLayoutProjectTimeTask.id,
-                ConstraintSet.END,
-                binding.fragmentProjectRootLayout.id,
-                ConstraintSet.END,
-                0
-            )
-        }
-        constraintSet.connect(
-            binding.textInputLayoutProjectTimeProject.id,
-            ConstraintSet.TOP,
-            binding.textInputLayoutProjectTimeCustomer.id,
-            ConstraintSet.BOTTOM
-        )
-        constraintSet.connect(
-            binding.textInputLayoutProjectTimeProject.id,
-            ConstraintSet.END,
-            binding.fragmentProjectRootLayout.id,
-            ConstraintSet.END,
-            0
-        )
-        constraintSet.connect(
-            binding.textInputLayoutProjectTimeCustomer.id,
-            ConstraintSet.TOP,
-            binding.textInputLayoutProjectTimeFromDate.id,
-            ConstraintSet.BOTTOM
-        )
-        if (bInvoice) {
-            constraintSet.connect(
-                binding.textInputLayoutProjectTimeCustomer.id,
-                ConstraintSet.END,
-                binding.textInputLayoutProjectTimeOrderNo.id,
-                ConstraintSet.START,
-                5
-            )
-        } else if (bUnit) {
-            constraintSet.connect(
-                binding.textInputLayoutProjectTimeCustomer.id,
-                ConstraintSet.END,
-                binding.textInputLayoutProjectTimeUnit.id,
-                ConstraintSet.START,
-                5
-            )
-        } else {
-            constraintSet.connect(
-                binding.textInputLayoutProjectTimeCustomer.id,
-                ConstraintSet.END,
-                binding.fragmentProjectRootLayout.id,
-                ConstraintSet.END,
-                0
-            )
+        // Wenn die Reihenfolge dem Default entspricht, keine Neuanordnung nötig
+        if (currentOrder == defaultOrder) return
+
+        // Hole das ScrollView-Container
+        val scrollViewContainer = binding.fragmentProjectRootLayout
+
+        // Parse die Reihenfolge aus den Einstellungen
+        val fieldOrder = currentOrder.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+
+        // Identifiziere alle Container-Views, die entfernt werden müssen
+        val containersToRemove = listOfNotNull(
+            binding.customerContainer,
+            binding.textInputLayoutProjectTimeActivityType.parent as? ViewGroup,
+            binding.textInputLayoutProjectTimeJourney.parent as? ViewGroup,
+            binding.textInputLayoutProjectTimeEvaluation.parent as? ViewGroup
+        ).filter { it != scrollViewContainer }
+
+        // Entferne alle Container (aber nicht deren Kinder)
+        containersToRemove.forEach { container ->
+            (container.parent as? ViewGroup)?.removeView(container)
         }
 
-        constraintSet.applyTo(binding.fragmentProjectRootLayout)
+        // Mapping von Keys zu Views (direkte Views, keine Container)
+        val viewMap = mapOf(
+            ProjectTimeTrackSetting.Keys.CUSTOMER to binding.textInputLayoutProjectTimeCustomer,
+            ProjectTimeTrackSetting.Keys.PROJECT to binding.textInputLayoutProjectTimeProject,
+            ProjectTimeTrackSetting.Keys.TASK to binding.textInputLayoutProjectTimeTask,
+            ProjectTimeTrackSetting.Keys.TICKET to binding.textInputLayoutProjectTimeTicket,
+            ProjectTimeTrackSetting.Keys.TEAM to binding.textInputLayoutProjectTimeTeam,
+            ProjectTimeTrackSetting.Keys.ACTIVITY_TYPE to binding.textInputLayoutProjectTimeActivityType,
+            ProjectTimeTrackSetting.Keys.ACTIVITY_TYPE_MATRIX to binding.textInputLayoutProjectTimeActivityTypeMatrix,
+            ProjectTimeTrackSetting.Keys.SKILL_LEVEL to binding.textInputLayoutProjectTimeSkillLevel,
+            ProjectTimeTrackSetting.Keys.UNIT to binding.textInputLayoutProjectTimeUnit,
+            ProjectTimeTrackSetting.Keys.ORDER_NO to binding.textInputLayoutProjectTimeOrderNo,
+            ProjectTimeTrackSetting.Keys.JOURNEY to binding.textInputLayoutProjectTimeJourney,
+            ProjectTimeTrackSetting.Keys.TRAVEL_TIME to binding.textInputLayoutProjectTimeTravelTime,
+            ProjectTimeTrackSetting.Keys.DRIVEN_KM to binding.textInputLayoutProjectTimeDrivenKm,
+            ProjectTimeTrackSetting.Keys.DESCRIPTION to binding.descriptionContainer,
+            ProjectTimeTrackSetting.Keys.PERFORMANCE_LOCATION to binding.textInputLayoutProjectTimePerformanceLocation,
+            ProjectTimeTrackSetting.Keys.EVALUATION to binding.textInputLayoutProjectTimeEvaluation,
+            ProjectTimeTrackSetting.Keys.BILLABLE to binding.billable,
+            ProjectTimeTrackSetting.Keys.PREMIUMABLE to binding.premiumable,
+            ProjectTimeTrackSetting.Keys.KM_FLAT_RATE to binding.kmFlatRate
+        )
+
+        val allViews = mutableListOf<View>()
+
+
+        // Füge Views in der Reihenfolge aus fieldOrder hinzu
+        for (key in fieldOrder) {
+            val view = viewMap[key]
+            if (view != null && view.visibility != View.GONE) {
+                // Entferne View aus seinem aktuellen Parent (falls vorhanden)
+                (view.parent as? ViewGroup)?.removeView(view)
+                allViews.add(view)
+            }
+        }
+
+
+        val amountOfChildren = binding.fromToHoursContainer.childCount
+        val lastElOfContainer = if (amountOfChildren > 0) binding.fromToHoursContainer.getChildAt(amountOfChildren - 1) else null
+        //set marginEnd to 0 for the last element in the container
+        lastElOfContainer?.let {
+            val layoutParams = it.layoutParams as? ViewGroup.MarginLayoutParams
+            layoutParams?.marginEnd = 0
+            it.layoutParams = layoutParams
+        }
+
+        // do the same with project container
+        binding.textInputLayoutProjectTimeProject.let {
+            val layoutParams = it.layoutParams as? ViewGroup.MarginLayoutParams
+            layoutParams?.marginEnd = 0
+            it.layoutParams = layoutParams
+        }
+
+        // Füge alle Views in der neuen Reihenfolge direkt zum ScrollView hinzu
+        allViews.forEachIndexed { index, view ->
+            val layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                if (view == binding.descriptionContainer)
+                    (75 * resources.displayMetrics.density).toInt()
+                else
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+            // Margin für alle Felder außer dem ersten
+            if (index > 0) {
+                layoutParams.topMargin = (8 * resources.displayMetrics.density).toInt()
+            }
+
+            view.layoutParams = layoutParams
+            scrollViewContainer.addView(view)
+        }
+    }
+
+
+    private fun changePositionForCustomerTimeTrack() {
+        val parent = binding.customerContainer.parent as? ViewGroup
+        parent?.let {
+            val customerView = binding.customerContainer
+            val projectView = binding.projectOrderUnitContainer
+            val customerIndex = it.indexOfChild(customerView)
+            val projectIndex = it.indexOfChild(projectView)
+            if (customerIndex > projectIndex) {
+                it.removeView(customerView)
+                it.addView(customerView, projectIndex)
+            }
+        }
     }
 
     private suspend fun hideNonVisibleItems() {
@@ -1279,14 +795,10 @@ class ProjectFragment: Fragment() {
         val bTeam = perm("teams.show") && perm("zeiterfassung.teamauswahl.use")
         if (!bTeam) binding.textInputLayoutProjectTimeTeam.visibility = g
         if (!perm("tickets.use")) binding.textInputLayoutProjectTimeTicket.visibility = g
-        if (!perm("zeiterfassung.leistungsart.use")) binding.textInputLayoutProjectTimeActivityType.visibility =
-            g
-        val bActivityTypeMatrix =
-            perm("zeiterfassung.leistungsart.use") && perm("leistungsart.matrix.use")
-        if (!bActivityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility =
-            g
-        if (!perm("zeiterfassung.skilllevel.use")) binding.textInputLayoutProjectTimeSkillLevel.visibility =
-            g
+        if (!perm("zeiterfassung.leistungsart.use")) binding.textInputLayoutProjectTimeActivityType.visibility = g
+        val bActivityTypeMatrix = perm("zeiterfassung.leistungsart.use") && perm("leistungsart.matrix.use")
+        if (!bActivityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility = g
+        if (!perm("zeiterfassung.skilllevel.use")) binding.textInputLayoutProjectTimeSkillLevel.visibility = g
         val bJourney = perm("zeiterfassung.reise.use")
         val bJourneyCost = perm("reisekosten.use")
         if (!bJourney) binding.textInputLayoutProjectTimePerformanceLocation.visibility = g
@@ -1306,204 +818,32 @@ class ProjectFragment: Fragment() {
         return viewModel.permission(name) == "true"
     }
 
-    private fun getNextTopId(id: Int, it: ProjectTimeTrackSetting): Int {
-        when (id) {
-            binding.orderNo.id,
-            binding.unit.id -> {
-                if (isCustomerTimeTrack) {
-                    return getNextTopId(binding.customer.id, it)
-                }
-                return getNextTopId(binding.project.id, it)
-            }
-
-            binding.team.id -> {
-                if (isCustomerTimeTrack) {
-                    return getNextTopId(binding.task.id, it)
-                }
-                return getNextTopId(binding.customer.id, it)
-            }
-
-            binding.activityTypeMatrix.id,
-            binding.skillLevel.id -> {
-                return getNextTopId(binding.activityType.id, it)
-            }
-
-            binding.travelTime.id,
-            binding.drivenKm.id,
-            binding.kmFlatRate.id -> {
-                return getNextTopId(binding.journey.id, it)
-            }
-
-            binding.billable.id,
-            binding.premiumable.id,
-            binding.saveProjectTimeButton.id -> {
-                return getNextTopId(binding.evaluation.id, it)
-            }
-        }
-
-        when (id) {
-            binding.project.id -> {
-                if (isCustomerTimeTrack && it.customer && binding.textInputLayoutProjectTimeCustomer.visibility == v) {
-                    return binding.textInputLayoutProjectTimeCustomer.id
-                }
-                if (it.entryType != 1) {
-                    if (binding.textInputLayoutProjectTimeFromDate.visibility == v) {
-                        return binding.textInputLayoutProjectTimeFromDate.id
-                    }
-                    if (binding.textInputLayoutProjectTimeFrom.visibility == v) {
-                        return binding.textInputLayoutProjectTimeFrom.id
-                    }
-                    if (binding.textInputLayoutProjectTimeToDate.visibility == v) {
-                        return binding.textInputLayoutProjectTimeToDate.id
-                    }
-                    if (binding.textInputLayoutProjectTimeTo.visibility == v) {
-                        return binding.textInputLayoutProjectTimeTo.id
-                    }
-                    if (binding.textInputLayoutProjectTimeHours.visibility == v) {
-                        return binding.textInputLayoutProjectTimeHours.id
-                    }
-                    if (binding.textInputLayoutProjectTimeManDays.visibility == v) {
-                        return binding.textInputLayoutProjectTimeManDays.id
-                    }
-                }
-                return -1
-            }
-
-            binding.customer.id -> {
-                if (isCustomerTimeTrack) {
-                    if (it.entryType != 1) {
-                        if (binding.textInputLayoutProjectTimeFromDate.visibility == v) {
-                            return binding.textInputLayoutProjectTimeFromDate.id
-                        }
-                        if (binding.textInputLayoutProjectTimeToDate.visibility == v) {
-                            return binding.textInputLayoutProjectTimeToDate.id
-                        }
-                        if (binding.textInputLayoutProjectTimeFrom.visibility == v) {
-                            return binding.textInputLayoutProjectTimeFrom.id
-                        }
-                        if (binding.textInputLayoutProjectTimeTo.visibility == v) {
-                            return binding.textInputLayoutProjectTimeTo.id
-                        }
-                        if (binding.textInputLayoutProjectTimeHours.visibility == v) {
-                            return binding.textInputLayoutProjectTimeHours.id
-                        }
-                        if (binding.textInputLayoutProjectTimeManDays.visibility == v) {
-                            return binding.textInputLayoutProjectTimeManDays.id
-                        }
-                    }
-                    return -1
-                }
-                return binding.textInputLayoutProjectTimeTask.id
-            }
-
-            binding.ticket.id -> {
-                if (it.customer && !isCustomerTimeTrack && binding.textInputLayoutProjectTimeCustomer.visibility == v) {
-                    return binding.textInputLayoutProjectTimeCustomer.id
-                }
-                if (it.team && binding.textInputLayoutProjectTimeTeam.visibility == v) {
-                    return binding.textInputLayoutProjectTimeTeam.id
-                }
-                return binding.textInputLayoutProjectTimeTask.id
-            }
-
-            binding.activityType.id -> {
-                if (it.ticket && binding.textInputLayoutProjectTimeTicket.visibility == v) {
-                    return binding.textInputLayoutProjectTimeTicket.id
-                }
-                return getNextTopId(binding.ticket.id, it)
-            }
-
-            binding.description.id -> {
-                if (it.activityType && binding.textInputLayoutProjectTimeActivityType.visibility == v) {
-                    return binding.textInputLayoutProjectTimeActivityType.id
-                }
-                if (it.activityTypeMatrix && binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility == v) {
-                    return binding.textInputLayoutProjectTimeActivityTypeMatrix.id
-                }
-                if (it.skillLevel && binding.textInputLayoutProjectTimeSkillLevel.visibility == v) {
-                    return binding.textInputLayoutProjectTimeSkillLevel.id
-                }
-                return getNextTopId(binding.activityType.id, it)
-            }
-
-            binding.performanceLocation.id -> {
-                if (it.description && binding.textInputLayoutProjectTimeDescription.visibility == v) {
-                    return binding.textInputLayoutProjectTimeDescription.id
-                }
-                return getNextTopId(binding.description.id, it)
-            }
-
-            binding.journey.id -> {
-                if (it.performanceLocation && binding.textInputLayoutProjectTimePerformanceLocation.visibility == v) {
-                    return binding.textInputLayoutProjectTimePerformanceLocation.id
-                }
-                return getNextTopId(binding.performanceLocation.id, it)
-            }
-
-            binding.evaluation.id -> {
-                if (it.journey && binding.textInputLayoutProjectTimeJourney.visibility == v) {
-                    return binding.textInputLayoutProjectTimeJourney.id
-                }
-                if (it.travelTime && binding.textInputLayoutProjectTimeTravelTime.visibility == v) {
-                    return binding.textInputLayoutProjectTimeTravelTime.id
-                }
-                if (it.drivenKm && binding.textInputLayoutProjectTimeDrivenKm.visibility == v) {
-                    return binding.textInputLayoutProjectTimeDrivenKm.id
-                }
-                if (it.kmFlatRate && binding.kmFlatRate.visibility == v) {
-                    return binding.kmFlatRate.id
-                }
-                return getNextTopId(binding.journey.id, it)
-            }
-        }
-        return -1
-    }
-
     private fun setLanguageTexts() {
-        binding.textInputLayoutProjectTimeFromDate.hint = languageService.getText("ALLGEMEIN#Von")
-        binding.textInputLayoutProjectTimeFrom.hint = languageService.getText("ALLGEMEIN#Von")
-        binding.textInputLayoutProjectTimeToDate.hint = languageService.getText("ALLGEMEIN#Bis")
-        binding.textInputLayoutProjectTimeTo.hint = languageService.getText("ALLGEMEIN#Bis")
-        binding.textInputLayoutProjectTimeHours.hint = languageService.getText("ALLGEMEIN#Stunden")
-        binding.textInputLayoutProjectTimeManDays.hint =
-            languageService.getText("CLIENT#CompData_ManDay")
-        binding.textInputLayoutProjectTimeProject.hint =
-            languageService.getText("ALLGEMEIN#Projekt")
-        binding.textInputLayoutProjectTimeOrderNo.hint =
-            languageService.getText("ALLGEMEIN#Auftragsnummer")
-        binding.textInputLayoutProjectTimeUnit.hint =
-            languageService.getText("CLIENT#Zeiterfassung_Einheiten")
+        binding.textInputLayoutProjectTimeProject.hint = languageService.getText("ALLGEMEIN#Projekt")
+        binding.textInputLayoutProjectTimeOrderNo.hint = languageService.getText("ALLGEMEIN#Auftragsnummer")
+        binding.textInputLayoutProjectTimeUnit.hint = languageService.getText("CLIENT#Zeiterfassung_Einheiten")
         binding.textInputLayoutProjectTimeTask.hint = languageService.getText("ALLGEMEIN#Vorgang")
         binding.textInputLayoutProjectTimeCustomer.hint = languageService.getText("ALLGEMEIN#Kunde")
         binding.textInputLayoutProjectTimeTeam.hint = languageService.getText("TEAM#Team")
         binding.textInputLayoutProjectTimeTicket.hint = languageService.getText("ALLGEMEIN#Ticket")
-        binding.textInputLayoutProjectTimeActivityType.hint =
-            languageService.getText("ALLGEMEIN#Leistungsart")
-        binding.textInputLayoutProjectTimeActivityTypeMatrix.hint =
-            languageService.getText("Leistungsnachweis#Column_leistungsartmatrix")
-        binding.textInputLayoutProjectTimeSkillLevel.hint =
-            languageService.getText("ALLGEMEIN#Skilllevel")
-        binding.textInputLayoutProjectTimeDescription.hint =
-            languageService.getText("ALLGEMEIN#Beschreibung")
-        binding.textInputLayoutProjectTimePerformanceLocation.hint =
-            languageService.getText("ALLGEMEIN#Leistungsort")
-        binding.textInputLayoutProjectTimeJourney.hint =
-            languageService.getText("CLIENT#ReiseKosten_Reise")
-        binding.textInputLayoutProjectTimeTravelTime.hint =
-            languageService.getText("ALLGEMEIN#Fahrtzeit")
-        binding.textInputLayoutProjectTimeDrivenKm.hint =
-            languageService.getText("CLIENT#ReiseKosten_GefahreneKm")
-        binding.textInputLayoutProjectTimeEvaluation.hint =
-            languageService.getText("ALLGEMEIN#Abschaetzung")
+        binding.textInputLayoutProjectTimeActivityType.hint = languageService.getText("ALLGEMEIN#Leistungsart")
+        binding.textInputLayoutProjectTimeActivityTypeMatrix.hint = languageService.getText("Leistungsnachweis#Column_leistungsartmatrix")
+        binding.textInputLayoutProjectTimeSkillLevel.hint = languageService.getText("ALLGEMEIN#Skilllevel")
+        binding.textInputLayoutProjectTimeDescription.hint = languageService.getText("ALLGEMEIN#Beschreibung")
+        binding.textInputLayoutProjectTimePerformanceLocation.hint = languageService.getText("ALLGEMEIN#Leistungsort")
+        binding.textInputLayoutProjectTimeJourney.hint = languageService.getText("CLIENT#ReiseKosten_Reise")
+        binding.textInputLayoutProjectTimeTravelTime.hint = languageService.getText("ALLGEMEIN#Fahrtzeit")
+        binding.textInputLayoutProjectTimeDrivenKm.hint = languageService.getText("CLIENT#ReiseKosten_GefahreneKm")
+        binding.textInputLayoutProjectTimeEvaluation.hint = languageService.getText("ALLGEMEIN#Abschaetzung")
         binding.kmFlatRate.text = languageService.getText("#KmPausch")
         binding.billable.text = languageService.getText("ALLGEMEIN#Abrechenbar")
         binding.premiumable.text = languageService.getText("CLIENT#Zeiterfassung_Praemienrelevant")
-        binding.saveProjectTimeButton.text = languageService.getText("ALLGEMEIN#Speichern")
     }
 
     private fun isValid(): Boolean {
+        val v = View.VISIBLE
         var error = false
-
+        // ... Pflichtfeldprüfung ...
         if (binding.project.text.isNullOrEmpty()) {
             error = true
             binding.textInputLayoutProjectTimeProject.error = "Required"
@@ -1516,57 +856,7 @@ class ProjectFragment: Fragment() {
         } else {
             binding.textInputLayoutProjectTimeTask.error = null
         }
-
-        if (binding.textInputLayoutProjectTimeFromDate.visibility == v) {
-            if (binding.fromDate.text.isNullOrEmpty()) {
-                error = true
-                binding.textInputLayoutProjectTimeFromDate.error = "Required"
-            } else {
-                binding.textInputLayoutProjectTimeFromDate.error = null
-            }
-        }
-        if (binding.textInputLayoutProjectTimeToDate.visibility == v) {
-            if (binding.toDate.text.isNullOrEmpty()) {
-                error = true
-                binding.textInputLayoutProjectTimeToDate.error = "Required"
-            } else {
-                binding.textInputLayoutProjectTimeToDate.error = null
-            }
-        }
-        if (binding.textInputLayoutProjectTimeFrom.visibility == v) {
-            if (binding.from.text.isNullOrEmpty()) {
-                error = true
-                binding.textInputLayoutProjectTimeFrom.error = "Required"
-            } else {
-                binding.textInputLayoutProjectTimeFrom.error = null
-            }
-        }
-        if (binding.textInputLayoutProjectTimeTo.visibility == v) {
-            if (binding.to.text.isNullOrEmpty()) {
-                error = true
-                binding.textInputLayoutProjectTimeTo.error = "Required"
-            } else {
-                binding.textInputLayoutProjectTimeTo.error = null
-            }
-        }
-        if (binding.textInputLayoutProjectTimeHours.visibility == v) {
-            if (binding.hours.text.isNullOrEmpty()) {
-                error = true
-                binding.textInputLayoutProjectTimeHours.error = "Required"
-            } else {
-                binding.textInputLayoutProjectTimeHours.error = null
-            }
-        }
-        if (binding.textInputLayoutProjectTimeManDays.visibility == v) {
-            if (binding.manDays.text.isNullOrEmpty()) {
-                error = true
-                binding.textInputLayoutProjectTimeManDays.error = "Required"
-            } else {
-                binding.textInputLayoutProjectTimeManDays.error = null
-            }
-        }
-
-        if (binding.textInputLayoutProjectTimeDescription.visibility == v) {
+        if(binding.descriptionContainer.visibility == v) {
             if (binding.textInputLayoutProjectTimeDescription.hint?.last() == '*') {
                 if (binding.description.text.isNullOrEmpty()) {
                     error = true
@@ -1578,7 +868,7 @@ class ProjectFragment: Fragment() {
         }
         if (binding.textInputLayoutProjectTimeActivityType.visibility == v) {
             if (binding.textInputLayoutProjectTimeActivityType.hint?.last() == '*') {
-                if (binding.activityType.text.isNullOrEmpty()) {
+                if(binding.activityType.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeActivityType.error = "Required"
                 } else {
@@ -1588,7 +878,7 @@ class ProjectFragment: Fragment() {
         }
         if (binding.textInputLayoutProjectTimeOrderNo.visibility == v) {
             if (binding.textInputLayoutProjectTimeOrderNo.hint?.last() == '*') {
-                if (binding.orderNo.text.isNullOrEmpty()) {
+                if(binding.orderNo.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeOrderNo.error = "Required"
                 } else {
@@ -1596,20 +886,9 @@ class ProjectFragment: Fragment() {
                 }
             }
         }
-
-        if (binding.textInputLayoutProjectTimeTo.visibility == v) {
-            if (binding.textInputLayoutProjectTimeTo.hint?.last() == '*') {
-                if (binding.to.text.isNullOrEmpty()) {
-                    error = true
-                    binding.textInputLayoutProjectTimeTo.error = "Required"
-                } else {
-                    binding.textInputLayoutProjectTimeTo.error = null
-                }
-            }
-        }
         if (binding.textInputLayoutProjectTimeUnit.visibility == v) {
             if (binding.textInputLayoutProjectTimeUnit.hint?.last() == '*') {
-                if (binding.unit.text.isNullOrEmpty()) {
+                if(binding.unit.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeUnit.error = "Required"
                 } else {
@@ -1619,7 +898,7 @@ class ProjectFragment: Fragment() {
         }
         if (binding.textInputLayoutProjectTimeCustomer.visibility == v) {
             if (binding.textInputLayoutProjectTimeCustomer.hint?.last() == '*') {
-                if (binding.customer.text.isNullOrEmpty()) {
+                if(binding.customer.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeCustomer.error = "Required"
                 } else {
@@ -1629,7 +908,7 @@ class ProjectFragment: Fragment() {
         }
         if (binding.textInputLayoutProjectTimeSkillLevel.visibility == v) {
             if (binding.textInputLayoutProjectTimeSkillLevel.hint?.last() == '*') {
-                if (binding.skillLevel.text.isNullOrEmpty()) {
+                if(binding.skillLevel.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimeSkillLevel.error = "Required"
                 } else {
@@ -1639,7 +918,7 @@ class ProjectFragment: Fragment() {
         }
         if (binding.textInputLayoutProjectTimePerformanceLocation.visibility == v) {
             if (binding.textInputLayoutProjectTimePerformanceLocation.hint?.last() == '*') {
-                if (binding.performanceLocation.text.isNullOrEmpty()) {
+                if(binding.performanceLocation.text.isNullOrEmpty()) {
                     error = true
                     binding.textInputLayoutProjectTimePerformanceLocation.error = "Required"
                 } else {
@@ -1647,21 +926,16 @@ class ProjectFragment: Fragment() {
                 }
             }
         }
-
         return !error
     }
 
     companion object {
-        fun newInstance(
-            userId: Long,
-            customerTimeTrack: Boolean,
-            timeEntryType: Long,
-            crossDay: Boolean
-        ) =
+        @JvmStatic
+        fun newInstance(userId: Long, isCustomerTimeTrack: Boolean, timeEntryType: Long, crossDay: Boolean) =
             ProjectFragment().apply {
                 arguments = Bundle().apply {
                     putLong(ARG_USERID, userId)
-                    putBoolean(ARG_CUSTOMER_TIME_TRACK, customerTimeTrack)
+                    putBoolean(ARG_CUSTOMER_TIME_TRACK, isCustomerTimeTrack)
                     putLong(ARG_TIME_ENTRY_TYPE, timeEntryType)
                     putBoolean(ARG_CROSS_DAY, crossDay)
                 }
