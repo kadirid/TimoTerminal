@@ -75,4 +75,9 @@
     <string name="ignoreTimedBreaks">Fest hinterlegte Pausen ignorieren</string>
     <string name="manDays">Personentag</string>
     <string name="details">Details</string>
+    <string name="date">Datum</string>
+    <string name="employee">Mitarbeiter</string>
+    <string name="filter">Filtern</string>
+    <string name="search_text">Suchtext</string>
+    <string name="date_range">Datumsbereich</string>
 </resources>

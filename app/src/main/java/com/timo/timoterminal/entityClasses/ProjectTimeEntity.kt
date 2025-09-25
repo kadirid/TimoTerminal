@@ -1,5 +1,7 @@
 package com.timo.timoterminal.entityClasses
 
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -35,7 +37,7 @@ class ProjectTimeEntity(
     @ColumnInfo(name = "evaluation") var evaluation: String,
     @ColumnInfo(name = "isSend", defaultValue = "false") var isSend: Boolean,
     @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP") val createdTime: String
-) {
+) :Parcelable {
 
     override fun equals(other: Any?): Boolean {
         if (other == null) return false
@@ -145,7 +147,77 @@ class ProjectTimeEntity(
         )
     }
 
-    companion object {
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeValue(id)
+        parcel.writeString(userId)
+        parcel.writeString(date)
+        parcel.writeString(dateTo)
+        parcel.writeString(from)
+        parcel.writeString(to)
+        parcel.writeString(hours)
+        parcel.writeString(manDays)
+        parcel.writeString(description)
+        parcel.writeString(customerId)
+        parcel.writeString(ticketId)
+        parcel.writeString(projectId)
+        parcel.writeString(taskId)
+        parcel.writeString(orderNo)
+        parcel.writeString(activityType)
+        parcel.writeString(activityTypeMatrix)
+        parcel.writeString(skillLevel)
+        parcel.writeString(performanceLocation)
+        parcel.writeString(teamId)
+        parcel.writeString(journeyId)
+        parcel.writeString(travelTime)
+        parcel.writeString(drivenKm)
+        parcel.writeString(kmFlatRate)
+        parcel.writeString(billable)
+        parcel.writeString(premium)
+        parcel.writeString(units)
+        parcel.writeString(evaluation)
+        parcel.writeByte(if (isSend) 1 else 0)
+        parcel.writeString(createdTime)
+    }
+
+    override fun describeContents(): Int = 0
+
+    companion object CREATOR : Parcelable.Creator<ProjectTimeEntity> {
+        override fun createFromParcel(parcel: Parcel): ProjectTimeEntity {
+            return ProjectTimeEntity(
+                id = parcel.readValue(Long::class.java.classLoader) as? Long,
+                userId = parcel.readString() ?: "",
+                date = parcel.readString() ?: "",
+                dateTo = parcel.readString() ?: "",
+                from = parcel.readString() ?: "",
+                to = parcel.readString() ?: "",
+                hours = parcel.readString() ?: "",
+                manDays = parcel.readString() ?: "",
+                description = parcel.readString() ?: "",
+                customerId = parcel.readString() ?: "",
+                ticketId = parcel.readString() ?: "",
+                projectId = parcel.readString() ?: "",
+                taskId = parcel.readString() ?: "",
+                orderNo = parcel.readString() ?: "",
+                activityType = parcel.readString() ?: "",
+                activityTypeMatrix = parcel.readString() ?: "",
+                skillLevel = parcel.readString() ?: "",
+                performanceLocation = parcel.readString() ?: "",
+                teamId = parcel.readString() ?: "",
+                journeyId = parcel.readString() ?: "",
+                travelTime = parcel.readString() ?: "",
+                drivenKm = parcel.readString() ?: "",
+                kmFlatRate = parcel.readString() ?: "",
+                billable = parcel.readString() ?: "",
+                premium = parcel.readString() ?: "",
+                units = parcel.readString() ?: "",
+                evaluation = parcel.readString() ?: "",
+                isSend = parcel.readByte() != 0.toByte(),
+                createdTime = parcel.readString() ?: ""
+            )
+        }
+
+        override fun newArray(size: Int): Array<ProjectTimeEntity?> = arrayOfNulls(size)
+
         fun parseFromMap(map: Map<String, String>): ProjectTimeEntity {
             return ProjectTimeEntity(
                 id = null,
@@ -180,4 +252,5 @@ class ProjectTimeEntity(
             )
         }
     }
+
 }

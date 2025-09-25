@@ -75,4 +75,9 @@
     <string name="ignoreTimedBreaks">Ignore Timed Breaks</string>
     <string name="manDays">Man-day</string>
     <string name="details">Details</string>
+    <string name="date">Date</string>
+    <string name="employee">Employee</string>
+    <string name="filter">Filter</string>
+    <string name="search_text">Search Text</string>
+    <string name="date_range">Date Range</string>
 </resources>

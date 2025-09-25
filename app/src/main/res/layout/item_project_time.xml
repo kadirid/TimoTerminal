@@ -5,8 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:backgroundTint="?attr/colorPrimaryContainer"
-    android:background="@drawable/rounded_container_16dp"
-    android:layout_margin="10dp"
+    android:background="@drawable/rounded_container_16dp_ripple"
+    android:layout_marginTop="1dp"
+    android:layout_marginHorizontal="10dp"
     android:orientation="vertical"
 
     app:cardCornerRadius="6dp">
@@ -39,47 +40,49 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="Vorname Administrator" />
 
-    <TextView
-        android:id="@+id/text_view_project_time_project"
-        android:layout_width="260dp"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textSize="17sp"
         android:layout_marginBottom="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        style="@style/TextAppearance.Material3.HeadlineSmall"
         app:layout_constraintTop_toBottomOf="@id/text_view_project_time_id"
         app:layout_constraintStart_toStartOf="@id/text_view_project_time_id"
-        tools:text="P: Projektname" />
+        app:layout_constraintEnd_toEndOf="@id/text_view_project_time_user_name">
 
-    <TextView
-        android:id="@+id/text_view_project_time_task"
-        android:layout_width="260dp"
-        android:layout_height="wrap_content"
-        android:textSize="17sp"
-        android:layout_marginBottom="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:layout_marginHorizontal="4dp"
-        style="@style/TextAppearance.Material3.HeadlineSmall"
-        app:layout_constraintTop_toBottomOf="@id/text_view_project_time_id"
-        app:layout_constraintStart_toEndOf="@id/text_view_project_time_project"
-        app:layout_constraintEnd_toStartOf="@id/text_view_project_time_customer"
-        tools:text="V: Vorgangsname" />
+        <TextView
+            android:id="@+id/text_view_project_time_project"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_weight="1"
+            style="@style/TextAppearance.Material3.HeadlineSmall"
+            tools:text="P: Projektname" />
 
-    <TextView
-        android:id="@+id/text_view_project_time_customer"
-        android:layout_width="260dp"
-        android:layout_height="wrap_content"
-        android:textSize="17sp"
-        android:layout_marginBottom="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAlignment="textEnd"
-        style="@style/TextAppearance.Material3.HeadlineSmall"
-        app:layout_constraintTop_toBottomOf="@id/text_view_project_time_id"
-        app:layout_constraintEnd_toEndOf="@id/text_view_project_time_user_name"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="K: Kundennamen" />
+        <TextView
+            android:id="@+id/text_view_project_time_task"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_marginHorizontal="4dp"
+            android:layout_weight="1"
+            style="@style/TextAppearance.Material3.HeadlineSmall"
+            tools:text="V: Vorgangsname" />
+
+        <TextView
+            android:id="@+id/text_view_project_time_customer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAlignment="textEnd"
+            android:layout_weight="1"
+            style="@style/TextAppearance.Material3.HeadlineSmall"
+            tools:text="K: Kundennamen" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

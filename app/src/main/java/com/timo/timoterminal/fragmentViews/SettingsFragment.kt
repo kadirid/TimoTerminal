@@ -83,6 +83,7 @@ class SettingsFragment : Fragment() {
             binding.buttonTerminalBooking.text = languageService.getText("TERMINAL#Booking list")
             binding.buttonLogout.text = languageService.getText("#RenewLogin", "Logout")
             binding.buttonInternalSettings.text = languageService.getText("#OtherSettings", "Sonstige Einstellungen")
+            binding.buttonTerminalProjectTime.text = languageService.getText("#OfflineProjectTime")
             active = viewModel.getSoundActive()
             binding.buttonSound.text =
                 if (active)
