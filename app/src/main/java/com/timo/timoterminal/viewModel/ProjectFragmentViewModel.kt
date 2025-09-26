@@ -1,6 +1,7 @@
 package com.timo.timoterminal.viewModel
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,6 +14,7 @@ import com.timo.timoterminal.entityClasses.CustomerEntity
 import com.timo.timoterminal.entityClasses.CustomerGroupEntity
 import com.timo.timoterminal.entityClasses.JourneyEntity
 import com.timo.timoterminal.entityClasses.ProjectEntity
+import com.timo.timoterminal.entityClasses.ProjectTimeEntity
 import com.timo.timoterminal.entityClasses.ProjectTimeTrackSetting
 import com.timo.timoterminal.entityClasses.SkillEntity
 import com.timo.timoterminal.entityClasses.TaskEntity
@@ -44,7 +46,6 @@ import java.util.GregorianCalendar
 
 class ProjectFragmentViewModel(
     private val projectService: ProjectService,
-    private val settingsService: SettingsService,
     private val projectRepository: ProjectRepository,
     private val taskRepository: TaskRepository,
     private val user2TaskRepository: User2TaskRepository,
@@ -75,6 +76,9 @@ class ProjectFragmentViewModel(
     val liveTeamEntities: MutableLiveData<List<TeamEntity>> = MutableLiveData()
     val liveJourneyEntities: MutableLiveData<List<JourneyEntity>> = MutableLiveData()
     val liveMessage: MutableLiveData<String> = MutableLiveData()
+    val liveIsStartingWorkingTime: MutableLiveData<Boolean> = MutableLiveData(false)
+
+    var currentOpenWorkingTime: MutableLiveData<ProjectTimeEntity?> = MutableLiveData()
 
     var userId: Long = -1L
     var isCustomerTimeTrack: Boolean = false
@@ -94,7 +98,7 @@ class ProjectFragmentViewModel(
     private var skillEntities: List<SkillEntity> = emptyList()
     private var journeyEntities: List<JourneyEntity> = emptyList()
 
-    fun loadForProjectTimeTrack() {
+    fun loadForProjectTimeTrack(context: Context) {
         liveShowMask.postValue(true)
         repoLoad = 0
         projectService.getValuesForProjectTimeTrack { success, obj ->
@@ -253,6 +257,17 @@ class ProjectFragmentViewModel(
         val setting = projectPrefService.getProjectTimeTrackSetting(false)
         liveProjectTimeTrackSetting.postValue(setting)
 
+        viewModelScope.launch {
+            try {
+                val workingTime = projectTimeService.getLatestOpenWorkingTime(userId, context)
+                Log.d("ProjectFragmentViewModel", "WorkingTime: $workingTime")
+                currentOpenWorkingTime.postValue(workingTime)
+                liveHideMask.postValue(true)
+            } catch (e: Exception) {
+                currentOpenWorkingTime.postValue(null)
+            }
+        }
+
         getJourneys(Utils.getDateFromGC(Utils.getCal()))
     }
 
@@ -337,6 +352,55 @@ class ProjectFragmentViewModel(
             }
         }
         liveCustomerEntities.postValue(customersForTask)
+    }
+
+    fun showCustomersForProject(projectId: Long) {
+        if (isCustomerTimeTrack) return
+        val forProject = customer2ProjectEntities.filter { it.projectId == projectId }
+        val customersForTask = mutableListOf<CustomerEntityAdapter.CustomerComboEntity>()
+        customerEntities.forEach { customer ->
+            if (forProject.any { it.customerId == customer.customerId }) {
+                customersForTask.add(
+                    CustomerEntityAdapter.CustomerComboEntity(
+                        "kid_${customer.customerId}",
+                        customer.customerName
+                    )
+                )
+            }
+        }
+        customerGroupEntities.forEach { group ->
+            if (forProject.any { it.groupId == group.customerGroupId }) {
+                customersForTask.add(
+                    CustomerEntityAdapter.CustomerComboEntity(
+                        "kgid_${group.customerGroupId}",
+                        "[${group.customerGroupName}]"
+                    )
+                )
+            }
+        }
+        liveCustomerEntities.postValue(customersForTask)
+    }
+
+    fun showTaskForProject(projectId: Long) {
+        liveTaskEntities.postValue(
+            taskEntities.filter { task ->
+                task.projectId == projectId && user2TaskEntities.any { u2T ->
+                    u2T.userId == userId && u2T.taskId == task.taskId
+                }
+            })
+    }
+
+    fun showActivityTypesForTask(taskId: Long): List<ActivityTypeEntity> {
+        val user2Task = user2TaskEntities.firstOrNull { it.userId == userId && it.taskId == taskId }
+        if (user2Task?.activityType != null && user2Task.activityType!! > 0L) {
+            return activityTypeEntities.filter { it.activityTypeId == user2Task.activityType }
+        }
+
+        val task = taskEntities.firstOrNull { it.taskId == taskId }
+        if (task?.activityType != null && task.activityType > 0L) {
+            return activityTypeEntities.filter { it.activityTypeId == task.activityType }
+        }
+        return activityTypeEntities
     }
 
     fun saveProjectTime(data: HashMap<String, String>, context: Context) {
@@ -449,6 +513,43 @@ class ProjectFragmentViewModel(
                     )
                     liveJourneyEntities.postValue(journeyEntities)
                 }
+            }
+        }
+    }
+
+    fun startWorkingTime( data: HashMap<String, String>, context: Context) {
+        if (liveIsStartingWorkingTime.value == true) {
+            Log.d("ProjectFragmentViewModel", "startWorkingTime ignored: already in progress")
+            return
+        }
+        liveIsStartingWorkingTime.postValue(true)
+        viewModelScope.launch {
+            try {
+                val id = projectTimeService.startWorkingTime(data, context, viewModelScope, liveHideMask, liveMessage)
+                val pte = ProjectTimeEntity.parseFromMap(data)
+                if (id > 0) pte.id = id
+                Log.d("ProjectFragmentViewModel", "Started Working Time: $pte")
+                currentOpenWorkingTime.postValue(pte)
+            } finally {
+                liveIsStartingWorkingTime.postValue(false)
+            }
+        }
+    }
+
+    fun stopLatestOpenWorkingTime(context: Context) {
+        if (currentOpenWorkingTime.value == null) {
+            Log.d("ProjectFragmentViewModel", "stopLatestOpenWorkingTime ignored: no open working time")
+            return
+        }
+        liveShowMask.postValue(true)
+        viewModelScope.launch {
+            try {
+                projectTimeService.stopLatestOpenWorkingTime(userId ,context)
+                currentOpenWorkingTime.postValue(null)
+            } catch (e: Exception) {
+                liveMessage.postValue(e.message ?: "Error stopping working time")
+            } finally {
+                liveHideMask.postValue(true)
             }
         }
     }

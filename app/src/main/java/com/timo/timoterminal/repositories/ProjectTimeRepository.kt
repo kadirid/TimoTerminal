@@ -25,4 +25,6 @@ class ProjectTimeRepository(private val projectTimeDAO: ProjectTimeDAO) {
     suspend fun count(): Int = projectTimeDAO.count()
 
     suspend fun deleteById(id: Long) = projectTimeDAO.deleteById(id)
+
+    suspend fun getById(id: Long) = projectTimeDAO.getById(id)
 }

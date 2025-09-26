@@ -162,20 +162,48 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <Button
-                android:id="@+id/startProjectTimeButton"
+            <LinearLayout
+                android:id="@+id/action_button_container"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
                 android:layout_marginTop="20dp"
-                android:background="@drawable/rounded_rippled_container_24dp"
-                android:text="Projektzeit starten"
-                android:textAlignment="viewStart"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/come"
-                app:icon="@drawable/baseline_play_circle_filled_24"
-                app:iconGravity="end"
-                app:iconSize="48dp"
-                app:iconTint="@color/white" />
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+                <Button
+                    android:id="@+id/stopProjectTimeButton"
+                    android:layout_weight="1"
+                    android:visibility="gone"
+                    android:layout_marginEnd="20dp"
+                    android:layout_width="260dp"
+                    android:layout_height="100dp"
+                    android:background="@drawable/rounded_rippled_container_24dp"
+                    android:text="Aktuelle PZ beenden"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textAlignment="viewStart"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@color/go"
+                    app:icon="@drawable/stop_circle_24dp"
+                    app:iconGravity="end"
+                    app:iconSize="48dp"
+                    app:iconTint="@color/white" />
+                <Button
+                    android:layout_weight="1"
+                    android:id="@+id/startProjectTimeButton"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:background="@drawable/rounded_rippled_container_24dp"
+                    android:text="Projektzeit starten"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:textAlignment="viewStart"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@color/come"
+                    app:icon="@drawable/play_circle_24dp"
+                    app:iconGravity="end"
+                    app:iconSize="48dp"
+                    app:iconTint="@color/white" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

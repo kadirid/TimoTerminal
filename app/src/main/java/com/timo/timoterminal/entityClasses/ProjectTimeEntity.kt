@@ -251,6 +251,40 @@ class ProjectTimeEntity(
                 createdTime = ""
             )
         }
+
+        fun parseFromJson(json: org.json.JSONObject): ProjectTimeEntity {
+            return ProjectTimeEntity(
+                id = null,
+                userId = json.optString("userId", ""),
+                date = json.optString("date", ""),
+                dateTo = json.optString("dateTo", ""),
+                from = json.optString("from", ""),
+                to = json.optString("to", ""),
+                hours = json.optString("hours", ""),
+                manDays = json.optString("manDays", ""),
+                description = json.optString("description", ""),
+                customerId = json.optString("customerId", ""),
+                ticketId = json.optString("ticketId", ""),
+                projectId = json.optString("projectId", ""),
+                taskId = json.optString("taskId", ""),
+                orderNo = json.optString("orderNo", ""),
+                activityType = json.optString("activityTypeId", ""),
+                activityTypeMatrix = json.optString("activityTypeMatrix", ""),
+                skillLevel = json.optString("skillLevel", ""),
+                performanceLocation = json.optString("performanceLocation", ""),
+                teamId = json.optString("teamId", ""),
+                journeyId = json.optString("journeyId", ""),
+                travelTime = json.optString("travelTime", ""),
+                drivenKm = json.optString("drivenKm", ""),
+                kmFlatRate = json.optString("kmFlatRate", ""),
+                billable = json.optString("billable", ""),
+                premium = json.optString("premium", ""),
+                units = json.optString("units", ""),
+                evaluation = json.optString("evaluation", ""),
+                isSend = false,
+                createdTime = ""
+            )
+        }
     }
 
 }

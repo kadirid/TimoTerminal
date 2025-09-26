@@ -85,8 +85,7 @@ class ProjectFragment: Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadForProjectTimeTrack()
-
+        viewModel.loadForProjectTimeTrack(requireContext())
         binding.fromDate.setText(Utils.getDateFromGC(Utils.getCal()) as CharSequence)
     }
 

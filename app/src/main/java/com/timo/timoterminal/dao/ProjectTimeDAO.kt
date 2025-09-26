@@ -35,4 +35,7 @@ interface ProjectTimeDAO {
 
     @Query("DELETE FROM ProjectTimeEntity WHERE id = :id" )
     suspend fun deleteById(id: Long)
+
+    @Query("SELECT * FROM ProjectTimeEntity WHERE id = :id")
+    suspend fun getById(id: Long): ProjectTimeEntity?
 }
