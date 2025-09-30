@@ -36,6 +36,7 @@ class ProjectTimeEntity(
     @ColumnInfo(name = "units") var units: String,
     @ColumnInfo(name = "evaluation") var evaluation: String,
     @ColumnInfo(name = "isSend", defaultValue = "false") var isSend: Boolean,
+    @ColumnInfo(name = "timeEntryType") var timeEntryType: String,
     @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP") val createdTime: String
 ) :Parcelable {
 
@@ -74,6 +75,7 @@ class ProjectTimeEntity(
         if (units != other.units) return false
         if (evaluation != other.evaluation) return false
         if (isSend != other.isSend) return false
+        if (timeEntryType != other.timeEntryType) return false
         if (createdTime != other.createdTime) return false
 
         return true
@@ -108,12 +110,45 @@ class ProjectTimeEntity(
         result = 31 * result + units.hashCode()
         result = 31 * result + evaluation.hashCode()
         result = 31 * result + isSend.hashCode()
+        result = 31 * result + timeEntryType.hashCode()
         result = 31 * result + createdTime.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "ProjectTimeEntity(id=$id, userId=$userId, date='$date', dateTo='$dateTo', from='$from', to='$to', hours='$hours', manDays='$manDays', description='$description', customerId='$customerId', ticketId='$ticketId', projectId='$projectId', taskId='$taskId', orderNo='$orderNo', activityType='$activityType', activityTypeMatrix='$activityTypeMatrix', skillLevel='$skillLevel', performanceLocation='$performanceLocation', teamId='$teamId', journeyId='$journeyId', travelTime='$travelTime', drivenKm='$drivenKm', kmFlatRate='$kmFlatRate', billable='$billable', premium='$premium', units='$units', evaluation='$evaluation', isSend=$isSend, createdTime='$createdTime')"
+        val builder : StringBuilder = StringBuilder()
+        builder.append("ProjectTimeEntity(")
+        builder.append("id=$id, ")
+        builder.append("userId=$userId, ")
+        builder.append("date='$date', ")
+        builder.append("dateTo='$dateTo', ")
+        builder.append("from='$from', ")
+        builder.append("to='$to', ")
+        builder.append("hours='$hours', ")
+        builder.append("manDays='$manDays', ")
+        builder.append("description='$description', ")
+        builder.append("customerId='$customerId', ")
+        builder.append("ticketId='$ticketId', ")
+        builder.append("projectId='$projectId', ")
+        builder.append("taskId='$taskId', ")
+        builder.append("orderNo='$orderNo', ")
+        builder.append("activityType='$activityType', ")
+        builder.append("activityTypeMatrix='$activityTypeMatrix', ")
+        builder.append("skillLevel='$skillLevel', ")
+        builder.append("performanceLocation='$performanceLocation', ")
+        builder.append("teamId='$teamId', ")
+        builder.append("journeyId='$journeyId', ")
+        builder.append("travelTime='$travelTime', ")
+        builder.append("drivenKm='$drivenKm', ")
+        builder.append("kmFlatRate='$kmFlatRate', ")
+        builder.append("billable='$billable', ")
+        builder.append("premium='$premium', ")
+        builder.append("units='$units', ")
+        builder.append("evaluation='$evaluation', ")
+        builder.append("isSend=$isSend, ")
+        builder.append("timeEntryType='$timeEntryType', ")
+        builder.append("createdTime='$createdTime')")
+        return builder.toString()
     }
 
     fun toMap(): Map<String, String> {
@@ -143,6 +178,7 @@ class ProjectTimeEntity(
             "billable" to billable,
             "premium" to premium,
             "units" to units,
+            "timeEntryType" to timeEntryType,
             "evaluation" to evaluation
         )
     }
@@ -176,6 +212,7 @@ class ProjectTimeEntity(
         parcel.writeString(units)
         parcel.writeString(evaluation)
         parcel.writeByte(if (isSend) 1 else 0)
+        parcel.writeString(timeEntryType)
         parcel.writeString(createdTime)
     }
 
@@ -212,15 +249,16 @@ class ProjectTimeEntity(
                 units = parcel.readString() ?: "",
                 evaluation = parcel.readString() ?: "",
                 isSend = parcel.readByte() != 0.toByte(),
+                timeEntryType = parcel.readString() ?: "",
                 createdTime = parcel.readString() ?: ""
             )
         }
 
         override fun newArray(size: Int): Array<ProjectTimeEntity?> = arrayOfNulls(size)
 
-        fun parseFromMap(map: Map<String, String>): ProjectTimeEntity {
+        fun parseFromMap(map: Map<String, String?>): ProjectTimeEntity {
             return ProjectTimeEntity(
-                id = null,
+                id = map["id"]?.toLongOrNull(),
                 userId = map["userId"] ?: "",
                 date = map["date"] ?: "",
                 dateTo = map["dateTo"] ?: "",
@@ -248,7 +286,8 @@ class ProjectTimeEntity(
                 units = map["units"] ?: "",
                 evaluation = map["evaluation"] ?: "",
                 isSend = false,
-                createdTime = ""
+                timeEntryType = map["timeEntryType"] ?: "",
+                createdTime = map["createdTime"] ?: ""
             )
         }
 
@@ -282,6 +321,7 @@ class ProjectTimeEntity(
                 units = json.optString("units", ""),
                 evaluation = json.optString("evaluation", ""),
                 isSend = false,
+                timeEntryType = json.optString("timeEntryType", ""),
                 createdTime = ""
             )
         }

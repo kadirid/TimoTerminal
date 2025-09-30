@@ -27,7 +27,7 @@ interface ProjectTimeDAO {
     @Query("DELETE FROM ProjectTimeEntity")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM ProjectTimeEntity ORDER BY id Limit :currentPage, 50")
+    @Query("SELECT * FROM ProjectTimeEntity ORDER BY id Limit :currentPage, 100")
     suspend fun getPageAsList(currentPage: Int): List<ProjectTimeEntity>
 
     @Query("SELECT COUNT(*) FROM ProjectTimeEntity")

@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -73,6 +74,11 @@ class ProjectTimeListFragment : Fragment() {
             languageService.getText("ALLGEMEIN#Suchtext")
         binding.textInputLayoutProjectTimeListDateRange.hint =
             languageService.getText("ALLGEMEIN#Suchtext")
+        binding.buttonSortDate.text = languageService.getText("ALLGEMEIN#Datum")
+        binding.buttonSortEmployee.text = languageService.getText("ALLGEMEIN#Mitarbeiter")
+        binding.buttonSortProject.text = languageService.getText("ALLGEMEIN#Projekt")
+        binding.buttonSortTask.text = languageService.getText("ALLGEMEIN#Vorgang")
+        binding.buttonSortCustomer.text = languageService.getText("ALLGEMEIN#Kunde")
         binding.buttonBack.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
@@ -401,6 +407,31 @@ class ProjectTimeListFragment : Fragment() {
                         object : ProjectTimeEntityAdapter.OnItemClickListener {
                             override fun onItemClick(entity: ProjectTimeEntity) {
                                 (activity as MainActivity?)?.restartTimer()
+                                val timeEntryType = if (entity.manDays.isNotEmpty()) {
+                                    6L
+                                } else if (entity.hours.isNotEmpty()) {
+                                    3L
+                                } else {
+                                    1L
+                                }
+                                val user =
+                                    userEntities.find { user -> user.id == entity.userId.toLong() }
+
+                                if (user != null) {
+                                    requireActivity().supportFragmentManager.commit {
+                                        addToBackStack(null)
+                                        replace(
+                                            R.id.fragment_container_view,
+                                            ProjectFragment.newInstance(
+                                                user.id,
+                                                user.customerBasedProjectTime,
+                                                timeEntryType,
+                                                user.crossDay,
+                                                entity
+                                            )
+                                        )
+                                    }
+                                }
                             }
                         },
                         languageService.getText("CLIENT#CompData_ManDay"),

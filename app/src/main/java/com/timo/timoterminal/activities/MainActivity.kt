@@ -29,7 +29,6 @@ import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.ProjectPrefService
 import com.timo.timoterminal.service.PropertyService
-import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver

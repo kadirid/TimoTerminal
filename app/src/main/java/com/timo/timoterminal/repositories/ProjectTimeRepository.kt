@@ -20,7 +20,7 @@ class ProjectTimeRepository(private val projectTimeDAO: ProjectTimeDAO) {
 
     suspend fun deleteAll() = projectTimeDAO.deleteAll()
 
-    suspend fun getPageAsList(currentPage: Int) = projectTimeDAO.getPageAsList(currentPage * 50)
+    suspend fun getPageAsList(currentPage: Int) = projectTimeDAO.getPageAsList(currentPage * 100)
 
     suspend fun count(): Int = projectTimeDAO.count()
 

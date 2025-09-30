@@ -20,6 +20,7 @@ import com.timo.timoterminal.database.TeamDatabase
 import com.timo.timoterminal.database.TicketDatabase
 import com.timo.timoterminal.database.User2TaskDatabase
 import com.timo.timoterminal.database.UserDatabase
+import com.timo.timoterminal.migration.ProjectTimeMigration
 import com.timo.timoterminal.migration.UserMigration
 import com.timo.timoterminal.repositories.ActivityTypeMatrixRepository
 import com.timo.timoterminal.repositories.ActivityTypeRepository
@@ -227,7 +228,9 @@ var appModule = module {
             androidContext(),
             ProjectTimeDatabase::class.java,
             "project_time_entity"
-        ).build()
+        )
+            .addMigrations(ProjectTimeMigration.MIGRATION_1_2)
+            .build()
     }
 
 
@@ -285,8 +288,8 @@ var appModule = module {
     single { SettingsService(get(), get()) }
     single { UserService(get(), get(), get()) }
     single { LanguageService(get(), get(), get()) }
-    single { ProjectTimeService(get(), get(), get()) }
     single { BookingService(get(), get(), get(), get()) }
+    single { ProjectTimeService(get(), get(), get(), get()) }
     single { LoginService(get(), get(), get(), get(), get(), get(), get()) }
 
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }

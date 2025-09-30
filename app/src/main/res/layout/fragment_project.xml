@@ -7,12 +7,14 @@
     android:orientation="vertical"
     tools:layout_marginLeft="200dp">
 
+    <!-- Save Button outside ScrollView -->
     <ScrollView
+        android:id="@+id/fragmane_project_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="60dp"
         android:layout_weight="1"
         android:fillViewport="true"
-        android:layout_marginTop="60dp"
         android:paddingHorizontal="60dp">
 
         <LinearLayout
@@ -20,22 +22,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            tools:context=".fragmentViews.ProjectFragmentBck">
+            tools:context=".fragmentViews.ProjectFragment">
 
             <!-- Time and Date Row -->
             <LinearLayout
                 android:id="@+id/from_to_hours_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/text_input_Layout_project_time_fromDate"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="1"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
                     android:hint="@string/from"
                     android:labelFor="@id/fromDate">
 
@@ -54,8 +56,8 @@
                     android:id="@+id/text_input_Layout_project_time_from"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="0.8"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="0.8"
                     android:hint="@string/from"
                     android:labelFor="@id/from">
 
@@ -74,8 +76,8 @@
                     android:id="@+id/text_input_Layout_project_time_toDate"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="1"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
                     android:hint="@string/to"
                     android:labelFor="@id/toDate">
 
@@ -94,8 +96,8 @@
                     android:id="@+id/text_input_Layout_project_time_to"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
+                    tools:layout_marginEnd="5dp"
                     android:layout_weight="0.8"
-                    android:layout_marginEnd="5dp"
                     android:hint="@string/to"
                     android:labelFor="@id/to">
 
@@ -114,8 +116,8 @@
                     android:id="@+id/text_input_Layout_project_time_hours"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
+                    tools:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:layout_marginEnd="5dp"
                     android:hint="@string/hours"
                     android:labelFor="@id/hours">
 
@@ -154,16 +156,16 @@
                 android:id="@+id/project_order_unit_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/text_input_Layout_project_time_project"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="3"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="3"
                     android:hint="@string/project">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -182,8 +184,8 @@
                     android:id="@+id/text_input_Layout_project_time_order_no"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="1.2"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="1.2"
                     android:hint="@string/orderNo">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -241,16 +243,16 @@
                 android:id="@+id/customer_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/text_input_Layout_project_time_customer"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="3"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="3"
                     android:hint="@string/customer">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -311,16 +313,16 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/text_input_Layout_project_time_activity_type"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="1"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
                     android:hint="@string/activityType">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -340,8 +342,8 @@
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="1"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
                     android:hint="@string/activityTypeMatrix">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -442,16 +444,16 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/text_input_Layout_project_time_journey"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="2.5"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="2.5"
                     android:hint="@string/journey">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -470,8 +472,8 @@
                     android:id="@+id/text_input_Layout_project_time_travel_time"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="1"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
                     android:hint="@string/travelTime">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -489,8 +491,8 @@
                     android:id="@+id/text_input_Layout_project_time_driven_km"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="0.8"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="0.8"
                     android:hint="@string/traveldKm">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -516,15 +518,15 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/text_input_Layout_project_time_evaluation"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="1"
                     android:layout_marginEnd="5dp"
+                    android:layout_weight="1"
                     android:hint="@string/estimation">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -560,7 +562,6 @@
 
     </ScrollView>
 
-    <!-- Save Button outside ScrollView -->
     <Button
         android:id="@+id/saveProjectTimeButton"
         android:layout_width="245dp"

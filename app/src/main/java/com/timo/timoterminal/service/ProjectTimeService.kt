@@ -18,7 +18,8 @@ import org.koin.core.component.KoinComponent
 class ProjectTimeService(
     private val projectTimeRepository: ProjectTimeRepository,
     private val sharedPrefService: SharedPrefService,
-    private val httpService: HttpService
+    private val httpService: HttpService,
+    private val languageService: LanguageService
 ) : KoinComponent {
     private fun getCompany(): String? {
         return sharedPrefService.getString(SharedPreferenceKeys.COMPANY)
@@ -37,7 +38,7 @@ class ProjectTimeService(
     }
 
     fun saveProjectTime(
-        data: HashMap<String, String>,
+        data: HashMap<String, String?>,
         context: Context,
         viewModelScope: CoroutineScope,
         liveHideMask: MutableLiveData<Boolean>,
@@ -52,22 +53,35 @@ class ProjectTimeService(
             if (data["date"]?.isNotEmpty() == true)
                 data["date"] = Utils.getDateForTransfer(Utils.parseGCFromDate(data["date"] ?: ""))
             if (data["dateFrom"]?.isNotEmpty() == true)
-                data["dateTo"] =
-                    Utils.getDateForTransfer(Utils.parseGCFromDate(data["dateTo"] ?: ""))
-            data["company"] = company
-            data["token"] = token
-            data["terminalSN"] = MainApplication.lcdk.getSerialNumber()
-            data["terminalId"] = tId.toString()
+                data["dateTo"] =  Utils.getDateForTransfer(Utils.parseGCFromDate(data["dateTo"] ?: ""))
+
+            val params = HashMap<String, String>()
+            for (key in data.keys) {
+                val value = data[key]
+                if (value != null) {
+                    params[key] = value
+                }
+            }
+
+            params["company"] = company
+            params["token"] = token
+            params["terminalSN"] = MainApplication.lcdk.getSerialNumber()
+            params["terminalId"] = tId.toString()
 
             httpService.post(
                 "${url}services/rest/zktecoTerminal/saveWorkingTime",
-                data,
+                params,
                 context,
                 { obj, arr, resp ->
                     Log.d("ProjectFragmentViewModel", "Response: $resp, Object: $obj, Array: $arr")
                     liveHideMask.postValue(true)
                     if (obj?.getBoolean("success") == true) {
                         liveMessage.postValue(obj.optString("message", ""))
+                        if (data["id"] != null) {
+                            viewModelScope.launch {
+                                projectTimeRepository.deleteById(data["id"]?.toLong() ?: 0L)
+                            }
+                        }
                     } else {
                         if (obj?.has("message") == true) {
                             liveMessage.postValue("e${obj.getString("message")}")
@@ -80,6 +94,7 @@ class ProjectTimeService(
                         "Error: $e, Response: $response, Output: $output"
                     )
                     val pte = ProjectTimeEntity.parseFromMap(data)
+                    liveMessage.postValue(languageService.getText("#BookingTemporarilySaved"))
                     viewModelScope.launch {
                         projectTimeRepository.insert(pte)
                     }

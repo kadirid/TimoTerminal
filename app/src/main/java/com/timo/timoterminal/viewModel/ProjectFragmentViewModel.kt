@@ -403,7 +403,7 @@ class ProjectFragmentViewModel(
         return activityTypeEntities
     }
 
-    fun saveProjectTime(data: HashMap<String, String>, context: Context) {
+    fun saveProjectTime(data: HashMap<String, String?>, context: Context) {
         liveShowMask.postValue(true)
         projectTimeService.saveProjectTime(data, context, viewModelScope, liveHideMask, liveMessage)
     }

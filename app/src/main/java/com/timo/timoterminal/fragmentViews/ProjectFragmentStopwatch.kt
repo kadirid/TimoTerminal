@@ -1153,9 +1153,10 @@ class ProjectFragmentStopwatch : Fragment() {
             put("drivenKm", binding.drivenKm.text.toString())
             put("units", binding.unit.text.toString())
             put("evaluation", binding.evaluation.text.toString())
-            put("kmFlatRate", if (binding.kmFlatRate.isChecked) "1" else "0")
-            put("billable", if (binding.billable.isChecked) "1" else "0")
-            put("premium", if (binding.premiumable.isChecked) "1" else "0")
+            put("kmFlatRate", if (binding.kmFlatRate.isChecked) "true" else "false")
+            put("billable", if (binding.billable.isChecked) "true" else "false")
+            put("premium", if (binding.premiumable.isChecked) "true" else "false")
+            put("timeEntryType", "10")
 
             // Adapter-based IDs
             (binding.customer.adapter as? CustomerEntityAdapter)?.getItemByName(binding.customer.text.toString())?.id?.let { put("customerId", it) }
