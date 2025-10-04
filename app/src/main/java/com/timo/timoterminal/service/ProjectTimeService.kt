@@ -87,6 +87,7 @@ class ProjectTimeService(
                             liveMessage.postValue("e${obj.getString("message")}")
                         }
                     }
+                    Unit
                 },
                 { e, response, _, output ->
                     Log.d(
@@ -258,9 +259,6 @@ class ProjectTimeService(
                     try {
                         if (obj != null && obj.getString("message").equals("ok")) {
                             val payload = obj.getJSONObject("payload")
-                            if (payload.isNull("wt")) {
-                                continuation.resume(null)
-                            }
                             val result = ProjectTimeEntity.parseFromJson(payload.getJSONObject("wt"))
                             if (!payload.isNull("skill") && payload.getString("skill").isNotEmpty()) {
                                 result.skillLevel = payload.getString("skill")

@@ -38,7 +38,8 @@ class MBBookingResponseSheet : BottomSheetDialogFragment() {
         binding = MbBookingResponseBinding.inflate(inflater, container, false)
 
         setListeners()
-        setView()
+        val customText = arguments?.getString("text")
+        setView(customText)
         timer.schedule(timerLength) {
             this@MBBookingResponseSheet.dismiss()
         }
@@ -52,7 +53,7 @@ class MBBookingResponseSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun setView() {
+    private fun setView(text: String? = "") {
         var image: Int
         val status = arguments?.getInt("status", -1)
         val adjusted = arguments?.getBoolean("adjusted", false) == true
@@ -69,19 +70,19 @@ class MBBookingResponseSheet : BottomSheetDialogFragment() {
         when(status){
             1 -> {
                 image = R.drawable.booking_in
-                successText.text = languageService.getText("#CheckIn")
+                successText.text = text ?: languageService.getText("#CheckIn")
             }
             2 -> {
                 image = R.drawable.booking_out
-                successText.text = languageService.getText("#CheckOut")
+                successText.text = text ?: languageService.getText("#CheckOut")
             }
             3 -> {
                 image = R.drawable.booking_break_start
-                successText.text = languageService.getText("ALLGEMEIN#Pausenanfang")
+                successText.text = text ?: languageService.getText("ALLGEMEIN#Pausenanfang")
             }
             4 -> {
                 image = R.drawable.booking_break_end
-                successText.text = languageService.getText("ALLGEMEIN#Pausenende")
+                successText.text = text ?: languageService.getText("ALLGEMEIN#Pausenende")
             }
             else -> image = R.drawable.booking_error
         }

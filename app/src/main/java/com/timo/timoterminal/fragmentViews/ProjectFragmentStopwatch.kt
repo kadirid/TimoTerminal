@@ -1170,12 +1170,12 @@ class ProjectFragmentStopwatch : Fragment() {
             (binding.journey.adapter as? JourneyEntityAdaptor)?.getItemByName(binding.journey.text.toString())?.journeyId?.let { put("journeyId", it.toString()) }
         }
 
-        viewModel.startWorkingTime(data, requireContext())
+        viewModel.startWorkingTime(data, requireContext(), this)
     }
 
     private fun stopProjectTime() {
         if (!isValid(false)) return
-        viewModel.stopLatestOpenWorkingTime(requireContext())
+        viewModel.stopLatestOpenWorkingTime(requireContext(), this)
     }
 
     // --- Runnable ---

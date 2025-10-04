@@ -1,6 +1,7 @@
 package com.timo.timoterminal.viewModel
 
 import android.content.Context
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -21,6 +22,7 @@ import com.timo.timoterminal.entityClasses.TaskEntity
 import com.timo.timoterminal.entityClasses.TeamEntity
 import com.timo.timoterminal.entityClasses.TicketEntity
 import com.timo.timoterminal.entityClasses.User2TaskEntity
+import com.timo.timoterminal.modalBottomSheets.MBBookingResponseSheet
 import com.timo.timoterminal.repositories.ActivityTypeMatrixRepository
 import com.timo.timoterminal.repositories.ActivityTypeRepository
 import com.timo.timoterminal.repositories.ConfigRepository
@@ -517,7 +519,7 @@ class ProjectFragmentViewModel(
         }
     }
 
-    fun startWorkingTime( data: HashMap<String, String>, context: Context) {
+    fun startWorkingTime( data: HashMap<String, String>, context: Context, fragment: androidx.fragment.app.Fragment) {
         if (liveIsStartingWorkingTime.value == true) {
             Log.d("ProjectFragmentViewModel", "startWorkingTime ignored: already in progress")
             return
@@ -530,13 +532,25 @@ class ProjectFragmentViewModel(
                 if (id > 0) pte.id = id
                 Log.d("ProjectFragmentViewModel", "Started Working Time: $pte")
                 currentOpenWorkingTime.postValue(pte)
+
+                val bundle = Bundle().apply {
+                    putBoolean("success", true)
+                    putString("text", "Projektzeit erfolgreich gestartet.")
+                    putString("bookingTime", android.text.format.DateFormat.format("HH:mm", java.util.Date()).toString())
+                    putInt("status", 1)
+                }
+                fragment.activity?.runOnUiThread {
+                    val sheet = MBBookingResponseSheet()
+                    sheet.arguments = bundle
+                    sheet.show(fragment.parentFragmentManager, MBBookingResponseSheet.TAG)
+                }
             } finally {
                 liveIsStartingWorkingTime.postValue(false)
             }
         }
     }
 
-    fun stopLatestOpenWorkingTime(context: Context) {
+    fun stopLatestOpenWorkingTime(context: Context, fragment: androidx.fragment.app.Fragment) {
         if (currentOpenWorkingTime.value == null) {
             Log.d("ProjectFragmentViewModel", "stopLatestOpenWorkingTime ignored: no open working time")
             return
@@ -546,6 +560,18 @@ class ProjectFragmentViewModel(
             try {
                 projectTimeService.stopLatestOpenWorkingTime(userId ,context)
                 currentOpenWorkingTime.postValue(null)
+
+                val bundle = Bundle().apply {
+                    putBoolean("success", true)
+                    putString("text", "Projektzeit erfolgreich gestoppt.") //TODO: Füge hier eine sinnvolle language ein
+                    putString("bookingTime", android.text.format.DateFormat.format("HH:mm", java.util.Date()).toString())
+                    putInt("status", 2)
+                }
+                fragment.activity?.runOnUiThread {
+                    val sheet = MBBookingResponseSheet()
+                    sheet.arguments = bundle
+                    sheet.show(fragment.parentFragmentManager, MBBookingResponseSheet.TAG)
+                }
             } catch (e: Exception) {
                 liveMessage.postValue(e.message ?: "Error stopping working time")
             } finally {
