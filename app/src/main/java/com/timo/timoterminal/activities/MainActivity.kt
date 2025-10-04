@@ -44,6 +44,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.GregorianCalendar
 import java.util.Timer
 import kotlin.concurrent.schedule
+import kotlin.text.toInt
 
 
 class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
@@ -353,13 +354,21 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
         val dlgAlert: AlertDialog.Builder = AlertDialog.Builder(this, R.style.MySmallDialog)
         dlgAlert.setView(dialogBinding.root)
-        dlgAlert.setNegativeButton(
-            languageService.getText(
-                "BUTTON#Gen_Cancel",
-                "CANCEL"
-            )
-        ) { dia, _ -> dia.dismiss() }
-        dlgAlert.setPositiveButton(languageService.getText("ALLGEMEIN#ok", "OK")) { _, _ ->
+
+        dialog = dlgAlert.create()
+        Utils.hideNavInDialog(dialog)
+        restartAlertTimer()
+
+        // Custom Button Texte setzen
+        dialogBinding.buttonCancel.text = languageService.getText("BUTTON#Gen_Cancel", "ABBRECHEN")
+        dialogBinding.buttonOk.text = languageService.getText("ALLGEMEIN#ok", "OK")
+
+        // Custom Button Click Listener
+        dialogBinding.buttonCancel.setOnClickListener {
+            dialog?.dismiss()
+        }
+
+        dialogBinding.buttonOk.setOnClickListener {
             val login = dialogBinding.textInputEditTextVerificationId.text.toString()
             val pin = dialogBinding.textInputEditTextVerificationPin.text.toString()
             if (login.isNotEmpty() && pin.isNotEmpty()) {
@@ -367,6 +376,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                     val user = mainActivityViewModel.getUserForLogin(login)
                     if (user != null && user.pin == pin) {
                         action(user)
+                        dialog?.dismiss()
                     } else {
                         soundSource.playSound(SoundSource.authenticationFailed)
                         Utils.showMessage(
@@ -377,10 +387,6 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                 }
             }
         }
-
-        dialog = dlgAlert.create()
-        Utils.hideNavInDialog(dialog)
-        restartAlertTimer()
 
         dialogBinding.textInputEditTextVerificationId.doOnTextChanged { _, _, _, _ ->
             restartAlertTimer()
