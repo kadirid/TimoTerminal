@@ -256,10 +256,14 @@ class ProjectTimeService(
                 context,
                 { obj, arr, resp ->
                     try {
-                        if (obj != null && obj.getBoolean("success")) {
-                            val result = ProjectTimeEntity.parseFromJson(obj.getJSONObject("wt"))
-                            if (!obj.isNull("skill") && obj.getString("skill").isNotEmpty()) {
-                                result.skillLevel = obj.getString("skill")
+                        if (obj != null && obj.getString("message").equals("ok")) {
+                            val payload = obj.getJSONObject("payload")
+                            if (payload.isNull("wt")) {
+                                continuation.resume(null)
+                            }
+                            val result = ProjectTimeEntity.parseFromJson(payload.getJSONObject("wt"))
+                            if (!payload.isNull("skill") && payload.getString("skill").isNotEmpty()) {
+                                result.skillLevel = payload.getString("skill")
                             }
                             continuation.resume(result)
                         }
