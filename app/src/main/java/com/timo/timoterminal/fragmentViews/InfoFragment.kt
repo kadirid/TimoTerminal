@@ -176,7 +176,7 @@ class InfoFragment : Fragment() {
                     if (it.second != null) {
                         unregister()
                         verifying = false
-                        viewModel.loadUserInformation(it.second as UserEntity, null)
+                        viewModel.loadUserInformation(it.second as UserEntity)
                         viewModel.liveUser.value = Pair(false, null)
                     } else {
                         Utils.showErrorMessage(

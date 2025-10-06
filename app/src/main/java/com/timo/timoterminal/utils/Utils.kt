@@ -56,6 +56,7 @@ class Utils {
     companion object {
         private var dayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         private var timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        private var secondFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         private var dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
         private var dateNameFormatter = SimpleDateFormat("EE dd.MM.yyyy", Locale.getDefault())
         private var databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
@@ -218,6 +219,10 @@ class Utils {
             return timeFormatter.format(gc.time)
         }
 
+        fun getTimeWithSecondsFormGC(gc: GregorianCalendar) : String {
+            return secondFormatter.format(gc.time)
+        }
+
         fun getDateTimeFromGC(gc: GregorianCalendar): String {
             return dateTimeFormatter.format(gc.time)
         }
@@ -324,6 +329,7 @@ class Utils {
         fun updateLocale() {
             dayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
             timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+            secondFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
             dateNameFormatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
             databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())

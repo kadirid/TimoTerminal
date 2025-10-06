@@ -2,6 +2,7 @@ package com.timo.timoterminal.service.serviceUtils.classes
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.timo.timoterminal.utils.Utils
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -72,7 +73,7 @@ data class UserInformation(
 
 
             val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-            var zeitLB = Date()
+            var zeitLB = Utils.getCal().time
             if(jsonObject.has("zeitLB")) {
                 try {
                     zeitLB = formatter.parse(jsonObject.getString("zeitLB"))!!

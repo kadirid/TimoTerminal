@@ -14,10 +14,10 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.SharedPrefService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.TimoRfidListener
+import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.utils.classes.SoundSource
 import com.zkteco.android.lcdk.data.IFingerprintListener
 import kotlinx.coroutines.launch
-import java.util.Date
 
 
 class InfoFragmentViewModel(
@@ -118,11 +118,8 @@ class InfoFragmentViewModel(
         }
     }
 
-    fun loadUserInformation(user: UserEntity, from: Date?) {
-        var date = Date()
-        if (from != null) {
-            date = from
-        }
+    fun loadUserInformation(user: UserEntity) {
+        val date = Utils.getCal().time
         userService.loadUserInformation(
             user, date,
             { success, errMessage, it ->

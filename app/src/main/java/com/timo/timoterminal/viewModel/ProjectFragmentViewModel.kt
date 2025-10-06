@@ -40,7 +40,6 @@ import com.timo.timoterminal.repositories.User2TaskRepository
 import com.timo.timoterminal.service.ProjectPrefService
 import com.timo.timoterminal.service.ProjectService
 import com.timo.timoterminal.service.ProjectTimeService
-import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.utils.Utils
 import kotlinx.coroutines.launch
 import org.json.JSONObject

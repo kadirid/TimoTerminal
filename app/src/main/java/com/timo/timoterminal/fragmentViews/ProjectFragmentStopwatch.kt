@@ -17,7 +17,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.asFlow
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentProjectStopwatchBinding
@@ -27,10 +26,7 @@ import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.ProjectFragmentViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import org.koin.android.ext.android.inject
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.logging.Logger
 
@@ -72,15 +68,12 @@ class ProjectFragmentStopwatch : Fragment() {
     private val languageService: LanguageService by inject()
     private val viewModel: ProjectFragmentViewModel by inject()
     private val handler = Handler(Looper.getMainLooper())
-    private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-    private val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
 
     private lateinit var binding: FragmentProjectStopwatchBinding
     private var userId: Long? = null
     private var isCustomerTimeTrack: Boolean = false
     private var timeEntryType: Long? = null
     private var crossDay: Boolean = false
-    private var isEntry: Boolean = true
     private var flatReorderMode: Boolean = false
     private var hasAppliedCurrentWT = false
     private var populationInProgress = false
@@ -105,7 +98,6 @@ class ProjectFragmentStopwatch : Fragment() {
     ): View {
         binding = FragmentProjectStopwatchBinding.inflate(inflater, container, false)
         setUp()
-        isEntry = false
         return binding.root
     }
 
@@ -208,8 +200,8 @@ class ProjectFragmentStopwatch : Fragment() {
         binding.project.setOnItemClickListener { parent, _, position, _ ->
             defOnItemClickListener()
             val selectedItem = parent.getItemAtPosition(position) as ProjectEntity
-            binding.task.setText("", false)
-            binding.customer.setText("", false)
+            binding.task.setText(null, false)
+            binding.customer.setText(null, false)
             hasAppliedCurrentWT = true
             if (!isCustomerTimeTrack) viewModel.showCustomersForProject(selectedItem.projectId)
             viewModel.showFilteredTasksForProject(selectedItem.projectId)
@@ -623,12 +615,12 @@ class ProjectFragmentStopwatch : Fragment() {
                 val pid = wt.projectId.toLongOrNull()
                 if (pid != null) {
                     viewModel.showTaskForProject(pid)
-                    awaitAdapterReady { binding.task.adapter?.count ?: 0 > 0 }
+                    awaitAdapterReady { (binding.task.adapter?.count ?: 0) > 0 }
                     logger.info("Step 1: Tasks loaded")
 
                     if (!isCustomerTimeTrack) {
                         viewModel.showCustomersForProject(pid)
-                        awaitAdapterReady { binding.customer.adapter?.count ?: 0 > 0 }
+                        awaitAdapterReady { (binding.customer.adapter?.count ?: 0) > 0 }
                         logger.info("Step 1: Customers loaded")
                     }
                 }
@@ -884,8 +876,8 @@ class ProjectFragmentStopwatch : Fragment() {
         val standardMargin = 10.dpToPx()
         val firstContainerMargin = 0.dpToPx()
         val containers = listOf(
-            binding.assignmentContainer, binding.activityContainer, binding.billableContainer,
-            binding.journeyContainer, binding.descriptionContainer, binding.locationEvaluationContainer
+            binding.billableContainer, binding.activityContainer, binding.assignmentContainer,
+            binding.descriptionContainer, binding.locationEvaluationContainer, binding.journeyContainer
         )
         var isFirstVisibleContainer = true
         for (container in containers) {
@@ -1048,7 +1040,6 @@ class ProjectFragmentStopwatch : Fragment() {
     // Flacher Aufbau der zweiten Seite ohne Container-Gruppierung
     private fun reorderSecondPageFlat(keys: List<String>) {
         val parent = binding.secondPageDetailLayout
-        val backButton = binding.goBackToFirstPageButton
 
         // Container ausblenden, damit sie nicht doppelt erscheinen
         binding.assignmentContainer.visibility = View.GONE
@@ -1142,10 +1133,10 @@ class ProjectFragmentStopwatch : Fragment() {
         if (!isValid(true)) return
 
         val data = HashMap<String, String>().apply {
-            val date = Date()
+            val cal = Utils.getCal()
             put("userId", userId.toString())
-            put("date", android.text.format.DateFormat.format("yyyy-MM-dd", date).toString())
-            put("from", android.text.format.DateFormat.format("HH:mm", date).toString())
+            put("date", Utils.getDateForTransfer(cal))
+            put("from", Utils.getTimeFromGC(cal))
             put("description", binding.description.text.toString())
             put("orderNo", binding.orderNo.text.toString())
             put("performanceLocation", binding.performanceLocation.text.toString())
@@ -1181,11 +1172,12 @@ class ProjectFragmentStopwatch : Fragment() {
     // --- Runnable ---
     private val updateTimeRunnable = object : Runnable {
         override fun run() {
-            val currentTime = timeFormat.format(Date())
-            val currentDate = dateFormat.format(Date())
+            val cal = Utils.getCal()
+            val currentTime = Utils.getTimeWithSecondsFormGC(cal)
+            val currentDate = Utils.getDateFromGC(cal)
             binding.dateView.text = currentDate
             binding.timeView.text = currentTime
-            handler.postDelayed(this, 1000)
+            handler.postDelayed(this, 998)
         }
     }
 }

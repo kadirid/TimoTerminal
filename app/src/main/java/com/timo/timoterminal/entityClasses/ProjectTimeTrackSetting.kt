@@ -73,6 +73,8 @@ class ProjectTimeTrackSetting(
      *   Container ohne Treffer behalten eine stabile Default-Reihenfolge.
      */
     fun arrangeInputsBasedOnSettingsForStopwatch(isCustomerTimeTrack: Boolean): UiArrangementStopWatch {
+        val normalized = fieldOrder.trim()
+        val isCustomOrder = normalized.isNotEmpty() && normalized != DEFAULT_FIELD_ORDER
         // 1) Reihenfolge-Quelle aufbereiten
         val order = (fieldOrder.takeIf { it.isNotBlank() } ?: DEFAULT_FIELD_ORDER)
             .split(',')
@@ -109,14 +111,21 @@ class ProjectTimeTrackSetting(
                 val idx = order.indexOf(key)
                 return if (idx >= 0) idx else Int.MAX_VALUE - base.indexOf(key)
             }
+
             val sortedHead = if (isCustomerTimeTrack) {
                 val pt = listOf(Keys.TASK, Keys.PROJECT).sortedBy { rankOf(it) }
                 listOf(Keys.CUSTOMER) + pt
             } else {
-                listOf(Keys.TASK, Keys.PROJECT).sortedBy { rankOf(it) }
+                listOf(Keys.TASK, Keys.PROJECT).sortedBy { rankOf(it) } + listOf(
+                    if (!isCustomOrder) Keys.CUSTOMER else ""
+                )
             }
             val visibleHead = sortedHead.filter { visible(it) }
-            val headSet = (if (isCustomerTimeTrack) listOf(Keys.CUSTOMER, Keys.PROJECT, Keys.TASK) else listOf(Keys.PROJECT, Keys.TASK)).toSet()
+            val headSet = (if (isCustomerTimeTrack) listOf(
+                Keys.CUSTOMER,
+                Keys.PROJECT,
+                Keys.TASK
+            ) else listOf(Keys.PROJECT, Keys.TASK)).toSet()
             val remaining = order.filter { it !in headSet && visible(it) }
             addAll(visibleHead)
             addAll(remaining)
@@ -161,7 +170,11 @@ class ProjectTimeTrackSetting(
             ContainerId.LOCATION_EVALUATION
         )
         val secondPageContainerOrder = allContainers
-            .sortedWith(compareBy({ firstIndexPerContainer[it] ?: Int.MAX_VALUE }, { defaultContainerIndex(it) }))
+            .sortedWith(
+                compareBy(
+                    { firstIndexPerContainer[it] ?: Int.MAX_VALUE },
+                    { defaultContainerIndex(it) })
+            )
 
         return UiArrangementStopWatch(
             firstPageOrder = firstPageOrder,

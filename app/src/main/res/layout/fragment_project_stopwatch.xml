@@ -236,23 +236,22 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:id="@+id/assignmentContainer"
+                        android:id="@+id/billableContainer"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
 
                         <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/text_input_Layout_project_time_ticket"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:id="@+id/text_input_Layout_project_time_order_no"
                             android:layout_width="0dp"
                             android:layout_height="45dp"
                             android:layout_weight="1"
-                            android:hint="@string/ticket">
+                            android:hint="@string/orderNo">
 
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                                android:id="@+id/ticket"
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/order_no"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:dropDownWidth="704dp"
                                 android:imeOptions="actionDone"
                                 android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
@@ -260,31 +259,37 @@
                                 android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <View
-                            android:id="@+id/puffer_between_team_and_unit"
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent"
-                            android:orientation="horizontal" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/text_input_Layout_project_time_team"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="45dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:hint="@string/team">
+                            android:gravity="center">
 
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                                android:id="@+id/team"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:dropDownWidth="704dp"
-                                android:imeOptions="actionDone"
-                                android:inputType="textNoSuggestions"
+                            <CheckBox
+                                android:id="@+id/billable"
+                                android:layout_width="wrap_content"
+                                android:layout_height="45dp"
+                                android:layout_marginStart="50dp"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
-                                android:singleLine="true" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                                android:text="@string/billable" />
+
+                            <View
+                                android:id="@+id/buffer_between_billable_premiumable"
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1"
+                                tools:ignore="NestedWeights" />
+
+                            <CheckBox
+                                android:id="@+id/premiumable"
+                                android:layout_width="wrap_content"
+                                android:layout_height="45dp"
+                                android:layout_marginEnd="5dp"
+                                android:paddingTop="8dp"
+                                android:paddingBottom="8dp"
+                                android:text="@string/premiumable" />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <LinearLayout
@@ -390,23 +395,24 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/billableContainer"
+                        android:id="@+id/assignmentContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="horizontal">
+                        android:layout_marginTop="10dp">
 
                         <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/text_input_Layout_project_time_order_no"
+                            android:id="@+id/text_input_Layout_project_time_ticket"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                             android:layout_width="0dp"
                             android:layout_height="45dp"
                             android:layout_weight="1"
-                            android:hint="@string/orderNo">
+                            android:hint="@string/ticket">
 
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/order_no"
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                android:id="@+id/ticket"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
+                                android:dropDownWidth="704dp"
                                 android:imeOptions="actionDone"
                                 android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
@@ -414,37 +420,125 @@
                                 android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <LinearLayout
+                        <View
+                            android:id="@+id/puffer_between_team_and_unit"
+                            android:layout_width="5dp"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/text_input_Layout_project_time_team"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="45dp"
                             android:layout_weight="1"
-                            android:gravity="center">
+                            android:hint="@string/team">
 
-                            <CheckBox
-                                android:id="@+id/billable"
-                                android:layout_width="wrap_content"
-                                android:layout_height="45dp"
-                                android:layout_marginStart="50dp"
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                android:id="@+id/team"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:dropDownWidth="704dp"
+                                android:imeOptions="actionDone"
+                                android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
-                                android:text="@string/billable" />
+                                android:singleLine="true" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
 
-                            <View
-                                android:id="@+id/buffer_between_billable_premiumable"
-                                android:layout_width="0dp"
-                                android:layout_height="1dp"
-                                android:layout_weight="1"
-                                tools:ignore="NestedWeights" />
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/descriptionContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="75dp"
+                        android:layout_marginTop="10dp">
 
-                            <CheckBox
-                                android:id="@+id/premiumable"
-                                android:layout_width="wrap_content"
-                                android:layout_height="45dp"
-                                android:layout_marginEnd="5dp"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/text_input_Layout_project_time_description"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:hint="@string/description"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/description"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:imeOptions="actionDone"
+                                android:inputType="textMultiLine"
                                 android:paddingTop="8dp"
-                                android:paddingBottom="8dp"
-                                android:text="@string/premiumable" />
-                        </LinearLayout>
+                                android:paddingBottom="8dp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/description_close_button"
+                            android:layout_width="45dp"
+                            android:layout_height="45dp"
+                            android:layout_marginEnd="10dp"
+                            android:background="@drawable/square_button_background"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/icon_keyboard_hide_inset"
+                            app:iconGravity="textStart"
+                            app:iconPadding="0dp"
+                            app:iconSize="20dp"
+                            app:layout_constraintBottom_toBottomOf="@id/text_input_Layout_project_time_description"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="@id/text_input_Layout_project_time_description" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <LinearLayout
+                        android:id="@+id/locationEvaluationContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="10dp">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/text_input_Layout_project_time_performance_location"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_weight="1"
+                            android:hint="@string/placeOfWork"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_description">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/performance_location"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:imeOptions="actionDone"
+                                android:inputType="text"
+                                android:paddingTop="8dp"
+                                android:paddingBottom="8dp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <View
+                            android:id="@+id/buffer_between_place_of_work_and_evaluation"
+                            android:layout_width="5dp"
+                            android:layout_height="match_parent" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/text_input_Layout_project_time_evaluation"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_weight="1"
+                            android:hint="@string/estimation"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_journey">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/evaluation"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:imeOptions="actionDone"
+                                android:inputType="number"
+                                android:paddingTop="8dp"
+                                android:paddingBottom="8dp" />
+                        </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
                     <LinearLayout
@@ -533,99 +627,6 @@
                             android:paddingBottom="8dp"
                             android:text="@string/kmAllowance" />
 
-                    </LinearLayout>
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/descriptionContainer"
-                        android:layout_width="match_parent"
-                        android:layout_height="75dp"
-                        android:layout_marginVertical="10dp">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/text_input_Layout_project_time_description"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:hint="@string/description"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/description"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:imeOptions="actionDone"
-                                android:inputType="textMultiLine"
-                                android:paddingTop="8dp"
-                                android:paddingBottom="8dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/description_close_button"
-                            android:layout_width="45dp"
-                            android:layout_height="45dp"
-                            android:layout_marginEnd="10dp"
-                            android:background="@drawable/square_button_background"
-                            android:textAllCaps="false"
-                            app:icon="@drawable/icon_keyboard_hide_inset"
-                            app:iconGravity="textStart"
-                            app:iconPadding="0dp"
-                            app:iconSize="20dp"
-                            app:layout_constraintBottom_toBottomOf="@id/text_input_Layout_project_time_description"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="@id/text_input_Layout_project_time_description" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <LinearLayout
-                        android:id="@+id/locationEvaluationContainer"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/text_input_Layout_project_time_performance_location"
-                            android:layout_width="0dp"
-                            android:layout_height="45dp"
-                            android:layout_weight="1"
-                            android:hint="@string/placeOfWork"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_description">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/performance_location"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:imeOptions="actionDone"
-                                android:inputType="text"
-                                android:paddingTop="8dp"
-                                android:paddingBottom="8dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <View
-                            android:id="@+id/buffer_between_place_of_work_and_evaluation"
-                            android:layout_width="5dp"
-                            android:layout_height="match_parent" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/text_input_Layout_project_time_evaluation"
-                            android:layout_width="0dp"
-                            android:layout_height="45dp"
-                            android:layout_weight="1"
-                            android:hint="@string/estimation"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_journey">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/evaluation"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:imeOptions="actionDone"
-                                android:inputType="number"
-                                android:paddingTop="8dp"
-                                android:paddingBottom="8dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
                 </LinearLayout>
