@@ -24,7 +24,7 @@ class ProjectTimeTrackSetting(
 
     companion object {
         const val DEFAULT_FIELD_ORDER =
-            "customer,ticket,team,activityType,activityTypeMatrix,skillLevel,unit,orderNo,billable,premiumable,journey,travelTime,drivenKm,kmFlatRate,description,performanceLocation,evaluation"
+            "order_no,unit,customer,team,activity_type,activity_type_matrix,ticket,skill_level,description,performance_location,journey,travel_time,driven_km,km_flat_rate,evaluation,billable,premiumable"
     }
 
     // --- Datenklassen für die UI-Anordnung ---
@@ -46,19 +46,19 @@ class ProjectTimeTrackSetting(
         const val CUSTOMER = "customer"
         const val TICKET = "ticket"
         const val TEAM = "team"
-        const val ACTIVITY_TYPE = "activityType"
-        const val ACTIVITY_TYPE_MATRIX = "activityTypeMatrix"
-        const val SKILL_LEVEL = "skillLevel"
+        const val ACTIVITY_TYPE = "activity_type"
+        const val ACTIVITY_TYPE_MATRIX = "activity_type_matrix"
+        const val SKILL_LEVEL = "skill_level"
         const val UNIT = "unit"
-        const val ORDER_NO = "orderNo"
+        const val ORDER_NO = "order_no"
         const val BILLABLE = "billable"
         const val PREMIUMABLE = "premiumable"
         const val JOURNEY = "journey"
-        const val TRAVEL_TIME = "travelTime"
-        const val DRIVEN_KM = "drivenKm"
-        const val KM_FLAT_RATE = "kmFlatRate"
+        const val TRAVEL_TIME = "travel_time"
+        const val DRIVEN_KM = "driven_km"
+        const val KM_FLAT_RATE = "km_flat_rate"
         const val DESCRIPTION = "description"
-        const val PERFORMANCE_LOCATION = "performanceLocation"
+        const val PERFORMANCE_LOCATION = "performance_location"
         const val EVALUATION = "evaluation"
     }
 

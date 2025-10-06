@@ -262,7 +262,6 @@ class ProjectFragmentViewModel(
         viewModelScope.launch {
             try {
                 val workingTime = projectTimeService.getLatestOpenWorkingTime(userId, context)
-                Log.d("ProjectFragmentViewModel", "WorkingTime: $workingTime")
                 currentOpenWorkingTime.postValue(workingTime)
                 liveHideMask.postValue(true)
             } catch (e: Exception) {

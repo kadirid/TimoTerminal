@@ -16,12 +16,12 @@ class ProjectTimeListFragmentViewModel(
     private var currentPage = 0
     private var isLoading = false
 
-    fun loadMoreItems() {
+    fun loadMoreItems(userId: String?) {
         if (!isLoading) {
             isLoading = true
             viewModelScope.launch {
-                // Fetch data from a remote source or local database
-                val newItems = projectTimeRepository.getPageAsList(currentPage)
+                // Fetch data
+                val newItems = projectTimeRepository.getPageAsList(currentPage, userId)
                 _items.value = _items.value?.plus(newItems) ?: newItems
                 currentPage++
                 isLoading = false

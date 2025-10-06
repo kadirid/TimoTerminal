@@ -34,6 +34,7 @@ import org.koin.android.ext.android.inject
 
 class ProjectTimeListFragment : Fragment() {
     private lateinit var binding: FragmentProjectTimeListBinding
+    private var userId: String? = null
     private val projectTimeRepository: ProjectTimeRepository by inject()
     private val userRepository: UserRepository by inject()
     private val projectRepository: ProjectRepository by inject()
@@ -52,6 +53,9 @@ class ProjectTimeListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentProjectTimeListBinding.inflate(inflater, container, false)
+
+        userId = arguments?.getString("userId")
+
         return binding.root
     }
 
@@ -67,7 +71,7 @@ class ProjectTimeListFragment : Fragment() {
             (activity as MainActivity?)?.restartTimer()
         }
         binding.fragmentProjectTimeListEmptyListTextView.text =
-            languageService.getText("#NoEntriesForProjectTimes")
+            languageService.getText("#NoEntriesForBookedTimes")
         binding.textInputLayoutProjectTimeListDropdown.hint =
             languageService.getText("ALLGEMEIN#Filtern")
         binding.textInputLayoutProjectTimeListFilterText.hint =
@@ -364,7 +368,7 @@ class ProjectTimeListFragment : Fragment() {
                 super.onScrolled(recyclerView, dx, dy)
                 (activity as MainActivity?)?.restartTimer()
                 if (dy > 0 && !recyclerView.canScrollVertically(1)) { // Scrolled to bottom
-                    projectTimeListFragmentViewModel.loadMoreItems()
+                    projectTimeListFragmentViewModel.loadMoreItems(userId)
                 }
             }
         })
@@ -418,7 +422,7 @@ class ProjectTimeListFragment : Fragment() {
                                     userEntities.find { user -> user.id == entity.userId.toLong() }
 
                                 if (user != null) {
-                                    requireActivity().supportFragmentManager.commit {
+                                    parentFragmentManager.commit {
                                         addToBackStack(null)
                                         replace(
                                             R.id.fragment_container_view,
@@ -449,6 +453,6 @@ class ProjectTimeListFragment : Fragment() {
             }
         }
 
-        projectTimeListFragmentViewModel.loadMoreItems()
+        projectTimeListFragmentViewModel.loadMoreItems(userId)
     }
 }

@@ -507,7 +507,17 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     // NEU: Öffnet das passende Projekt-Fragment nach erfolgreicher Verifikation
     private fun openProjectForUser(user: UserEntity) {
-        if (useProjectStopwatch) {
+        dialog?.dismiss()
+        //do not open if user has absence time track or attendance time track
+        if (user.timeEntryType == 4L || user.timeEntryType == 7L) {
+            Utils.showMessage(
+                supportFragmentManager,
+                languageService.getText("#NoPerrmissionProjectTime")
+            )
+            return
+        }
+
+        if (useProjectStopwatch || user.timeEntryType == 10L) {
             supportFragmentManager.commit {
                 addToBackStack(null)
                 replace(

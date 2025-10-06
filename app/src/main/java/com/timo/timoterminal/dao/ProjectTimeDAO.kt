@@ -30,6 +30,9 @@ interface ProjectTimeDAO {
     @Query("SELECT * FROM ProjectTimeEntity ORDER BY id Limit :currentPage, 100")
     suspend fun getPageAsList(currentPage: Int): List<ProjectTimeEntity>
 
+    @Query("SELECT * FROM ProjectTimeEntity WHERE userId = :userId ORDER BY id Limit :currentPage, 100")
+    suspend fun getPageAsList(currentPage: Int, userId: String): List<ProjectTimeEntity>
+
     @Query("SELECT COUNT(*) FROM ProjectTimeEntity")
     suspend fun count(): Int
 

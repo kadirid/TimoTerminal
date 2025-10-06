@@ -96,10 +96,10 @@
                     android:id="@+id/text_input_Layout_project_time_to"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    tools:layout_marginEnd="5dp"
                     android:layout_weight="0.8"
                     android:hint="@string/to"
-                    android:labelFor="@id/to">
+                    android:labelFor="@id/to"
+                    tools:layout_marginEnd="5dp">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/to"
@@ -116,10 +116,10 @@
                     android:id="@+id/text_input_Layout_project_time_hours"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    tools:layout_marginEnd="5dp"
                     android:layout_weight="1"
                     android:hint="@string/hours"
-                    android:labelFor="@id/hours">
+                    android:labelFor="@id/hours"
+                    tools:layout_marginEnd="5dp">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/hours"
@@ -177,44 +177,59 @@
                         android:inputType="textNoSuggestions"
                         android:paddingTop="8dp"
                         android:paddingBottom="8dp"
+                        app:hintAnimationEnabled="false"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeWidthFocused="2dp"
                         android:singleLine="true" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/text_input_Layout_project_time_order_no"
+                <FrameLayout
                     android:layout_width="0dp"
                     android:layout_height="45dp"
                     android:layout_marginEnd="5dp"
-                    android:layout_weight="1.2"
-                    android:hint="@string/orderNo">
+                    android:layout_weight="1.2">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/order_no"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/text_input_Layout_project_time_order_no"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:imeOptions="actionDone"
-                        android:inputType="textNoSuggestions"
-                        android:paddingTop="8dp"
-                        android:paddingBottom="8dp"
-                        android:singleLine="true" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:hint="@string/orderNo">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/text_input_Layout_project_time_unit"
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/order_no"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:imeOptions="actionDone"
+                            android:inputType="textNoSuggestions"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp"
+                            android:singleLine="true" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </FrameLayout>
+
+                <FrameLayout
                     android:layout_width="0dp"
                     android:layout_height="45dp"
-                    android:layout_weight="1.2"
-                    android:hint="@string/units">
+                    android:layout_weight="1.2">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/unit"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/text_input_Layout_project_time_unit"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:imeOptions="actionDone"
-                        android:inputType="number"
-                        android:paddingTop="8dp"
-                        android:paddingBottom="8dp" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:hint="@string/units">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/unit"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:imeOptions="actionDone"
+                            android:inputType="number"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </FrameLayout>
             </LinearLayout>
 
             <!-- Task -->
@@ -313,7 +328,6 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -562,13 +576,45 @@
 
     </ScrollView>
 
-    <Button
-        android:id="@+id/saveProjectTimeButton"
-        android:layout_width="245dp"
-        android:layout_height="45dp"
-        android:layout_gravity="center_horizontal"
+    <LinearLayout
+        android:id="@+id/project_fragment_button_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="50dp"
-        android:layout_marginTop="20dp"
-        android:text="@string/save" />
+        android:orientation="horizontal"
+        android:paddingHorizontal="220dp">
+
+        <Button
+            android:id="@+id/saveProjectTimeButton"
+            android:layout_width="245dp"
+            android:layout_height="45dp"
+            android:layout_marginHorizontal="10dp"
+            android:text="@string/save" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/project_fragment_button_project_time_list"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/square_button_background"
+            android:textAllCaps="false"
+            app:icon="@drawable/baseline_list_24"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/project_fragment_button_back"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/square_button_background"
+            android:textAllCaps="false"
+            app:icon="@drawable/baseline_close_24"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp" />
+
+    </LinearLayout>
 
 </LinearLayout>

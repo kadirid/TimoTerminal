@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
@@ -107,41 +108,44 @@ class ProjectFragment : Fragment() {
         val rootView = requireActivity().window.decorView.findViewById<View>(android.R.id.content)
 
         rootView.viewTreeObserver.addOnGlobalLayoutListener {
-            val rect = Rect()
-            rootView.getWindowVisibleDisplayFrame(rect)
-            val screenHeight = rootView.height
-            val keypadHeight = screenHeight - rect.bottom
-            if (keypadHeight > screenHeight * 0.15) {
-                // Keyboard is visible
-                val focusedView = requireActivity().currentFocus
-                if (focusedView != null) {
-                    val p2 = focusedView.parent.parent as View
-                    val p3 = p2.parent as View
-                    val y = if (focusedView.height > 60) {
-                        p3.y.toInt()
-                    } else p2.y.toInt()
-                    requireActivity().runOnUiThread {
-                        binding.fragmaneProjectScrollView.smoothScrollTo(0, y)
+            if (isAdded) {
+                val rect = Rect()
+                rootView.getWindowVisibleDisplayFrame(rect)
+                val screenHeight = rootView.height
+                val keypadHeight = screenHeight - rect.bottom
+                if (keypadHeight > screenHeight * 0.15) {
+                    // Keyboard is visible
+                    val focusedView = requireActivity().currentFocus
+                    if (focusedView != null) {
+                        val p2 = focusedView.parent.parent as View
+                        val p3 = p2.parent as View
+                        var y = p2.y.toInt()
+                        if (y == 0) {
+                            y = p3.y.toInt()
+                        }
+                        requireActivity().runOnUiThread {
+                            binding.fragmaneProjectScrollView.smoothScrollTo(0, y)
+                        }
                     }
-                }
 
-                requireActivity().runOnUiThread {
-                    val params =
-                        binding.fragmaneProjectScrollView.layoutParams as LinearLayout.LayoutParams
-                    if (params.height != rect.height() - 60) {
-                        params.height = rect.height() - 60
-                        params.weight = 0f
-                        binding.fragmaneProjectScrollView.layoutParams = params
+                    requireActivity().runOnUiThread {
+                        val params =
+                            binding.fragmaneProjectScrollView.layoutParams as LinearLayout.LayoutParams
+                        if (params.height != rect.height() - 60) {
+                            params.height = rect.height() - 60
+                            params.weight = 0f
+                            binding.fragmaneProjectScrollView.layoutParams = params
+                        }
                     }
-                }
-            } else {
-                requireActivity().runOnUiThread {
-                    val params =
-                        binding.fragmaneProjectScrollView.layoutParams as LinearLayout.LayoutParams
-                    if (params.height != 0) {
-                        params.height = 0
-                        params.weight = 1f
-                        binding.fragmaneProjectScrollView.layoutParams = params
+                } else {
+                    requireActivity().runOnUiThread {
+                        val params =
+                            binding.fragmaneProjectScrollView.layoutParams as LinearLayout.LayoutParams
+                        if (params.height != 0) {
+                            params.height = 0
+                            params.weight = 1f
+                            binding.fragmaneProjectScrollView.layoutParams = params
+                        }
                     }
                 }
             }
@@ -277,6 +281,22 @@ class ProjectFragment : Fragment() {
             imm.hideSoftInputFromWindow(binding.description.windowToken, 0)
         }
 
+        binding.projectFragmentButtonBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
+        binding.projectFragmentButtonProjectTimeList.setOnClickListener {
+            (activity as MainActivity?)?.restartTimer()
+            val frag = ProjectTimeListFragment()
+            val bundle = Bundle()
+            bundle.putString("userId", userId?.toString())
+            frag.arguments = bundle
+            parentFragmentManager.commit {
+                addToBackStack(null)
+                replace(R.id.fragment_container_view, frag)
+            }
+        }
+
         setUpOnItemClickListeners()
 
         setLanguageTexts()
@@ -293,6 +313,7 @@ class ProjectFragment : Fragment() {
 
         if (projectTimeEntity != null) {
             loadValuesFromOldProjectTimeEntity()
+            binding.projectFragmentButtonProjectTimeList.visibility = g
         }
     }
 
@@ -308,9 +329,9 @@ class ProjectFragment : Fragment() {
         binding.performanceLocation.setText(projectTimeEntity?.performanceLocation ?: "")
         binding.drivenKm.setText(projectTimeEntity?.drivenKm ?: "")
         binding.travelTime.setText(projectTimeEntity?.travelTime ?: "")
-        binding.kmFlatRate.isChecked = projectTimeEntity?.kmFlatRate == "1"
-        binding.billable.isChecked = projectTimeEntity?.billable == "1"
-        binding.premiumable.isChecked = projectTimeEntity?.premium == "1"
+        binding.kmFlatRate.isChecked = projectTimeEntity?.kmFlatRate == "true"
+        binding.billable.isChecked = projectTimeEntity?.billable == "true"
+        binding.premiumable.isChecked = projectTimeEntity?.premium == "true"
         binding.unit.setText(projectTimeEntity?.units ?: "")
         binding.evaluation.setText(projectTimeEntity?.evaluation ?: "")
     }
@@ -336,11 +357,16 @@ class ProjectFragment : Fragment() {
     private fun saveData() {
         val data = HashMap<String, String?>()
         if (!isValid()) {
+            Utils.showErrorMessage(
+                requireContext(),
+                languageService.getText("ALLGEMEIN#Rote Felder korrigieren")
+            )
             return
         }
 
         data["id"] = if (projectTimeEntity != null) projectTimeEntity?.id.toString() else null
-        data["createdTime"] = if (projectTimeEntity != null) projectTimeEntity?.createdTime else null
+        data["createdTime"] =
+            if (projectTimeEntity != null) projectTimeEntity?.createdTime else null
 
         data["userId"] = userId.toString()
         data["date"] = binding.fromDate.text.toString()
@@ -680,9 +706,29 @@ class ProjectFragment : Fragment() {
         viewModel.liveMessage.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
                 requireActivity().runOnUiThread {
-                    if (!it.startsWith('e'))
+                    if (!it.startsWith('e')) {
                         Utils.showMessage(parentFragmentManager, it)
-                    else
+                        if (isAdded) {
+                            if (projectTimeEntity != null) {
+                                parentFragmentManager.popBackStack()
+                            } else {
+                                when (timeEntryType) {
+                                    1L -> {
+                                        binding.from.text = binding.to.text
+                                        binding.to.text = null
+                                    }
+
+                                    3L, 5L, 8L -> {
+                                        binding.hours.text = null
+                                    }
+
+                                    6L -> {
+                                        binding.manDays.text = null
+                                    }
+                                }
+                            }
+                        }
+                    } else
                         Utils.showErrorMessage(requireContext(), it.substring(1))
                 }
                 viewModel.liveMessage.value = ""
@@ -782,20 +828,14 @@ class ProjectFragment : Fragment() {
                     binding.textInputLayoutProjectTimeHours.visibility = g
                     binding.textInputLayoutProjectTimeManDays.visibility = v
                 }
-
-                10L -> {
-                    binding.textInputLayoutProjectTimeFromDate.visibility = g
-                    binding.textInputLayoutProjectTimeToDate.visibility = g
-                    binding.textInputLayoutProjectTimeFrom.visibility = g
-                    binding.textInputLayoutProjectTimeTo.visibility = g
-                    binding.textInputLayoutProjectTimeHours.visibility = g
-                    binding.textInputLayoutProjectTimeManDays.visibility = g
-                }
             }
         }
 
         viewModel.viewModelScope.launch {
-            if (binding.textInputLayoutProjectTimeTo.visibility == v && perm("zeiterfassung.normal.auto-bis")) {
+            if (binding.textInputLayoutProjectTimeTo.visibility == v
+                && perm("zeiterfassung.normal.auto-bis")
+                && binding.textInputLayoutProjectTimeTo.hint?.last() != '*'
+            ) {
                 binding.textInputLayoutProjectTimeTo.hint =
                     "${binding.textInputLayoutProjectTimeTo.hint ?: ""}*"
             }
@@ -803,23 +843,36 @@ class ProjectFragment : Fragment() {
                 && perm("einheiten.pflicht")
                 && it.entryType != 1
                 && timeEntryType != 10L
+                && binding.textInputLayoutProjectTimeUnit.hint?.last() != '*'
             ) {
                 binding.textInputLayoutProjectTimeUnit.hint =
                     "${binding.textInputLayoutProjectTimeUnit.hint ?: ""}*"
             }
-            if (binding.textInputLayoutProjectTimeCustomer.visibility == v && perm("tab_zeiterfassung.kunde.muss")) {
+            if (binding.textInputLayoutProjectTimeCustomer.visibility == v
+                && perm("tab_zeiterfassung.kunde.muss")
+                && binding.textInputLayoutProjectTimeCustomer.hint?.last() != '*'
+            ) {
                 binding.textInputLayoutProjectTimeCustomer.hint =
                     "${binding.textInputLayoutProjectTimeCustomer.hint ?: ""}*"
             }
-            if (binding.textInputLayoutProjectTimeSkillLevel.visibility == v && perm("zeiterfassung.skilllevel.pflicht")) {
+            if (binding.textInputLayoutProjectTimeSkillLevel.visibility == v
+                && perm("zeiterfassung.skilllevel.pflicht")
+                && binding.textInputLayoutProjectTimeSkillLevel.hint?.last() != '*'
+            ) {
                 binding.textInputLayoutProjectTimeSkillLevel.hint =
                     "${binding.textInputLayoutProjectTimeSkillLevel.hint ?: ""}*"
             }
-            if (binding.descriptionContainer.visibility == v && perm("zeiterfassung.beschreibung.pflicht")) {
+            if (binding.descriptionContainer.visibility == v
+                && perm("zeiterfassung.beschreibung.pflicht")
+                && binding.textInputLayoutProjectTimeDescription.hint?.last() != '*'
+            ) {
                 binding.textInputLayoutProjectTimeDescription.hint =
                     "${binding.textInputLayoutProjectTimeDescription.hint ?: ""}*"
             }
-            if (binding.textInputLayoutProjectTimePerformanceLocation.visibility == v && perm("zeiterfassung.leistungsort.pflicht")) {
+            if (binding.textInputLayoutProjectTimePerformanceLocation.visibility == v
+                && perm("zeiterfassung.leistungsort.pflicht")
+                && binding.textInputLayoutProjectTimePerformanceLocation.hint?.last() != '*'
+            ) {
                 binding.textInputLayoutProjectTimePerformanceLocation.hint =
                     "${binding.textInputLayoutProjectTimePerformanceLocation.hint ?: ""}*"
             }
@@ -1118,6 +1171,56 @@ class ProjectFragment : Fragment() {
                 }
             }
         }
+
+        if (binding.textInputLayoutProjectTimeFromDate.visibility == v) {
+            if (binding.fromDate.text == null || binding.fromDate.text!!.isEmpty()) {
+                error = true
+                binding.textInputLayoutProjectTimeFromDate.error = "Required"
+            } else {
+                binding.textInputLayoutProjectTimeFromDate.error = null
+            }
+        }
+        if (binding.textInputLayoutProjectTimeToDate.visibility == v) {
+            if (binding.toDate.text == null || binding.toDate.text!!.isEmpty()) {
+                error = true
+                binding.textInputLayoutProjectTimeToDate.error = "Required"
+            } else {
+                binding.textInputLayoutProjectTimeToDate.error = null
+            }
+        }
+        if (binding.textInputLayoutProjectTimeFrom.visibility == v) {
+            if (binding.from.text == null || binding.from.text!!.isEmpty()) {
+                error = true
+                binding.textInputLayoutProjectTimeFrom.error = "Required"
+            } else {
+                binding.textInputLayoutProjectTimeFrom.error = null
+            }
+        }
+        if (binding.textInputLayoutProjectTimeFromDate.visibility == v) {
+            if (binding.to.text == null || binding.to.text!!.isEmpty()) {
+                error = true
+                binding.textInputLayoutProjectTimeTo.error = "Required"
+            } else {
+                binding.textInputLayoutProjectTimeTo.error = null
+            }
+        }
+        if (binding.textInputLayoutProjectTimeHours.visibility == v) {
+            if (binding.hours.text == null || binding.hours.text!!.isEmpty()) {
+                error = true
+                binding.textInputLayoutProjectTimeHours.error = "Required"
+            } else {
+                binding.textInputLayoutProjectTimeHours.error = null
+            }
+        }
+        if (binding.textInputLayoutProjectTimeManDays.visibility == v) {
+            if (binding.manDays.text == null || binding.manDays.text!!.isEmpty()) {
+                error = true
+                binding.textInputLayoutProjectTimeManDays.error = "Required"
+            } else {
+                binding.textInputLayoutProjectTimeManDays.error = null
+            }
+        }
+
         return !error
     }
 
