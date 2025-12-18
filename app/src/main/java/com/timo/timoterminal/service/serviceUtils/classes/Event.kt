@@ -8,16 +8,16 @@ import java.util.Calendar
 import java.util.Date
 
 class Event(
-    private var login_firma: String? = null,
-    private var Id: String? = null,
-    private var Name: String? = null,
-    var StartDate: Date? = null,
-    var EndDate: Date? = null,
-    var StartDateOriginal: Date? = null,
-    var EndDateOriginal: Date? = null,
-    private var ResourceId: String? = null,
-    private var Resizable: Boolean = false,
-    private var Draggable: Boolean = false,
+    private var loginFirma: String? = null,
+    private var id: String? = null,
+    private var name: String? = null,
+    var startDate: Date? = null,
+    var endDate: Date? = null,
+    private var startDateOriginal: Date? = null,
+    private var endDateOriginal: Date? = null,
+    private var resourceId: String? = null,
+    private var resizable: Boolean = false,
+    private var draggable: Boolean = false,
     private var clickable: Boolean = false,
     private var taskId: Int = 0,
     private var projectId: Int = 0,
@@ -77,16 +77,16 @@ class Event(
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this() {
-        login_firma = parcel.readString()
-        Id = parcel.readString()
-        Name = parcel.readString()
-        StartDate = Date(parcel.readLong())
-        EndDate = Date(parcel.readLong())
-        StartDateOriginal = Date(parcel.readLong())
-        EndDateOriginal = Date(parcel.readLong())
-        ResourceId = parcel.readString()
-        Resizable = parcel.readByte() != 0.toByte()
-        Draggable = parcel.readByte() != 0.toByte()
+        loginFirma = parcel.readString()
+        id = parcel.readString()
+        name = parcel.readString()
+        startDate = Date(parcel.readLong())
+        endDate = Date(parcel.readLong())
+        startDateOriginal = Date(parcel.readLong())
+        endDateOriginal = Date(parcel.readLong())
+        resourceId = parcel.readString()
+        resizable = parcel.readByte() != 0.toByte()
+        draggable = parcel.readByte() != 0.toByte()
         clickable = parcel.readByte() != 0.toByte()
         taskId = parcel.readInt()
         projectId = parcel.readInt()
@@ -124,16 +124,16 @@ class Event(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(login_firma)
-        parcel.writeString(Id)
-        parcel.writeString(Name)
-        parcel.writeSerializable(StartDate)
-        parcel.writeSerializable(EndDate)
-        parcel.writeSerializable(StartDateOriginal)
-        parcel.writeSerializable(EndDateOriginal)
-        parcel.writeString(ResourceId)
-        parcel.writeByte(if (Resizable) 1 else 0)
-        parcel.writeByte(if (Draggable) 1 else 0)
+        parcel.writeString(loginFirma)
+        parcel.writeString(id)
+        parcel.writeString(name)
+        parcel.writeSerializable(startDate)
+        parcel.writeSerializable(endDate)
+        parcel.writeSerializable(startDateOriginal)
+        parcel.writeSerializable(endDateOriginal)
+        parcel.writeString(resourceId)
+        parcel.writeByte(if (resizable) 1 else 0)
+        parcel.writeByte(if (draggable) 1 else 0)
         parcel.writeByte(if (clickable) 1 else 0)
         parcel.writeInt(taskId)
         parcel.writeInt(projectId)
@@ -240,49 +240,49 @@ class Event(
          */
         fun splitEventToDaily(e: Event) : ArrayList<Event> {
             val outputEventArr = ArrayList<Event>()
-            val datesBetweenStartAndEnd = Utils.daysBetween(e.StartDate!!, e.EndDate!!)
+            val datesBetweenStartAndEnd = Utils.daysBetween(e.startDate!!, e.endDate!!)
             var i = 0
             while (i <= datesBetweenStartAndEnd) {
                 val event = e.clone()
                 when (i) {
                     0 -> {
                         val specifiedDate = Calendar.getInstance().apply {
-                            time = event.StartDate!!
+                            time = event.startDate!!
                         }
                         specifiedDate.set(Calendar.HOUR_OF_DAY, 23)
                         specifiedDate.set(Calendar.MINUTE, 59)
                         specifiedDate.set(Calendar.SECOND, 59)
-                        event.EndDate = specifiedDate.time
+                        event.endDate = specifiedDate.time
                         outputEventArr.add(event)
                     }
                     datesBetweenStartAndEnd -> {
                         val specifiedDate = Calendar.getInstance().apply {
-                            time = event.EndDate!!
+                            time = event.endDate!!
                         }
                         specifiedDate.set(Calendar.HOUR_OF_DAY, 0)
                         specifiedDate.set(Calendar.MINUTE, 0)
                         specifiedDate.set(Calendar.SECOND, 0)
-                        event.StartDate = specifiedDate.time
+                        event.startDate = specifiedDate.time
                         outputEventArr.add(event)
                     }
                     else -> {
                         val specifiedStartDate = Calendar.getInstance().apply {
-                            time = event.StartDate!!
+                            time = event.startDate!!
                         }
                         // add days
                         specifiedStartDate.add(Calendar.DAY_OF_MONTH, 1)
                         specifiedStartDate.set(Calendar.HOUR_OF_DAY, 0)
                         specifiedStartDate.set(Calendar.MINUTE, 0)
                         specifiedStartDate.set(Calendar.SECOND, 0)
-                        event.StartDate = specifiedStartDate.time
+                        event.startDate = specifiedStartDate.time
                         val specifiedEndDate = Calendar.getInstance().apply {
-                            time = event.StartDate!!
+                            time = event.startDate!!
                         }
                         specifiedEndDate.add(Calendar.DAY_OF_MONTH, 1)
                         specifiedEndDate.set(Calendar.HOUR_OF_DAY, 23)
                         specifiedEndDate.set(Calendar.MINUTE, 59)
                         specifiedEndDate.set(Calendar.SECOND, 59)
-                        event.EndDate = specifiedEndDate.time
+                        event.endDate = specifiedEndDate.time
                         outputEventArr.add(event)
                     }
                 }
@@ -293,16 +293,16 @@ class Event(
     }
     fun clone(): Event {
         return Event(
-            this.login_firma,
-            this.Id,
-            this.Name,
-            this.StartDate,
-            this.EndDate,
-            this.StartDateOriginal,
-            this.EndDateOriginal,
-            this.ResourceId,
-            this.Resizable,
-            this.Draggable,
+            this.loginFirma,
+            this.id,
+            this.name,
+            this.startDate,
+            this.endDate,
+            this.startDateOriginal,
+            this.endDateOriginal,
+            this.resourceId,
+            this.resizable,
+            this.draggable,
             this.clickable,
             this.taskId,
             this.projectId,

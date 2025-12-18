@@ -96,6 +96,16 @@ class SettingsService(
         }
     }
 
+    fun setOffset(offset: Long){
+        val editor = sharedPrefService.getEditor()
+        editor.putLong(SharedPreferenceKeys.TIME_OFFSET_IN_MILLIS.name, offset)
+        editor.apply()
+    }
+
+    fun getOffset(): Long {
+        return sharedPrefService.getLong(SharedPreferenceKeys.TIME_OFFSET_IN_MILLIS, 0L)
+    }
+
     fun getSettingForProjectTimeTrack(onResult: (Boolean, JSONObject?) -> Unit) {
         val url = sharedPrefService.getString(SharedPreferenceKeys.SERVER_URL)
         val tId = sharedPrefService.getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)

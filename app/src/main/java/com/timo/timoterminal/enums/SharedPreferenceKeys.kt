@@ -17,7 +17,8 @@ enum class SharedPreferenceKeys {
     UPDATE_VERSION,
     LAST_VERSION,
     LAST_DATE,
-    DARK_MODE_ENABLED
+    DARK_MODE_ENABLED,
+    TIME_OFFSET_IN_MILLIS
 }
 
 enum class ProjectPreferenceKeys {// Always start with PROJECT_ to avoid conflicts with other keys

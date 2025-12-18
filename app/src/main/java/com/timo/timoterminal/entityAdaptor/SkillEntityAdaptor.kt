@@ -50,7 +50,13 @@ class SkillEntityAdaptor(
     }
 
     inner class StringFilter : Filter() {
-        override fun performFiltering(constraint: CharSequence): FilterResults {
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            if (constraint.isNullOrEmpty()) {
+                val results = FilterResults()
+                results.values = originalEntities
+                results.count = originalEntities.size
+                return results
+            }
             val filterString = constraint.toString().lowercase(Locale.getDefault())
             val results = FilterResults()
             val list = originalEntities
@@ -68,7 +74,7 @@ class SkillEntityAdaptor(
             return results
         }
 
-        override fun publishResults(constraint: CharSequence, results: FilterResults) {
+        override fun publishResults(constraint: CharSequence?, results: FilterResults) {
             allEntities = results.values as List<SkillEntity>
             notifyDataSetChanged()
         }

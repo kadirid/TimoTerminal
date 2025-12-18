@@ -35,10 +35,14 @@ class ProjectTimeEntity(
     @ColumnInfo(name = "premium") var premium: String,
     @ColumnInfo(name = "units") var units: String,
     @ColumnInfo(name = "evaluation") var evaluation: String,
-    @ColumnInfo(name = "isSend", defaultValue = "false") var isSend: Boolean,
+    @ColumnInfo(name = "isSend", defaultValue = "true") var isSend: Boolean,
     @ColumnInfo(name = "timeEntryType") var timeEntryType: String,
-    @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP") val createdTime: String
-) :Parcelable {
+    @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP") var createdTime: String? = null,
+    @ColumnInfo(name = "isVisible") var isVisible : Boolean,
+    @ColumnInfo(name = "wtId") var wtId : Long?,
+    @ColumnInfo(name = "editorId") var editorId : String,
+    @ColumnInfo(name = "message") var message : String = ""
+) : Parcelable {
 
     override fun equals(other: Any?): Boolean {
         if (other == null) return false
@@ -77,6 +81,9 @@ class ProjectTimeEntity(
         if (isSend != other.isSend) return false
         if (timeEntryType != other.timeEntryType) return false
         if (createdTime != other.createdTime) return false
+        if (isVisible != other.isVisible) return false
+        if (wtId != other.wtId) return false
+        if (editorId != other.editorId) return false
 
         return true
     }
@@ -111,12 +118,14 @@ class ProjectTimeEntity(
         result = 31 * result + evaluation.hashCode()
         result = 31 * result + isSend.hashCode()
         result = 31 * result + timeEntryType.hashCode()
-        result = 31 * result + createdTime.hashCode()
+        result = 31 * result + isVisible.hashCode()
+        result = 31 * result + (wtId?.hashCode() ?: 0)
+        result = 31 * result + editorId.hashCode()
         return result
     }
 
     override fun toString(): String {
-        val builder : StringBuilder = StringBuilder()
+        val builder: StringBuilder = StringBuilder()
         builder.append("ProjectTimeEntity(")
         builder.append("id=$id, ")
         builder.append("userId=$userId, ")
@@ -147,7 +156,10 @@ class ProjectTimeEntity(
         builder.append("evaluation='$evaluation', ")
         builder.append("isSend=$isSend, ")
         builder.append("timeEntryType='$timeEntryType', ")
-        builder.append("createdTime='$createdTime')")
+        builder.append("isVisible=$isVisible, ")
+        builder.append("wtId=$wtId, ")
+        builder.append("editorId='$editorId'")
+        builder.append(")")
         return builder.toString()
     }
 
@@ -179,7 +191,9 @@ class ProjectTimeEntity(
             "premium" to premium,
             "units" to units,
             "timeEntryType" to timeEntryType,
-            "evaluation" to evaluation
+            "evaluation" to evaluation,
+            "wtId" to (wtId?.toString() ?: "-1"),
+            "editorId" to editorId
         )
     }
 
@@ -214,6 +228,9 @@ class ProjectTimeEntity(
         parcel.writeByte(if (isSend) 1 else 0)
         parcel.writeString(timeEntryType)
         parcel.writeString(createdTime)
+        parcel.writeValue(wtId)
+        parcel.writeString(editorId)
+        parcel.writeString(message)
     }
 
     override fun describeContents(): Int = 0
@@ -222,74 +239,78 @@ class ProjectTimeEntity(
         override fun createFromParcel(parcel: Parcel): ProjectTimeEntity {
             return ProjectTimeEntity(
                 id = parcel.readValue(Long::class.java.classLoader) as? Long,
-                userId = parcel.readString() ?: "",
-                date = parcel.readString() ?: "",
-                dateTo = parcel.readString() ?: "",
-                from = parcel.readString() ?: "",
-                to = parcel.readString() ?: "",
-                hours = parcel.readString() ?: "",
-                manDays = parcel.readString() ?: "",
-                description = parcel.readString() ?: "",
-                customerId = parcel.readString() ?: "",
-                ticketId = parcel.readString() ?: "",
-                projectId = parcel.readString() ?: "",
-                taskId = parcel.readString() ?: "",
-                orderNo = parcel.readString() ?: "",
-                activityType = parcel.readString() ?: "",
-                activityTypeMatrix = parcel.readString() ?: "",
-                skillLevel = parcel.readString() ?: "",
-                performanceLocation = parcel.readString() ?: "",
-                teamId = parcel.readString() ?: "",
-                journeyId = parcel.readString() ?: "",
-                travelTime = parcel.readString() ?: "",
-                drivenKm = parcel.readString() ?: "",
-                kmFlatRate = parcel.readString() ?: "",
-                billable = parcel.readString() ?: "",
-                premium = parcel.readString() ?: "",
-                units = parcel.readString() ?: "",
-                evaluation = parcel.readString() ?: "",
-                isSend = parcel.readByte() != 0.toByte(),
-                timeEntryType = parcel.readString() ?: "",
-                createdTime = parcel.readString() ?: ""
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readString() ?: "",
+                parcel.readByte() != 0.toByte(),
+                parcel.readString() ?: "",
+                createdTime = parcel.readString(),
+                true,
+                wtId = parcel.readValue(Long::class.java.classLoader) as? Long,
+                parcel.readString() ?: "",
+                parcel.readString() ?: ""
             )
         }
 
         override fun newArray(size: Int): Array<ProjectTimeEntity?> = arrayOfNulls(size)
 
-        fun parseFromMap(map: Map<String, String?>): ProjectTimeEntity {
-            return ProjectTimeEntity(
-                id = map["id"]?.toLongOrNull(),
-                userId = map["userId"] ?: "",
-                date = map["date"] ?: "",
-                dateTo = map["dateTo"] ?: "",
-                from = map["from"] ?: "",
-                to = map["to"] ?: "",
-                hours = map["hours"] ?: "",
-                manDays = map["manDays"] ?: "",
-                description = map["description"] ?: "",
-                customerId = map["customerId"] ?: "",
-                ticketId = map["ticketId"] ?: "",
-                projectId = map["projectId"] ?: "",
-                taskId = map["taskId"] ?: "",
-                orderNo = map["orderNo"] ?: "",
-                activityType = map["activityType"] ?: "",
-                activityTypeMatrix = map["activityTypeMatrix"] ?: "",
-                skillLevel = map["skillLevel"] ?: "",
-                performanceLocation = map["performanceLocation"] ?: "",
-                teamId = map["teamId"] ?: "",
-                journeyId = map["journeyId"] ?: "",
-                travelTime = map["travelTime"] ?: "",
-                drivenKm = map["drivenKm"] ?: "",
-                kmFlatRate = map["kmFlatRate"] ?: "",
-                billable = map["billable"] ?: "",
-                premium = map["premium"] ?: "",
-                units = map["units"] ?: "",
-                evaluation = map["evaluation"] ?: "",
-                isSend = false,
-                timeEntryType = map["timeEntryType"] ?: "",
-                createdTime = map["createdTime"] ?: ""
-            )
-        }
+        fun parseFromMap(map: Map<String, String?>): ProjectTimeEntity = ProjectTimeEntity(
+            id = map["id"]?.toLongOrNull(),
+            userId = map["userId"] ?: "",
+            date = map["date"] ?: "",
+            dateTo = map["dateTo"] ?: "",
+            from = map["from"] ?: "",
+            to = map["to"] ?: "",
+            hours = map["hours"] ?: "",
+            manDays = map["manDays"] ?: "",
+            description = map["description"] ?: "",
+            customerId = map["customerId"] ?: "",
+            ticketId = map["ticketId"] ?: "",
+            projectId = map["projectId"] ?: "",
+            taskId = map["taskId"] ?: "",
+            orderNo = map["orderNo"] ?: "",
+            activityType = map["activityType"] ?: "",
+            activityTypeMatrix = map["activityTypeMatrix"] ?: "",
+            skillLevel = map["skillLevel"] ?: "",
+            performanceLocation = map["performanceLocation"] ?: "",
+            teamId = map["teamId"] ?: "",
+            journeyId = map["journeyId"] ?: "",
+            travelTime = map["travelTime"] ?: "",
+            drivenKm = map["drivenKm"] ?: "",
+            kmFlatRate = map["kmFlatRate"] ?: "",
+            billable = map["billable"] ?: "",
+            premium = map["premium"] ?: "",
+            units = map["units"] ?: "",
+            evaluation = map["evaluation"] ?: "",
+            isSend = false,
+            timeEntryType = map["timeEntryType"] ?: "",
+            isVisible = true,
+            wtId = map["wtId"]?.toLongOrNull(),
+            editorId = map["editorId"] ?: ""
+        )
 
         fun parseFromJson(json: org.json.JSONObject): ProjectTimeEntity {
             return ProjectTimeEntity(
@@ -302,7 +323,10 @@ class ProjectTimeEntity(
                 hours = json.optString("hours", ""),
                 manDays = json.optString("manDays", ""),
                 description = json.optString("description", ""),
-                customerId = json.optString("customerId", ""),
+                customerId = if (json.optString("customerId", "-1") != "-1")
+                    "kid_${json.optString("customerId", "")}"
+                else
+                    "kgid_${json.optString("customerGroupId", "")}",
                 ticketId = json.optString("ticketId", ""),
                 projectId = json.optString("projectId", ""),
                 taskId = json.optString("taskId", ""),
@@ -310,19 +334,21 @@ class ProjectTimeEntity(
                 activityType = json.optString("activityTypeId", ""),
                 activityTypeMatrix = json.optString("activityTypeMatrix", ""),
                 skillLevel = json.optString("skillLevel", ""),
-                performanceLocation = json.optString("performanceLocation", ""),
+                performanceLocation = json.optString("placeofwork", ""),
                 teamId = json.optString("teamId", ""),
                 journeyId = json.optString("journeyId", ""),
                 travelTime = json.optString("travelTime", ""),
                 drivenKm = json.optString("drivenKm", ""),
                 kmFlatRate = json.optString("kmFlatRate", ""),
                 billable = json.optString("billable", ""),
-                premium = json.optString("premium", ""),
+                premium = json.optString("premiumable", ""),
                 units = json.optString("units", ""),
-                evaluation = json.optString("evaluation", ""),
+                evaluation = json.optString("estimation", ""),
                 isSend = false,
-                timeEntryType = json.optString("timeEntryType", ""),
-                createdTime = ""
+                timeEntryType = json.optString("added_over", ""),
+                isVisible = true,
+                wtId = json.optLong("id", -1L).let { if (it != -1L) it else null },
+                editorId = ""
             )
         }
     }

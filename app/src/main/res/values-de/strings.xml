@@ -80,4 +80,7 @@
     <string name="filter">Filtern</string>
     <string name="search_text">Suchtext</string>
     <string name="date_range">Datumsbereich</string>
+    <string name="absence_type">Abwesenheitsart</string>
+    <string name="start">Start</string>
+    <string name="stop">Stopp</string>
 </resources>

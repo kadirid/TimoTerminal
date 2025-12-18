@@ -106,7 +106,7 @@ class MainActivityViewModel(
     }
 
     private fun processUserList(users: List<UserEntity>) {
-        if (users.isNotEmpty() && users[0].seeMenu) {
+        if (users.isNotEmpty()) {
             soundSource.playSound(SoundSource.successSound)
             liveUserEntity.postValue(users[0])
         } else {
@@ -206,6 +206,7 @@ class MainActivityViewModel(
     }
 
     override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
+
     fun getProjectTimeTrackSetting() {
         viewModelScope.launch {
             projPrefService.getProjectTimeTrackSetting(true)

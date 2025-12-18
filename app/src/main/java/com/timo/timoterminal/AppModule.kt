@@ -1,6 +1,11 @@
 package com.timo.timoterminal
 
 import androidx.room.Room
+import com.timo.timoterminal.database.AbsenceDeputyDatabase
+import com.timo.timoterminal.database.AbsenceEntryDatabase
+import com.timo.timoterminal.database.AbsenceTypeDatabase
+import com.timo.timoterminal.database.AbsenceTypeMatrixDatabase
+import com.timo.timoterminal.database.AbsenceTypeRightDatabase
 import com.timo.timoterminal.database.ActivityTypeDatabase
 import com.timo.timoterminal.database.ActivityTypeMatrixDatabase
 import com.timo.timoterminal.database.BookingBUDatabase
@@ -20,8 +25,14 @@ import com.timo.timoterminal.database.TeamDatabase
 import com.timo.timoterminal.database.TicketDatabase
 import com.timo.timoterminal.database.User2TaskDatabase
 import com.timo.timoterminal.database.UserDatabase
+import com.timo.timoterminal.migration.AbsenceTypeRightMigration
 import com.timo.timoterminal.migration.ProjectTimeMigration
 import com.timo.timoterminal.migration.UserMigration
+import com.timo.timoterminal.repositories.AbsenceDeputyRepository
+import com.timo.timoterminal.repositories.AbsenceEntryRepository
+import com.timo.timoterminal.repositories.AbsenceTypeMatrixRepository
+import com.timo.timoterminal.repositories.AbsenceTypeRepository
+import com.timo.timoterminal.repositories.AbsenceTypeRightRepository
 import com.timo.timoterminal.repositories.ActivityTypeMatrixRepository
 import com.timo.timoterminal.repositories.ActivityTypeRepository
 import com.timo.timoterminal.repositories.BookingBURepository
@@ -41,6 +52,7 @@ import com.timo.timoterminal.repositories.TeamRepository
 import com.timo.timoterminal.repositories.TicketRepository
 import com.timo.timoterminal.repositories.User2TaskRepository
 import com.timo.timoterminal.repositories.UserRepository
+import com.timo.timoterminal.service.AbsenceService
 import com.timo.timoterminal.service.BookingService
 import com.timo.timoterminal.service.HeartbeatService
 import com.timo.timoterminal.service.HttpService
@@ -56,6 +68,8 @@ import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.service.WebSocketService
 import com.timo.timoterminal.service.WorkerService
 import com.timo.timoterminal.utils.classes.SoundSource
+import com.timo.timoterminal.viewModel.AbsenceEditViewModel
+import com.timo.timoterminal.viewModel.AbsenceFragmentViewModel
 import com.timo.timoterminal.viewModel.AttendanceFragmentViewModel
 import com.timo.timoterminal.viewModel.InfoFragmentViewModel
 import com.timo.timoterminal.viewModel.InternalTerminalSettingsFragmentViewModel
@@ -63,6 +77,7 @@ import com.timo.timoterminal.viewModel.LoginActivityViewModel
 import com.timo.timoterminal.viewModel.LoginFragmentViewModel
 import com.timo.timoterminal.viewModel.MBRemoteRegisterSheetViewModel
 import com.timo.timoterminal.viewModel.MBSheetFingerprintCardReaderViewModel
+import com.timo.timoterminal.viewModel.MBSheetVerifyUserViewModel
 import com.timo.timoterminal.viewModel.MBUserWaitSheetViewModel
 import com.timo.timoterminal.viewModel.MainActivityViewModel
 import com.timo.timoterminal.viewModel.ProjectFragmentViewModel
@@ -230,6 +245,53 @@ var appModule = module {
             "project_time_entity"
         )
             .addMigrations(ProjectTimeMigration.MIGRATION_1_2)
+            .addMigrations(ProjectTimeMigration.MIGRATION_2_3)
+            .build()
+    }
+
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            AbsenceTypeDatabase::class.java,
+            "absence_type_entity"
+        )
+            .build()
+    }
+
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            AbsenceTypeMatrixDatabase::class.java,
+            "absence_type_matrix_entity"
+        )
+            .build()
+    }
+
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            AbsenceTypeRightDatabase::class.java,
+            "absence_type_right_entity"
+        )
+            .addMigrations(AbsenceTypeRightMigration.MIGRATION_1_2)
+            .build()
+    }
+
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            AbsenceDeputyDatabase::class.java,
+            "absence_deputy_entity"
+        )
+            .build()
+    }
+
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            AbsenceEntryDatabase::class.java,
+            "absence_entry_entity"
+        )
             .build()
     }
 
@@ -253,6 +315,11 @@ var appModule = module {
     single { get<SkillDatabase>().skillDao() }
     single { get<JourneyDatabase>().journeyDao() }
     single { get<ProjectTimeDatabase>().projectTimeDao() }
+    single { get<AbsenceTypeDatabase>().absenceTypeDao() }
+    single { get<AbsenceTypeMatrixDatabase>().absenceTypeMatrixDao() }
+    single { get<AbsenceTypeRightDatabase>().absenceTypeRightDao() }
+    single { get<AbsenceDeputyDatabase>().absenceDeputyDao() }
+    single { get<AbsenceEntryDatabase>().absenceEntryDao() }
 
 
     single { UserRepository(get()) }
@@ -274,24 +341,31 @@ var appModule = module {
     single { SkillRepository(get()) }
     single { JourneyRepository(get()) }
     single { ProjectTimeRepository(get()) }
+    single { AbsenceTypeRepository(get()) }
+    single { AbsenceTypeMatrixRepository(get()) }
+    single { AbsenceTypeRightRepository(get()) }
+    single { AbsenceDeputyRepository(get()) }
+    single { AbsenceEntryRepository(get()) }
 
 
     single { HttpService() }
     single { WebSocketService() }
     single { HeartbeatService() }
-    single { PropertyService(androidContext()) }
-    single { SharedPrefService(androidContext()) }
-    single { ProjectPrefService(get(),androidContext()) }
     single { WorkerService(get()) }
-    single { SoundSource(get(), androidContext()) }
     single { ProjectService(get(), get()) }
     single { SettingsService(get(), get()) }
     single { UserService(get(), get(), get()) }
+    single { PropertyService(androidContext()) }
+    single { AbsenceService(get(), get(), get()) }
+    single { SharedPrefService(androidContext()) }
+    single { SoundSource(get(), androidContext()) }
     single { LanguageService(get(), get(), get()) }
+    single { ProjectPrefService(get(),androidContext()) }
     single { BookingService(get(), get(), get(), get()) }
     single { ProjectTimeService(get(), get(), get(), get()) }
-    single { LoginService(get(), get(), get(), get(), get(), get(), get()) }
+    single { LoginService(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 
+    viewModel { MBSheetVerifyUserViewModel(get(), get()) }
     viewModel { LoginActivityViewModel(get(), get(), get(), get()) }
     viewModel { LoginFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBUserWaitSheetViewModel(get(), get(), get(), get()) }
@@ -299,12 +373,15 @@ var appModule = module {
     viewModel { InternalTerminalSettingsFragmentViewModel(get(), get()) }
     viewModel { AttendanceFragmentViewModel(get(), get(), get(), get()) }
     viewModel { InfoFragmentViewModel(get(), get(), get(), get(), get()) }
-    viewModel { MainActivityViewModel(get(), get(), get(), get(), get(), get()); }
     viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBRemoteRegisterSheetViewModel(get(), get(), get(), get()) }
+    viewModel { AbsenceFragmentViewModel(get(), get(), get(), get(), get()) }
+    viewModel { MainActivityViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { AbsenceEditViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { MBSheetFingerprintCardReaderViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel {
         ProjectFragmentViewModel(
+            get(),
             get(),
             get(),
             get(),

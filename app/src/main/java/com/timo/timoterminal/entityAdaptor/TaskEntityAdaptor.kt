@@ -50,7 +50,13 @@ class TaskEntityAdaptor(
     }
 
     inner class StringFilter : Filter() {
-        override fun performFiltering(constraint: CharSequence): FilterResults {
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            if (constraint.isNullOrEmpty()) {
+                val results = FilterResults()
+                results.values = originalEntities
+                results.count = originalEntities.size
+                return results
+            }
             val filterString = constraint.toString().lowercase(Locale.getDefault())
             val results = FilterResults()
             val list = originalEntities
@@ -71,8 +77,7 @@ class TaskEntityAdaptor(
         }
 
         override fun publishResults(constraint: CharSequence?, results: FilterResults) {
-            if (results.values != null)
-                allEntities = results.values as List<TaskEntity>
+            allEntities = results.values as List<TaskEntity>
             notifyDataSetChanged()
         }
     }

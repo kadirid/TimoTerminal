@@ -30,7 +30,7 @@ class CustomerEntity (
     }
 
     override fun toString(): String {
-        return customerName
+        return "CustomerEntity(customerId=$customerId, customerName='$customerName')"
     }
 
     companion object {

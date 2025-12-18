@@ -13,7 +13,7 @@ android {
         minSdk = 23
         targetSdk = 33
         versionCode = 1
-        versionName = "1.4"
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -59,6 +59,7 @@ dependencies {
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.recyclerview:recyclerview:1.3.0")
     val fragment_version = "1.6.1"
     val room_version = "2.5.2"
     val koin_android_version = "3.4.3"
@@ -137,4 +138,7 @@ dependencies {
 
     // optional - RxJava3 support
     implementation("androidx.datastore:datastore-preferences-rxjava3:1.0.0")
+
+    // for size modification of time pickers
+    implementation("com.wdullaer:materialdatetimepicker:4.2.3")
 }

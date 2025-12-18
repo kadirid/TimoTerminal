@@ -53,8 +53,4 @@ class MBMessageSheet : BottomSheetDialogFragment() {
         behavior.peekHeight = 999999
         return dialog
     }
-
-    fun getBinding(): MbMessageSheetBinding {
-        return binding
-    }
 }

@@ -21,14 +21,17 @@ import com.timo.timoterminal.entityClasses.UserEntity
 import com.timo.timoterminal.enums.NetworkType
 import com.timo.timoterminal.fragmentViews.AbsenceFragment
 import com.timo.timoterminal.fragmentViews.AttendanceFragment
+import com.timo.timoterminal.fragmentViews.EmptyFragment
 import com.timo.timoterminal.fragmentViews.InfoFragment
 import com.timo.timoterminal.fragmentViews.ProjectFragment
 import com.timo.timoterminal.fragmentViews.ProjectFragmentStopwatch
 import com.timo.timoterminal.fragmentViews.SettingsFragment
 import com.timo.timoterminal.modalBottomSheets.MBLoginWelcomeSheet
+import com.timo.timoterminal.modalBottomSheets.MBSheetVerifyUser
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.ProjectPrefService
 import com.timo.timoterminal.service.PropertyService
+import com.timo.timoterminal.service.SettingsService
 import com.timo.timoterminal.service.UserService
 import com.timo.timoterminal.utils.BatteryReceiver
 import com.timo.timoterminal.utils.NetworkChangeReceiver
@@ -44,7 +47,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.GregorianCalendar
 import java.util.Timer
 import kotlin.concurrent.schedule
-import kotlin.text.toInt
 
 
 class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
@@ -57,6 +59,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private val userService: UserService by inject()
     private val soundSource: SoundSource by inject()
     private val propertyService: PropertyService by inject()
+    private val settingsService: SettingsService by inject()
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var batteryReceiver: BatteryReceiver
@@ -65,6 +68,8 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
     private var alertTimer: Timer? = null
     private var dialog: AlertDialog? = null
     private var isInit: Boolean = false
+
+    private var verifySheet: MBSheetVerifyUser? = null
 
     companion object {
         const val TAG = "MainActivity"
@@ -78,7 +83,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         timer.cancel()
         timer = Timer("showAttendanceFragment", false)
         timer.schedule(timerLength) {
-            showAttendanceFragment()
+            showDefault()
         }
     }
 
@@ -107,7 +112,10 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             }
         }
 
-        Utils.setCal(GregorianCalendar())
+        val offset = settingsService.getOffset()
+        val time = GregorianCalendar()
+        time.timeInMillis = System.currentTimeMillis() + offset
+        Utils.setCal(time)
         initNavbarListener()
         isInit = true
 
@@ -120,6 +128,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         setUpListeners()
 
         mainActivityViewModel.checkAndSaveVersionName(this)
+        mainActivityViewModel.getProjectTimeTrackSetting()
 
         val view = binding.root
         setContentView(view)
@@ -203,21 +212,24 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
         refreshProjectMode()
 
         mainActivityViewModel.viewModelScope.launch {
-            val projectPermission = mainActivityViewModel.permission("projekt.use")
+            val projectPermission = mainActivityViewModel.permission("terminal.vorgang.use")
             binding.navigationRail.menu.findItem(R.id.project).isVisible =
                 projectPermission == "true"
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
             binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
-                attendancePermission == "true"
+                attendancePermission != "true"
+
+            val absencePermission = mainActivityViewModel.permission("terminal.absence")
+            binding.navigationRail.menu.findItem(R.id.absence).isVisible =
+                absencePermission == "true"
 
             val infoPermission = mainActivityViewModel.permission("terminal.infobutton.use")
             binding.navigationRail.menu.findItem(R.id.info).isVisible =
-                infoPermission == "true"
+                infoPermission != "true"
         }
 
         setText()
-        binding.navigationRail.menu.findItem(R.id.absence).isVisible = false
 
         binding.navigationRail.setOnItemSelectedListener {
 
@@ -225,15 +237,34 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             val fragment: Fragment? = when (it.itemId) {
                 R.id.attendance -> AttendanceFragment()
                 R.id.project -> null // handled below to choose correct fragment
-                R.id.absence -> AbsenceFragment.newInstance("", "")
+                R.id.absence -> null // handled below
                 R.id.info -> InfoFragment()
                 else -> null
             }
 
             if (it.itemId == R.id.project) {
-                showVerificationAlert { user ->
+                verifyUser { user ->
                     if (user != null) {
                         openProjectForUser(user)
+                    }
+                }
+                return@setOnItemSelectedListener true
+            }
+            if (it.itemId == R.id.absence) {
+                verifyUser { user ->
+                    if (user != null) {
+                        dialog?.dismiss()
+                        supportFragmentManager.commit {
+                            addToBackStack(null)
+                            replace(
+                                R.id.fragment_container_view,
+                                AbsenceFragment.newInstance(
+                                    user.id,
+                                    user.id.toString()
+                                )
+                            )
+                        }
+                        restartTimer()
                     }
                 }
                 return@setOnItemSelectedListener true
@@ -261,25 +292,24 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             true
         }
 
-        // Initiales Fragment: wenn Attendance sichtbar -> Attendance, sonst Projekt nach aktuellem Modus
+        showDefault()
+    }
+
+    fun showDefault() {
         if (binding.navigationRail.menu.findItem(R.id.attendance).isVisible) {
             showAttendanceFragment()
-            timer.cancel()
-        } else if (binding.navigationRail.menu.findItem(R.id.project).isVisible) {
-            openProjectDefault()
-        } else if (binding.navigationRail.menu.findItem(R.id.absence).isVisible) {
-            supportFragmentManager.commit {
-                addToBackStack(null)
-                replace(R.id.fragment_container_view, AbsenceFragment.newInstance("", ""))
-            }
-            restartTimer()
         } else if (binding.navigationRail.menu.findItem(R.id.info).isVisible) {
             supportFragmentManager.commit {
                 addToBackStack(null)
-                replace(R.id.fragment_container_view, InfoFragment())
+                replace(R.id.fragment_container_view, InfoFragment(true))
             }
-            restartTimer()
+        } else {
+            supportFragmentManager.commit {
+                addToBackStack(null)
+                replace(R.id.fragment_container_view, EmptyFragment())
+            }
         }
+        timer.cancel()
     }
 
     fun setText() {
@@ -287,7 +317,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             binding.navigationRail.menu.findItem(R.id.info).title =
                 languageService.getText("ALLGEMEIN#Info")
             binding.navigationRail.menu.findItem(R.id.project).title =
-                languageService.getText("ALLGEMEIN#Projekt")
+                languageService.getText("ALLGEMEIN#Arbeitszeit")
             binding.navigationRail.menu.findItem(R.id.attendance).title =
                 languageService.getText("#Attendance")
             binding.navigationRail.menu.findItem(R.id.absence).title =
@@ -327,6 +357,22 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
     fun loadSoundForFP(finger: Int) {
         mainActivityViewModel.loadSoundForFP(finger)
+    }
+
+    private fun verifyUser(action: (UserEntity?) -> Unit){
+        if (!(verifySheet?.dialog != null
+                    && verifySheet?.dialog?.isShowing == true
+                    && verifySheet?.isRemoving == false)
+        ) {
+
+            verifySheet = MBSheetVerifyUser { user ->
+                action(user)
+            }
+            verifySheet!!.show(
+                supportFragmentManager,
+                MBSheetVerifyUser.TAG
+            )
+        }
     }
 
     // verify user if present before executing action
@@ -375,6 +421,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                 mainActivityViewModel.viewModelScope.launch {
                     val user = mainActivityViewModel.getUserForLogin(login)
                     if (user != null && user.pin == pin) {
+                        soundSource.playSound(SoundSource.successSound)
                         action(user)
                         dialog?.dismiss()
                     } else {
@@ -539,30 +586,9 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
                         user.id,
                         user.customerBasedProjectTime,
                         user.timeEntryType,
-                        user.crossDay
+                        user.crossDay,
+                        user.id.toString()
                     )
-                )
-            }
-        }
-        restartTimer()
-    }
-
-    // NEU: Öffnet die Projektseite ohne User-Kontext (Initialfall / Fallback)
-    private fun openProjectDefault() {
-        if (useProjectStopwatch) {
-            supportFragmentManager.commit {
-                addToBackStack(null)
-                replace(
-                    R.id.fragment_container_view,
-                    ProjectFragmentStopwatch.newInstance(-1, false, -1, false)
-                )
-            }
-        } else {
-            supportFragmentManager.commit {
-                addToBackStack(null)
-                replace(
-                    R.id.fragment_container_view,
-                    ProjectFragment.newInstance(-1, false, -1, false)
                 )
             }
         }

@@ -187,12 +187,12 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
             val evs = ArrayList<Event>()
             res.event.sortedWith { a, b ->
                 when {
-                    a.StartDate!!.before(b.StartDate) -> -1
-                    b.StartDate!!.before(a.StartDate) -> 1
+                    a.startDate!!.before(b.startDate) -> -1
+                    b.startDate!!.before(a.startDate) -> 1
                     else -> 0
                 }
             }.forEach {
-                if (Utils.isSameDay(it.StartDate!!, it.EndDate!!)) {
+                if (Utils.isSameDay(it.startDate!!, it.endDate!!)) {
                     evs.add(it)
                 } else {
                     val ev = Event.splitEventToDaily(it)
@@ -200,7 +200,7 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
                 }
             }
             val todayEvs =
-                evs.filter { Utils.isToday(it.StartDate!!) && it.StartDate != it.EndDate }
+                evs.filter { Utils.isToday(it.startDate!!) && it.startDate != it.endDate }
             loadAttendanceBar(ArrayList(todayEvs))
 
         }
@@ -233,8 +233,8 @@ class MBFragmentInfoSheet : BottomSheetDialogFragment() {
         events.forEach {
             run {
                 if (it.buchungType > 0) {
-                    val startDate = Utils.getTimeInMilliseconds(it.StartDate!!)
-                    val endDate = Utils.getTimeInMilliseconds(it.EndDate!!)
+                    val startDate = Utils.getTimeInMilliseconds(it.startDate!!)
+                    val endDate = Utils.getTimeInMilliseconds(it.endDate!!)
                     if (startDate > timethreshold) {
                         list2.add(
                             BGData(

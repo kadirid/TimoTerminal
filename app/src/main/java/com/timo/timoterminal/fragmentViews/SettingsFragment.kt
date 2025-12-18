@@ -62,6 +62,7 @@ class SettingsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        (activity as MainActivity?)?.hideLoadMask()
 
         if (!first) {
             (requireActivity() as MainActivity).getViewModel().hideSystemUI()
@@ -84,6 +85,7 @@ class SettingsFragment : Fragment() {
             binding.buttonLogout.text = languageService.getText("#RenewLogin", "Logout")
             binding.buttonInternalSettings.text = languageService.getText("#OtherSettings", "Sonstige Einstellungen")
             binding.buttonTerminalProjectTime.text = languageService.getText("#OfflineProjectTime")
+            binding.buttonTerminalAbsenceEntry.text = languageService.getText("#OfflineAbsenceEntry")
             active = viewModel.getSoundActive()
             binding.buttonSound.text =
                 if (active)
@@ -300,9 +302,24 @@ class SettingsFragment : Fragment() {
             }
             binding.buttonTerminalProjectTime.setOnClickListener {
                 (activity as MainActivity?)?.restartTimer()
+                val frag = ProjectTimeListFragment()
+                val bundle = Bundle()
+                bundle.putString("editorId", userId.toString())
+                frag.arguments = bundle
                 parentFragmentManager.commit {
                     addToBackStack(null)
-                    replace(R.id.fragment_container_view, ProjectTimeListFragment())
+                    replace(R.id.fragment_container_view, frag)
+                }
+            }
+            binding.buttonTerminalAbsenceEntry.setOnClickListener {
+                (activity as MainActivity?)?.restartTimer()
+                val frag = AbsenceListFragment()
+                val bundle = Bundle()
+                bundle.putString("editorId", userId.toString())
+                frag.arguments = bundle
+                parentFragmentManager.commit {
+                    addToBackStack(null)
+                    replace(R.id.fragment_container_view, frag)
                 }
             }
         }

@@ -2,10 +2,10 @@ package com.timo.timoterminal.viewModel
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.entityAdaptor.CustomerEntityAdapter
 import com.timo.timoterminal.entityClasses.ActivityTypeEntity
 import com.timo.timoterminal.entityClasses.ActivityTypeMatrixEntity
@@ -37,6 +37,7 @@ import com.timo.timoterminal.repositories.TaskRepository
 import com.timo.timoterminal.repositories.TeamRepository
 import com.timo.timoterminal.repositories.TicketRepository
 import com.timo.timoterminal.repositories.User2TaskRepository
+import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.service.ProjectPrefService
 import com.timo.timoterminal.service.ProjectService
 import com.timo.timoterminal.service.ProjectTimeService
@@ -62,7 +63,8 @@ class ProjectFragmentViewModel(
     private val teamRepository: TeamRepository,
     private val skillRepository: SkillRepository,
     private val journeyRepository: JourneyRepository,
-    private val projectTimeService: ProjectTimeService
+    private val projectTimeService: ProjectTimeService,
+    private val languageService: LanguageService
 ) : ViewModel() {
     val liveHideMask: MutableLiveData<Boolean> = MutableLiveData()
     val liveShowMask: MutableLiveData<Boolean> = MutableLiveData()
@@ -77,7 +79,10 @@ class ProjectFragmentViewModel(
     val liveTeamEntities: MutableLiveData<List<TeamEntity>> = MutableLiveData()
     val liveJourneyEntities: MutableLiveData<List<JourneyEntity>> = MutableLiveData()
     val liveMessage: MutableLiveData<String> = MutableLiveData()
-    val liveIsStartingWorkingTime: MutableLiveData<Boolean> = MutableLiveData(false)
+    val liveIsOffline: MutableLiveData<Boolean> = MutableLiveData(false)
+    val liveWtId : MutableLiveData<Long> = MutableLiveData(-1L)
+
+    private val liveIsStartingWorkingTime: MutableLiveData<Boolean> = MutableLiveData(false)
 
     var currentOpenWorkingTime: MutableLiveData<ProjectTimeEntity?> = MutableLiveData()
 
@@ -200,6 +205,16 @@ class ProjectFragmentViewModel(
                     skillRepository.insertAllSkills(skillEntities)
                 }
                 liveHideMask.postValue(true)
+
+                viewModelScope.launch {
+                    try {
+                        val workingTime =
+                            projectTimeService.getLatestOpenWorkingTime(userId, context)
+                        currentOpenWorkingTime.postValue(workingTime)
+                    } catch (e: Exception) {
+                        currentOpenWorkingTime.postValue(null)
+                    }
+                }
             } else {
                 liveHideMask.postValue(true)
                 liveShowOfflineNotice.postValue(true)
@@ -258,16 +273,6 @@ class ProjectFragmentViewModel(
         val setting = projectPrefService.getProjectTimeTrackSetting(false)
         liveProjectTimeTrackSetting.postValue(setting)
 
-        viewModelScope.launch {
-            try {
-                val workingTime = projectTimeService.getLatestOpenWorkingTime(userId, context)
-                currentOpenWorkingTime.postValue(workingTime)
-                liveHideMask.postValue(true)
-            } catch (e: Exception) {
-                currentOpenWorkingTime.postValue(null)
-            }
-        }
-
         getJourneys(Utils.getDateFromGC(Utils.getCal()))
     }
 
@@ -291,12 +296,15 @@ class ProjectFragmentViewModel(
     }
 
     fun showFilteredTasksForProject(projectId: Long) {
+        val tasks = taskEntities.filter { task ->
+            task.projectId == projectId && user2TaskEntities.any { u2T ->
+                u2T.userId == userId && u2T.taskId == task.taskId
+
+            }
+        }
         liveTaskEntities.postValue(
-            taskEntities.filter { task ->
-                task.projectId == projectId && user2TaskEntities.any { u2T ->
-                    u2T.userId == userId && u2T.taskId == task.taskId
-                }
-            })
+            tasks
+        )
     }
 
     fun showCustomers(task: TaskEntity) {
@@ -381,28 +389,6 @@ class ProjectFragmentViewModel(
         liveCustomerEntities.postValue(customersForTask)
     }
 
-    fun showTaskForProject(projectId: Long) {
-        liveTaskEntities.postValue(
-            taskEntities.filter { task ->
-                task.projectId == projectId && user2TaskEntities.any { u2T ->
-                    u2T.userId == userId && u2T.taskId == task.taskId
-                }
-            })
-    }
-
-    fun showActivityTypesForTask(taskId: Long): List<ActivityTypeEntity> {
-        val user2Task = user2TaskEntities.firstOrNull { it.userId == userId && it.taskId == taskId }
-        if (user2Task?.activityType != null && user2Task.activityType!! > 0L) {
-            return activityTypeEntities.filter { it.activityTypeId == user2Task.activityType }
-        }
-
-        val task = taskEntities.firstOrNull { it.taskId == taskId }
-        if (task?.activityType != null && task.activityType > 0L) {
-            return activityTypeEntities.filter { it.activityTypeId == task.activityType }
-        }
-        return activityTypeEntities
-    }
-
     fun saveProjectTime(data: HashMap<String, String?>, context: Context) {
         liveShowMask.postValue(true)
         projectTimeService.saveProjectTime(data, context, viewModelScope, liveHideMask, liveMessage)
@@ -424,11 +410,21 @@ class ProjectFragmentViewModel(
                     }
                 )
                 liveHideMask.postValue(true)
+
+                viewModelScope.launch {
+                    try {
+                        val workingTime =
+                            projectTimeService.getLatestOpenByUserId(userId.toString())
+                        liveIsOffline.postValue(true)
+                        currentOpenWorkingTime.postValue(workingTime)
+                    } catch (e: Exception) {
+                        currentOpenWorkingTime.postValue(null)
+                    }
+                }
             }
         } else {
             if (repoLoad == 4L) {
-                val customersForTask =
-                    mutableListOf<CustomerEntityAdapter.CustomerComboEntity>()
+                val customersForTask = mutableListOf<CustomerEntityAdapter.CustomerComboEntity>()
                 val forProject = mutableListOf<Customer2ProjectEntity>()
                 user2TaskEntities.forEach { u2T ->
                     if (u2T.userId == userId && u2T.projectId >= 0) {
@@ -457,6 +453,17 @@ class ProjectFragmentViewModel(
                 }
                 liveCustomerEntities.postValue(customersForTask)
                 liveHideMask.postValue(true)
+
+                viewModelScope.launch {
+                    try {
+                        val workingTime =
+                            projectTimeService.getLatestOpenByUserId(userId.toString())
+                        liveIsOffline.postValue(true)
+                        currentOpenWorkingTime.postValue(workingTime)
+                    } catch (e: Exception) {
+                        currentOpenWorkingTime.postValue(null)
+                    }
+                }
             }
         }
     }
@@ -517,64 +524,111 @@ class ProjectFragmentViewModel(
         }
     }
 
-    fun startWorkingTime( data: HashMap<String, String>, context: Context, fragment: androidx.fragment.app.Fragment) {
+    fun startWorkingTime(
+        data: HashMap<String, String>,
+        context: Context,
+        fragment: androidx.fragment.app.Fragment
+    ) {
         if (liveIsStartingWorkingTime.value == true) {
-            Log.d("ProjectFragmentViewModel", "startWorkingTime ignored: already in progress")
             return
         }
+        liveShowMask.postValue(true)
         liveIsStartingWorkingTime.postValue(true)
         viewModelScope.launch {
             try {
-                val id = projectTimeService.startWorkingTime(data, context, viewModelScope, liveHideMask, liveMessage)
-                val pte = ProjectTimeEntity.parseFromMap(data)
-                if (id > 0) pte.id = id
-                Log.d("ProjectFragmentViewModel", "Started Working Time: $pte")
-                currentOpenWorkingTime.postValue(pte)
+                val id = projectTimeService.startWorkingTime(
+                    data,
+                    context,
+                    viewModelScope,
+                    liveHideMask,
+                    liveMessage
+                )
+                if (id > -1) {
+                    val pte = ProjectTimeEntity.parseFromMap(data)
+                    if (id > 0) pte.wtId = id
+                    currentOpenWorkingTime.postValue(pte)
 
-                val bundle = Bundle().apply {
-                    putBoolean("success", true)
-                    putString("text", "Projektzeit erfolgreich gestartet.")
-                    putString("bookingTime", android.text.format.DateFormat.format("HH:mm", java.util.Date()).toString())
-                    putInt("status", 1)
-                }
-                fragment.activity?.runOnUiThread {
-                    val sheet = MBBookingResponseSheet()
-                    sheet.arguments = bundle
-                    sheet.show(fragment.parentFragmentManager, MBBookingResponseSheet.TAG)
+                    val bundle = Bundle().apply {
+                        putBoolean("success", true)
+                        putString("text", languageService.getText("#WorkingtimeStarted"))
+                        putString("bookingTime", pte.from)
+                        putInt("status", 1)
+                    }
+                    fragment.activity?.runOnUiThread {
+                        val sheet = MBBookingResponseSheet()
+                        sheet.arguments = bundle
+                        sheet.dismissListener = {
+                            (fragment.activity as MainActivity?)?.showDefault()
+                        }
+                        sheet.show(fragment.parentFragmentManager, MBBookingResponseSheet.TAG)
+                    }
+                    liveWtId.postValue(id)
                 }
             } finally {
                 liveIsStartingWorkingTime.postValue(false)
+                liveHideMask.postValue(true)
             }
         }
     }
 
-    fun stopLatestOpenWorkingTime(context: Context, fragment: androidx.fragment.app.Fragment) {
+    fun stopLatestOpenWorkingTime(
+        data: HashMap<String, String>,
+        context: Context,
+        fragment: androidx.fragment.app.Fragment,
+        offlineSaved: Boolean
+    ) {
         if (currentOpenWorkingTime.value == null) {
-            Log.d("ProjectFragmentViewModel", "stopLatestOpenWorkingTime ignored: no open working time")
             return
         }
         liveShowMask.postValue(true)
         viewModelScope.launch {
-            try {
-                projectTimeService.stopLatestOpenWorkingTime(userId ,context)
-                currentOpenWorkingTime.postValue(null)
-
-                val bundle = Bundle().apply {
-                    putBoolean("success", true)
-                    putString("text", "Projektzeit erfolgreich gestoppt.") //TODO: Füge hier eine sinnvolle language ein
-                    putString("bookingTime", android.text.format.DateFormat.format("HH:mm", java.util.Date()).toString())
-                    putInt("status", 2)
-                }
-                fragment.activity?.runOnUiThread {
-                    val sheet = MBBookingResponseSheet()
-                    sheet.arguments = bundle
-                    sheet.show(fragment.parentFragmentManager, MBBookingResponseSheet.TAG)
-                }
-            } catch (e: Exception) {
-                liveMessage.postValue(e.message ?: "Error stopping working time")
-            } finally {
+            if (offlineSaved) {
+                projectTimeService.stopOfflineProjectTime(data)
+                liveMessage.postValue(languageService.getText("#BookingTemporarilySaved"))
                 liveHideMask.postValue(true)
+                currentOpenWorkingTime.postValue(null)
+            } else {
+                try {
+                    val success = projectTimeService.stopLatestOpenWorkingTime(
+                        data,
+                        context,
+                        viewModelScope,
+                        liveMessage
+                    )
+                    if (success == 0) {
+                        currentOpenWorkingTime.postValue(null)
+
+                        val bundle = Bundle().apply {
+                            putBoolean("success", true)
+                            putString(
+                                "text",
+                                languageService.getText("#WorkingtimeStopped")
+                            )
+                            putString(
+                                "bookingTime",
+                                data["to"] ?: Utils.getTimeFromGC(Utils.getCal())
+                            )
+                            putInt("status", 2)
+                        }
+                        fragment.activity?.runOnUiThread {
+                            val sheet = MBBookingResponseSheet()
+                            sheet.arguments = bundle
+                            sheet.dismissListener = {
+                                (fragment.activity as MainActivity?)?.showDefault()
+                            }
+                            sheet.show(fragment.parentFragmentManager, MBBookingResponseSheet.TAG)
+                        }
+                    }
+                } catch (e: Exception) {
+                    liveMessage.postValue(e.message ?: "Error stopping working time")
+                } finally {
+                    liveHideMask.postValue(true)
+                }
             }
         }
+    }
+
+    suspend fun hasFailedProjectTimes(): Boolean {
+        return projectTimeService.getCountOfFailedForUser(userId.toString()) > 0
     }
 }

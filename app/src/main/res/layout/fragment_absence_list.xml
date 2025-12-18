@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_absence_list_root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragmentViews.AbsenceListFragment"
+    android:layout_marginStart="30dp"
+    android:layout_marginTop="75dp"
+    android:layout_marginEnd="50dp"
+    tools:layout_marginStart="230dp">
+
+    <LinearLayout
+        android:id="@+id/view_recycler_absence_list_header"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="10dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_layout_absence_list_dropdown"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="213dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginStart="20dp"
+            android:hint="@string/filter">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/absence_list_dropdown"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_layout_absence_list_filter_text"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="5dp"
+            android:hint="@string/search_text"
+            android:layout_weight="1"
+            app:endIconMode="clear_text"
+            tools:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/absence_list_filter_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionDone"
+                android:inputType="textNoSuggestions"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_Layout_absence_list_date_range"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="5dp"
+            android:visibility="gone"
+            android:hint="@string/date_range"
+            android:layout_weight="1"
+            app:endIconMode="clear_text"
+            tools:visibility="visible">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/absence_list_date_range"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="false"
+                android:imeOptions="actionDone"
+                android:inputType="date" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_close"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginTop="-2dp"
+            android:background="@drawable/square_button_background_ripple"
+            app:backgroundTint="#FF0000"
+            app:icon="@drawable/baseline_close_24"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="24dp"
+            app:iconTint="#FFFFFF" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/view_recycler_absence_list_sort_header"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="5dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/view_recycler_absence_list_header">
+
+        <TextView
+            android:id="@+id/text_view_sort_label"
+            android:textAppearance="@style/NormalFontWeightAppearance"
+            android:layout_width="213dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="10dp"
+            tools:text="Sortierung:"
+            android:textSize="14sp"
+            />
+
+        <com.timo.timoterminal.components.ResIdMaterialButton
+            android:id="@+id/button_sort_date"
+            android:textAppearance="@style/NormalFontWeightAppearance"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="5dp"
+            android:layout_weight="1"
+            android:background="@drawable/small_button_background_ripple"
+            android:paddingHorizontal="0dp"
+            android:text="@string/date"
+            android:contentDescription="@string/date"
+            android:textColor="@color/md_theme_onBackground"
+            app:iconGravity="textEnd"
+            app:backgroundTint="@color/md_theme_background" />
+
+        <com.timo.timoterminal.components.ResIdMaterialButton
+            android:id="@+id/button_sort_employee"
+            android:textAppearance="@style/NormalFontWeightAppearance"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="5dp"
+            android:layout_weight="1.2"
+            android:background="@drawable/small_button_background_ripple"
+            android:paddingHorizontal="0dp"
+            android:text="@string/employee"
+            android:contentDescription="@string/employee"
+            android:textColor="@color/md_theme_onBackground"
+            app:iconGravity="textEnd"
+            app:backgroundTint="@color/md_theme_background" />
+
+        <com.timo.timoterminal.components.ResIdMaterialButton
+            android:id="@+id/button_sort_absence_type"
+            android:textAppearance="@style/NormalFontWeightAppearance"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="5dp"
+            android:layout_weight="1.2"
+            android:background="@drawable/small_button_background_ripple"
+            android:paddingHorizontal="0dp"
+            android:text="@string/absence_type"
+            android:contentDescription="@string/absence_type"
+            android:textColor="@color/md_theme_onBackground"
+            app:iconGravity="textEnd"
+            app:backgroundTint="@color/md_theme_background" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/view_recycler_absence_entries"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/view_recycler_absence_list_sort_header"
+        app:layout_constraintVertical_bias="1.0"
+        tools:listitem="@layout/item_absence_entry"
+        tools:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/fragment_absence_list_empty_list_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:layout_marginStart="20dp"
+        android:textSize="50sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="There are currently no entries for booked times" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

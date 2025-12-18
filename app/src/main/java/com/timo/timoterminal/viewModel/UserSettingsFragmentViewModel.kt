@@ -91,4 +91,18 @@ class UserSettingsFragmentViewModel(
             }
         }
     }
+
+    fun reloadUser(userId: String) {
+        viewModelScope.launch {
+            val user = userService.getEntity(userId.toLong())[0]
+            _items.value.let {
+                val index = it?.indexOfFirst { it.id.toString() == userId }
+                if (index != null && index >= 0) {
+                    val mutableList = it.toMutableList()
+                    mutableList[index] = user
+                    _items.value = mutableList
+                }
+            }
+        }
+    }
 }

@@ -18,4 +18,17 @@
         <item name="android:navigationBarColor">@color/greyed_out_background</item>
         <item name="paddingBottomSystemWindowInsets">false</item>
     </style>
+
+    <style name="CustomTimePickerDialog" parent="ThemeOverlay.MaterialComponents.Dialog">
+        <item name="android:textSize">36sp</item>
+    </style>
+
+    <style name="NavigationRail.Item.ActiveIndicator" parent="Widget.Material3.NavigationRailView.ActiveIndicator">
+        <item name="shapeAppearance">@style/NavigationRail.Item.ActiveIndicator.ShapeAppearance</item>
+    </style>
+
+    <style name="NavigationRail.Item.ActiveIndicator.ShapeAppearance" parent="ShapeAppearance.M3.Comp.NavigationRail.ActiveIndicator.Shape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">4dp</item>
+    </style>
 </resources>

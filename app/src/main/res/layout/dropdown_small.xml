@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:background="?attr/colorSurfaceContainer"
     android:layout_height="wrap_content"
-    android:textSize="20sp"
+    android:textSize="23sp"
     android:padding="16dp"
     tools:text="doof" >
 

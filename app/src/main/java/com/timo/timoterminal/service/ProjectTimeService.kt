@@ -52,8 +52,9 @@ class ProjectTimeService(
 
             if (data["date"]?.isNotEmpty() == true)
                 data["date"] = Utils.getDateForTransfer(Utils.parseGCFromDate(data["date"] ?: ""))
-            if (data["dateFrom"]?.isNotEmpty() == true)
-                data["dateTo"] =  Utils.getDateForTransfer(Utils.parseGCFromDate(data["dateTo"] ?: ""))
+            if (data["dateTo"]?.isNotEmpty() == true)
+                data["dateTo"] =
+                    Utils.getDateForTransfer(Utils.parseGCFromDate(data["dateTo"] ?: ""))
 
             val params = HashMap<String, String>()
             for (key in data.keys) {
@@ -72,8 +73,7 @@ class ProjectTimeService(
                 "${url}services/rest/zktecoTerminal/saveWorkingTime",
                 params,
                 context,
-                { obj, arr, resp ->
-                    Log.d("ProjectFragmentViewModel", "Response: $resp, Object: $obj, Array: $arr")
+                { obj, _, _ ->
                     liveHideMask.postValue(true)
                     if (obj?.getBoolean("success") == true) {
                         liveMessage.postValue(obj.optString("message", ""))
@@ -87,7 +87,6 @@ class ProjectTimeService(
                             liveMessage.postValue("e${obj.getString("message")}")
                         }
                     }
-                    Unit
                 },
                 { e, response, _, output ->
                     Log.d(
@@ -97,7 +96,11 @@ class ProjectTimeService(
                     val pte = ProjectTimeEntity.parseFromMap(data)
                     liveMessage.postValue(languageService.getText("#BookingTemporarilySaved"))
                     viewModelScope.launch {
-                        projectTimeRepository.insert(pte)
+                        if((pte.id ?: 0L) > 0L) {
+                            projectTimeRepository.insert(pte)
+                        } else {
+                            projectTimeRepository.insertWithoutCreatedTime(pte)
+                        }
                     }
                     liveHideMask.postValue(true)
                 }
@@ -137,7 +140,11 @@ class ProjectTimeService(
                                     if (obj.getBoolean("isSend")) {
                                         projectTimeRepository.deleteById(projectTime.id!!)
                                     } else {
-                                        projectTimeRepository.setIsSend(projectTime.id!!)
+                                        projectTimeRepository.setIsSend(
+                                            projectTime.id!!,
+                                            true,
+                                            obj.getString("message")
+                                        )
                                     }
                                 }
                             }
@@ -171,13 +178,23 @@ class ProjectTimeService(
                 "${url}services/rest/zktecoTerminal/startWorkingTime",
                 data,
                 context,
-                { obj, arr, resp ->
-                    Log.d("ProjectFragmentViewModel", "Response: $resp, Object: $obj, Array: $arr")
-                    val savedId = obj?.optInt("id", -1) ?: -1
-                    val pte = ProjectTimeEntity.parseFromMap(data).apply { id = savedId.toLong() }
-                    viewModelScope.launch { projectTimeRepository.insert(pte) }
+                { obj, _, _ ->
+                    if (obj?.getBoolean("success") == true) {
+                        val savedId = obj.optInt("id", -1)
+                        val pte = ProjectTimeEntity.parseFromMap(data).apply {
+                            wtId = savedId.toLong()
+                            id = savedId.toLong()
+                        }
+                        pte.isVisible = false
+                        viewModelScope.launch { projectTimeRepository.insertWithoutCreatedTime(pte) }
+                        if (continuation.isActive) continuation.resume(savedId.toLong())
+                    } else {
+                        if (obj?.has("errors") == true) {
+                            liveMessage.postValue("e${obj.getString("errors")}")
+                            if (continuation.isActive) continuation.resume(-1L)
+                        }
+                    }
                     liveHideMask.postValue(true)
-                    if (continuation.isActive) continuation.resume(savedId.toLong())
                 },
                 { e, response, _, output ->
                     Log.d(
@@ -185,7 +202,8 @@ class ProjectTimeService(
                         "Error: $e, Response: $response, Output: $output"
                     )
                     val pte = ProjectTimeEntity.parseFromMap(data)
-                    viewModelScope.launch { projectTimeRepository.insert(pte) }
+                    liveMessage.postValue(languageService.getText("#BookingTemporarilySaved"))
+                    viewModelScope.launch { projectTimeRepository.insertWithoutCreatedTime(pte) }
                     liveHideMask.postValue(true)
                     if (continuation.isActive) continuation.resume(-1L)
                 }
@@ -197,9 +215,11 @@ class ProjectTimeService(
     }
 
     suspend fun stopLatestOpenWorkingTime(
-        userId: Long,
-        context: Context
-    ): Boolean = suspendCancellableCoroutine { continuation ->
+        data: HashMap<String, String>,
+        context: Context,
+        viewModelScope: CoroutineScope,
+        liveMessage: MutableLiveData<String>
+    ): Int = suspendCancellableCoroutine { continuation ->
         val company = getCompany() ?: ""
         val url = getURl() ?: ""
         val tId = getTerminalId()
@@ -210,26 +230,34 @@ class ProjectTimeService(
             Pair("terminalSN", MainApplication.lcdk.getSerialNumber()),
             Pair("terminalId", "$tId"),
             Pair("token", token),
-            Pair("userId", "$userId"),
-        )
+        ) + data.map { Pair(it.key, it.value) }
 
         try {
             httpService.get(
                 "${url}services/rest/zktecoTerminal/stopLatestOpenWorkingTime",
                 parameters,
                 context,
-                { obj, arr, resp ->
-                    Log.d("ProjectTimeService", "Response: $resp, Object: $obj, Array: $arr")
-                    continuation.resume(true)
+                { obj, _, _ ->
+                    if (obj?.getBoolean("success") == true) {
+                        continuation.resume(0)
+                    } else {
+                        if (obj?.has("message") == true) {
+                            liveMessage.postValue("e${obj.getString("message")}")
+                        }
+                        continuation.resume(1)
+                    }
                 },
                 { e, response, _, output ->
                     Log.d("ProjectTimeService", "Error: $e, Response: $response, Output: $output")
-                    continuation.resume(false)
+                    val pte = ProjectTimeEntity.parseFromMap(data)
+                    liveMessage.postValue(languageService.getText("#BookingTemporarilySaved"))
+                    viewModelScope.launch { projectTimeRepository.insertWithoutCreatedTime(pte) }
+                    continuation.resume(2)
                 }
             )
         } catch (e: Exception) {
             Log.e("ProjectTimeService", "Exception in getLatestOpenWorkingTime: ${e.message}")
-            continuation.resume(false)
+            continuation.resume(3)
         }
     }
 
@@ -259,9 +287,32 @@ class ProjectTimeService(
                     try {
                         if (obj != null && obj.getString("message").equals("ok")) {
                             val payload = obj.getJSONObject("payload")
-                            val result = ProjectTimeEntity.parseFromJson(payload.getJSONObject("wt"))
-                            if (!payload.isNull("skill") && payload.getString("skill").isNotEmpty()) {
+                            val result =
+                                ProjectTimeEntity.parseFromJson(payload.getJSONObject("wt"))
+                            if (!payload.isNull("skill") && payload.getString("skill")
+                                    .isNotEmpty()
+                            ) {
                                 result.skillLevel = payload.getString("skill")
+                            }
+                            if (!payload.isNull("placeOfWork") && payload.getString("placeOfWork")
+                                    .isNotEmpty()
+                            ) {
+                                result.performanceLocation = payload.getString("placeOfWork")
+                            }
+                            if (!payload.isNull("drivenKm") && payload.getString("drivenKm")
+                                    .isNotEmpty()
+                            ) {
+                                result.drivenKm = payload.getString("drivenKm")
+                            }
+                            if (!payload.isNull("kmFlatRate") && payload.getString("kmFlatRate")
+                                    .isNotEmpty()
+                            ) {
+                                result.kmFlatRate = payload.getString("kmFlatRate")
+                            }
+                            if (!payload.isNull("travelTime") && payload.getString("travelTime")
+                                    .isNotEmpty()
+                            ) {
+                                result.travelTime = payload.getString("travelTime")
                             }
                             continuation.resume(result)
                         }
@@ -269,12 +320,44 @@ class ProjectTimeService(
                         continuation.resume(null)
                     }
                 },
-                { e, response, _, output ->
+                { _, _, _, output ->
                     continuation.resume(null)
                 }
             )
         } catch (e: Exception) {
             continuation.resume(null)
+        }
+    }
+
+    suspend fun getLatestOpenByUserId(userId: String): ProjectTimeEntity? {
+        return projectTimeRepository.getLatestOpenByUserId(userId)
+    }
+
+    suspend fun stopOfflineProjectTime(data: HashMap<String, String>) {
+        val userId = data["userId"]?.toLongOrNull() ?: return
+        val pte = projectTimeRepository.getLatestOpenByUserId(userId.toString()) ?: return
+        projectTimeRepository.deleteById(pte.id ?: 0L)
+        val time = ProjectTimeEntity.parseFromMap(data)
+        time.date = pte.date
+        time.from = pte.from
+        time.isVisible = true
+        time.isSend = false
+        projectTimeRepository.insert(time)
+    }
+
+    fun deleteAll(scope: CoroutineScope) {
+        scope.launch {
+            projectTimeRepository.deleteAll()
+        }
+    }
+
+    suspend fun getCountOfFailedForUser(userId: String): Int {
+        return projectTimeRepository.getCountOfFailedForUser(userId)
+    }
+
+    suspend fun deleteByWtId(wtId: Long, unique: String) {
+        if (projectTimeRepository.deleteByWtId(wtId) > 0 && unique.isNotEmpty()){
+            httpService.responseForCommand(unique)
         }
     }
 }

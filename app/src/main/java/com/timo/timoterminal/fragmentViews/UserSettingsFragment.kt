@@ -344,4 +344,10 @@ class UserSettingsFragment : Fragment(), TimoRfidListener, IFingerprintListener 
     }
 
     override fun onFingerprintPressed(template: ByteArray, bmp: Bitmap?) {}
+
+    fun reloadUser(userId: String?) {
+        if(userId != null) {
+            userSettingsFragmentViewModel.reloadUser(userId)
+        }
+    }
 }

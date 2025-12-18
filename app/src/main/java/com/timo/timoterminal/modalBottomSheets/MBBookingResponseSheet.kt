@@ -1,6 +1,7 @@
 package com.timo.timoterminal.modalBottomSheets
 
 import android.app.Dialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +27,8 @@ class MBBookingResponseSheet : BottomSheetDialogFragment() {
     private var timer = Timer("closeBookingResponseSheet", false)
     private var timerLength = sharedPrefService.getLong(SharedPreferenceKeys.BOOKING_MESSAGE_TIMEOUT_IN_SEC, 5)*1000
 
+    var dismissListener: (() -> Unit)? = null
+
     companion object {
         const val TAG = "MBBookingResponseSheet"
     }
@@ -44,6 +47,14 @@ class MBBookingResponseSheet : BottomSheetDialogFragment() {
             this@MBBookingResponseSheet.dismiss()
         }
         return binding.root
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+
+        if(dismissListener != null) {
+            dismissListener!!.invoke()
+        }
     }
 
     private fun setListeners() {

@@ -492,6 +492,7 @@ class MBUserWaitSheet : BottomSheetDialogFragment(), TimoRfidListener, IFingerpr
         val frag = parentFragmentManager.findFragmentByTag(UserSettingsFragment.TAG)
         if (frag != null && frag.isVisible) {
             (frag as UserSettingsFragment).onResume()
+            frag.reloadUser(id)
         }
         (activity as MainActivity?)?.restartTimer()
     }

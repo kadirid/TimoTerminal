@@ -43,7 +43,6 @@
     <string name="enter_url_for_connection">Enter the URL of the TimO system that should be used for the connection.</string>
     <string name="invalid_value">Invalid value</string>
     <string name="please_wait">Please wait, automatic login can take some time.</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="timeout_second">Showing time of booking mask in seconds</string>
     <string name="dark_screen_saver">Dark Screen Saver without Animation</string>
     <string name="animated_screen_saver">Animated Screen Saver</string>
@@ -80,4 +79,9 @@
     <string name="filter">Filter</string>
     <string name="search_text">Search Text</string>
     <string name="date_range">Date Range</string>
+    <string name="absence_type">Absence type</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

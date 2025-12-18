@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="mdtp_date_picker_component_width_v2">500dp</dimen>
+
+    <dimen name="mdtp_month_day_label_text_size">24sp</dimen>
+    <dimen name="mdtp_month_label_size">24sp</dimen>
+    <dimen name="mdtp_day_number_select_circle_radius_v2">28dp</dimen>
+    <dimen name="mdtp_day_number_size">24sp</dimen>
+    <dimen name="mdtp_date_picker_view_animator_height_v2">418dp</dimen>
+</resources>

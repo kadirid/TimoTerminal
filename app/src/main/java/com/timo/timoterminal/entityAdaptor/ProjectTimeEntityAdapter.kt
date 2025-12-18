@@ -3,6 +3,7 @@ package com.timo.timoterminal.entityAdaptor
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.timo.timoterminal.R
@@ -53,7 +54,7 @@ class ProjectTimeEntityAdapter(
     fun sort(sortId: Int, asc: Boolean) {
         if (asc) {
             entities = when (sortId) {
-                1 -> entities.sortedBy { it.date }
+                1 -> entities.sortedBy { it.date.ifEmpty { it.dateTo } }
                 2 -> entities.sortedBy { userIdMap[it.userId] ?: "" }
                 3 -> entities.sortedBy { projectMap[it.projectId] ?: "" }
                 4 -> entities.sortedBy { taskMap[it.taskId] ?: "" }
@@ -62,7 +63,7 @@ class ProjectTimeEntityAdapter(
             }
         } else {
             entities = when (sortId) {
-                1 -> entities.sortedByDescending { it.date }
+                1 -> entities.sortedByDescending { it.date.ifEmpty { it.dateTo } }
                 2 -> entities.sortedByDescending { userIdMap[it.userId] ?: "" }
                 3 -> entities.sortedByDescending { projectMap[it.projectId] ?: "" }
                 4 -> entities.sortedByDescending { taskMap[it.taskId] ?: "" }
@@ -135,14 +136,17 @@ class ProjectTimeEntityAdapter(
             val projectView: TextView = itemView.findViewById(R.id.text_view_project_time_project)
             val taskView: TextView = itemView.findViewById(R.id.text_view_project_time_task)
             val customerView: TextView = itemView.findViewById(R.id.text_view_project_time_customer)
+            val imageView: ImageView = itemView.findViewById(R.id.image_view_project_time_info_icon)
 
             userNameView.text = userName
             projectView.text = projectName
             taskView.text = taskName
             customerView.text = customerName
 
-            var dateAndTime: String =
-                Utils.getDateFromGC(Utils.parseDateFromTransfer(entity.date)) + " "
+            var dateAndTime = ""
+            if(entity.date.isNotEmpty()) {
+                dateAndTime += Utils.getDateFromGC(Utils.parseDateFromTransfer(entity.date)) + " "
+            }
             if (entity.from.isNotEmpty()) {
                 dateAndTime += entity.from
             }
@@ -156,13 +160,18 @@ class ProjectTimeEntityAdapter(
                 dateAndTime += entity.to
             }
             if (entity.hours.isNotEmpty() && entity.manDays.isEmpty()) {
-                dateAndTime += entity.hours
+                dateAndTime += "${entity.hours} h"
             }
             if (entity.manDays.isNotEmpty()) {
                 dateAndTime += "${entity.manDays} $manDaysName"
             }
 
             dateTimeView.text = dateAndTime
+
+            if(entity.isSend) {
+                imageView.visibility = View.VISIBLE
+            }
+
             itemView.setOnClickListener {
                 listener.onItemClick(entity)
             }

@@ -1,6 +1,5 @@
 package com.timo.timoterminal.fragmentViews
 
-import android.content.res.Resources
 import android.os.Bundle
 import android.os.Parcelable
 import android.text.Editable
@@ -35,6 +34,7 @@ import org.koin.android.ext.android.inject
 class ProjectTimeListFragment : Fragment() {
     private lateinit var binding: FragmentProjectTimeListBinding
     private var userId: String? = null
+    private var editorId: String? = null
     private val projectTimeRepository: ProjectTimeRepository by inject()
     private val userRepository: UserRepository by inject()
     private val projectRepository: ProjectRepository by inject()
@@ -46,6 +46,8 @@ class ProjectTimeListFragment : Fragment() {
         ProjectTimeListFragmentViewModel(projectTimeRepository)
     private var recyclerViewState: Parcelable? = null
     private var adapt: FilterEntityAdapter? = null
+    private var first: Boolean = true
+    private var currentSort: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,6 +57,7 @@ class ProjectTimeListFragment : Fragment() {
         binding = FragmentProjectTimeListBinding.inflate(inflater, container, false)
 
         userId = arguments?.getString("userId")
+        editorId = arguments?.getString("editorId")
 
         return binding.root
     }
@@ -62,8 +65,14 @@ class ProjectTimeListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setAdapter()
         setUp()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        first = true
+
+        setAdapter()
     }
 
     private fun setUp() {
@@ -83,6 +92,7 @@ class ProjectTimeListFragment : Fragment() {
         binding.buttonSortProject.text = languageService.getText("ALLGEMEIN#Projekt")
         binding.buttonSortTask.text = languageService.getText("ALLGEMEIN#Vorgang")
         binding.buttonSortCustomer.text = languageService.getText("ALLGEMEIN#Kunde")
+        "${languageService.getText("Leistungsnachweis#Sortierung")}:".also { binding.textViewSortLabel.text = it }
         binding.buttonBack.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
@@ -139,214 +149,220 @@ class ProjectTimeListFragment : Fragment() {
     }
 
     private fun setUpSortButtons() {
-        val currentTheme = requireContext().theme
-
         binding.buttonSortDate.setOnClickListener {
-            resetSortButtons(1, currentTheme)
+            sort(1)
 
             (activity as MainActivity?)?.restartTimer()
-            val adapter = binding.viewRecyclerProjectTimeList.adapter as ProjectTimeEntityAdapter?
-            when (binding.buttonSortDate.getResId()) {
-                R.drawable.baseline_arrow_up -> {
-                    binding.buttonSortDate.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_down,
-                            currentTheme
-                        )
-                    binding.buttonSortDate.setResId(R.drawable.baseline_arrow_down)
-                    adapter?.sort(1, false)
-                }
-
-                else -> {
-                    binding.buttonSortDate.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_up,
-                            currentTheme
-                        )
-                    binding.buttonSortDate.setResId(R.drawable.baseline_arrow_up)
-                    adapter?.sort(1, true)
-                }
-            }
         }
 
         binding.buttonSortEmployee.setOnClickListener {
-            resetSortButtons(2, currentTheme)
+            sort(2)
 
             (activity as MainActivity?)?.restartTimer()
-            val adapter = binding.viewRecyclerProjectTimeList.adapter as ProjectTimeEntityAdapter?
-            when (binding.buttonSortEmployee.getResId()) {
-                R.drawable.baseline_arrow_up -> {
-                    binding.buttonSortEmployee.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_down,
-                            currentTheme
-                        )
-                    binding.buttonSortEmployee.setResId(R.drawable.baseline_arrow_down)
-                    adapter?.sort(2, false)
-                }
-
-                else -> {
-                    binding.buttonSortEmployee.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_up,
-                            currentTheme
-                        )
-                    binding.buttonSortEmployee.setResId(R.drawable.baseline_arrow_up)
-                    adapter?.sort(2, true)
-                }
-            }
         }
 
         binding.buttonSortProject.setOnClickListener {
-            resetSortButtons(3, currentTheme)
+            sort(3)
 
             (activity as MainActivity?)?.restartTimer()
-            val adapter = binding.viewRecyclerProjectTimeList.adapter as ProjectTimeEntityAdapter?
-            when (binding.buttonSortProject.getResId()) {
-                R.drawable.baseline_arrow_up -> {
-                    binding.buttonSortProject.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_down,
-                            currentTheme
-                        )
-                    binding.buttonSortProject.setResId(R.drawable.baseline_arrow_down)
-                    adapter?.sort(3, false)
-                }
-
-                else -> {
-                    binding.buttonSortProject.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_up,
-                            currentTheme
-                        )
-                    binding.buttonSortProject.setResId(R.drawable.baseline_arrow_up)
-                    adapter?.sort(3, true)
-                }
-            }
         }
 
         binding.buttonSortTask.setOnClickListener {
-            resetSortButtons(4, currentTheme)
+            sort(4)
 
             (activity as MainActivity?)?.restartTimer()
-            val adapter = binding.viewRecyclerProjectTimeList.adapter as ProjectTimeEntityAdapter?
-            when (binding.buttonSortTask.getResId()) {
-                R.drawable.baseline_arrow_up -> {
-                    binding.buttonSortTask.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_down,
-                            currentTheme
-                        )
-                    binding.buttonSortTask.setResId(R.drawable.baseline_arrow_down)
-                    adapter?.sort(4, false)
-                }
-
-                else -> {
-                    binding.buttonSortTask.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_up,
-                            currentTheme
-                        )
-                    binding.buttonSortTask.setResId(R.drawable.baseline_arrow_up)
-                    adapter?.sort(4, true)
-                }
-            }
         }
 
         binding.buttonSortCustomer.setOnClickListener {
-            resetSortButtons(5, currentTheme)
+            sort(5)
 
             (activity as MainActivity?)?.restartTimer()
-            val adapter = binding.viewRecyclerProjectTimeList.adapter as ProjectTimeEntityAdapter?
-            when (binding.buttonSortCustomer.getResId()) {
-                R.drawable.baseline_arrow_up -> {
-                    binding.buttonSortCustomer.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_down,
-                            currentTheme
-                        )
-                    binding.buttonSortCustomer.setResId(R.drawable.baseline_arrow_down)
-                    adapter?.sort(5, false)
-                }
-
-                else -> {
-                    binding.buttonSortCustomer.icon =
-                        ResourcesCompat.getDrawable(
-                            resources,
-                            R.drawable.baseline_arrow_up,
-                            currentTheme
-                        )
-                    binding.buttonSortCustomer.setResId(R.drawable.baseline_arrow_up)
-                    adapter?.sort(5, true)
-                }
-            }
         }
     }
 
-    private fun resetSortButtons(sortId: Int, theme: Resources.Theme) {
-        val bgTint = ResourcesCompat.getColorStateList(resources, R.color.md_theme_primary, theme)
-        val textColor = ResourcesCompat.getColor(resources, R.color.md_theme_onPrimary, theme)
-        val inBgTint =
+    private fun sort(sortId: Int) {
+        val theme = requireContext().theme
+        val bgTint =
             ResourcesCompat.getColorStateList(resources, R.color.md_theme_surfaceVariant, theme)
-        val inTextColor = ResourcesCompat.getColor(resources, R.color.md_theme_onSurface, theme)
+        val textColor = ResourcesCompat.getColor(resources, R.color.md_theme_onSurface, theme)
+        val inBgTint =
+            ResourcesCompat.getColorStateList(resources, R.color.md_theme_background, theme)
+        val inTextColor = ResourcesCompat.getColor(resources, R.color.md_theme_onBackground, theme)
+
+        currentSort = sortId
+        val arrowDown =
+            ResourcesCompat.getDrawable(resources, R.drawable.baseline_arrow_down, theme)
+        val adapter = binding.viewRecyclerProjectTimeList.adapter as ProjectTimeEntityAdapter?
 
         if (sortId != 1) {
-            binding.buttonSortDate.icon = null
+            binding.buttonSortDate.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+            binding.buttonSortDate.iconTint = inBgTint
             binding.buttonSortDate.setResId(null)
             binding.buttonSortDate.backgroundTintList = inBgTint
             binding.buttonSortDate.setTextColor(inTextColor)
         } else {
             binding.buttonSortDate.backgroundTintList = bgTint
             binding.buttonSortDate.setTextColor(textColor)
+            if (binding.buttonSortDate.getResId() == R.drawable.baseline_arrow_up) {
+                binding.buttonSortDate.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+                binding.buttonSortDate.setResId(R.drawable.baseline_arrow_down)
+                adapter?.sort(1, false)
+            } else {
+                binding.buttonSortDate.icon =
+                    ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.baseline_arrow_up,
+                        theme
+                    )
+                binding.buttonSortDate.setResId(R.drawable.baseline_arrow_up)
+                adapter?.sort(1, true)
+            }
+            binding.buttonSortDate.setIconTintResource( R.color.md_theme_onSurface)
         }
 
         if (sortId != 2) {
-            binding.buttonSortEmployee.icon = null
+            binding.buttonSortEmployee.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+            binding.buttonSortEmployee.iconTint = inBgTint
             binding.buttonSortEmployee.setResId(null)
             binding.buttonSortEmployee.backgroundTintList = inBgTint
             binding.buttonSortEmployee.setTextColor(inTextColor)
         } else {
             binding.buttonSortEmployee.backgroundTintList = bgTint
             binding.buttonSortEmployee.setTextColor(textColor)
+            if (binding.buttonSortEmployee.getResId() == R.drawable.baseline_arrow_up) {
+                binding.buttonSortEmployee.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+                binding.buttonSortEmployee.setResId(R.drawable.baseline_arrow_down)
+                adapter?.sort(2, false)
+            } else {
+                binding.buttonSortEmployee.icon =
+                    ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.baseline_arrow_up,
+                        theme
+                    )
+                binding.buttonSortEmployee.setResId(R.drawable.baseline_arrow_up)
+                adapter?.sort(2, true)
+            }
+            binding.buttonSortEmployee.setIconTintResource( R.color.md_theme_onSurface)
         }
 
         if (sortId != 3) {
-            binding.buttonSortProject.icon = null
+            binding.buttonSortProject.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+            binding.buttonSortProject.iconTint = inBgTint
             binding.buttonSortProject.setResId(null)
             binding.buttonSortProject.backgroundTintList = inBgTint
             binding.buttonSortProject.setTextColor(inTextColor)
         } else {
             binding.buttonSortProject.backgroundTintList = bgTint
             binding.buttonSortProject.setTextColor(textColor)
+            if (binding.buttonSortProject.getResId() == R.drawable.baseline_arrow_up) {
+                binding.buttonSortProject.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+                binding.buttonSortProject.setResId(R.drawable.baseline_arrow_down)
+                adapter?.sort(3, false)
+            } else {
+                binding.buttonSortProject.icon =
+                    ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.baseline_arrow_up,
+                        theme
+                    )
+                binding.buttonSortProject.setResId(R.drawable.baseline_arrow_up)
+                adapter?.sort(3, true)
+            }
+            binding.buttonSortProject.setIconTintResource( R.color.md_theme_onSurface)
         }
 
         if (sortId != 4) {
-            binding.buttonSortTask.icon = null
+            binding.buttonSortTask.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+            binding.buttonSortTask.iconTint = inBgTint
             binding.buttonSortTask.setResId(null)
             binding.buttonSortTask.backgroundTintList = inBgTint
             binding.buttonSortTask.setTextColor(inTextColor)
         } else {
             binding.buttonSortTask.backgroundTintList = bgTint
             binding.buttonSortTask.setTextColor(textColor)
+            if (binding.buttonSortTask.getResId() == R.drawable.baseline_arrow_up) {
+                binding.buttonSortTask.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+                binding.buttonSortTask.setResId(R.drawable.baseline_arrow_down)
+                adapter?.sort(4, false)
+            } else {
+                binding.buttonSortTask.icon =
+                    ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.baseline_arrow_up,
+                        theme
+                    )
+                binding.buttonSortTask.setResId(R.drawable.baseline_arrow_up)
+                adapter?.sort(4, true)
+            }
+            binding.buttonSortTask.setIconTintResource( R.color.md_theme_onSurface)
         }
 
         if (sortId != 5) {
-            binding.buttonSortCustomer.icon = null
+            binding.buttonSortCustomer.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+            binding.buttonSortCustomer.iconTint = inBgTint
             binding.buttonSortCustomer.setResId(null)
             binding.buttonSortCustomer.backgroundTintList = inBgTint
             binding.buttonSortCustomer.setTextColor(inTextColor)
         } else {
             binding.buttonSortCustomer.backgroundTintList = bgTint
             binding.buttonSortCustomer.setTextColor(textColor)
+            if (binding.buttonSortCustomer.getResId() == R.drawable.baseline_arrow_up) {
+                binding.buttonSortCustomer.icon = arrowDown?.constantState?.newDrawable()?.mutate()
+                binding.buttonSortCustomer.setResId(R.drawable.baseline_arrow_down)
+                adapter?.sort(5, false)
+            } else {
+                binding.buttonSortCustomer.icon =
+                    ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.baseline_arrow_up,
+                        theme
+                    )
+                binding.buttonSortCustomer.setResId(R.drawable.baseline_arrow_up)
+                adapter?.sort(5, true)
+            }
+            binding.buttonSortCustomer.setIconTintResource( R.color.md_theme_onSurface)
+        }
+    }
+
+    private fun resort(){
+        val adapter = binding.viewRecyclerProjectTimeList.adapter as ProjectTimeEntityAdapter?
+        when (currentSort) {
+            1 -> {
+                if (binding.buttonSortDate.getResId() == R.drawable.baseline_arrow_up) {
+                    adapter?.sort(1, true)
+                } else {
+                    adapter?.sort(1, false)
+                }
+            }
+            2 -> {
+                if (binding.buttonSortEmployee.getResId() == R.drawable.baseline_arrow_up) {
+                    adapter?.sort(2, true)
+                } else {
+                    adapter?.sort(2, false)
+                }
+            }
+            3 -> {
+                if (binding.buttonSortProject.getResId() == R.drawable.baseline_arrow_up) {
+                    adapter?.sort(3, true)
+                } else {
+                    adapter?.sort(3, false)
+                }
+            }
+            4 -> {
+                if (binding.buttonSortTask.getResId() == R.drawable.baseline_arrow_up) {
+                    adapter?.sort(4, true)
+                } else {
+                    adapter?.sort(4, false)
+                }
+            }
+            5 -> {
+                if (binding.buttonSortCustomer.getResId() == R.drawable.baseline_arrow_up) {
+                    adapter?.sort(5, true)
+                } else {
+                    adapter?.sort(5, false)
+                }
+            }
         }
     }
 
@@ -374,6 +390,7 @@ class ProjectTimeListFragment : Fragment() {
         })
 
         projectTimeListFragmentViewModel.items.observe(viewLifecycleOwner) {
+            if (it.isNullOrEmpty()) return@observe
             projectTimeListFragmentViewModel.viewModelScope.launch {
                 val userEntities = userRepository.getAllAsList()
                 val projectEntities = projectRepository.getAllProjects()
@@ -411,13 +428,7 @@ class ProjectTimeListFragment : Fragment() {
                         object : ProjectTimeEntityAdapter.OnItemClickListener {
                             override fun onItemClick(entity: ProjectTimeEntity) {
                                 (activity as MainActivity?)?.restartTimer()
-                                val timeEntryType = if (entity.manDays.isNotEmpty()) {
-                                    6L
-                                } else if (entity.hours.isNotEmpty()) {
-                                    3L
-                                } else {
-                                    1L
-                                }
+                                val timeEntryType = entity.timeEntryType.toLong()
                                 val user =
                                     userEntities.find { user -> user.id == entity.userId.toLong() }
 
@@ -427,6 +438,7 @@ class ProjectTimeListFragment : Fragment() {
                                         replace(
                                             R.id.fragment_container_view,
                                             ProjectFragment.newInstance(
+                                                editorId ?: user.id.toString(),
                                                 user.id,
                                                 user.customerBasedProjectTime,
                                                 timeEntryType,
@@ -446,10 +458,15 @@ class ProjectTimeListFragment : Fragment() {
                 binding.viewRecyclerProjectTimeList.layoutManager?.onRestoreInstanceState(
                     recyclerViewState
                 )
+                if (it.isNotEmpty()) {
+                    binding.viewRecyclerProjectTimeList.visibility = View.VISIBLE
+                    binding.fragmentProjectTimeListEmptyListTextView.visibility = View.GONE
+                }
+                resort()
             }
-            if (it.isNotEmpty()) {
-                binding.viewRecyclerProjectTimeList.visibility = View.VISIBLE
-                binding.fragmentProjectTimeListEmptyListTextView.visibility = View.GONE
+            if(first) {
+                first = false
+                sort(1)
             }
         }
 

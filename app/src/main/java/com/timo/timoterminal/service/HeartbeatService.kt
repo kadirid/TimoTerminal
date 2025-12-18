@@ -36,6 +36,7 @@ class HeartbeatService : KoinComponent {
     private val languageService: LanguageService by inject()
     private val loginService: LoginService by inject()
     private val bookingService: BookingService by inject()
+    private val absenceService: AbsenceService by inject()
     private val projectTimeService: ProjectTimeService by inject()
     private val httpService: HttpService by inject()
     private lateinit var handler: Handler
@@ -137,6 +138,11 @@ class HeartbeatService : KoinComponent {
         if (obj.has("time") && !obj.isNull("time")) {
             val tTime = Utils.parseDBDateTime(obj.getString("time"))
             Utils.setCal(tTime)
+            val off = sharedPrefService.getLong(SharedPreferenceKeys.TIME_OFFSET_IN_MILLIS, 0L)
+            val offset = tTime.timeInMillis - System.currentTimeMillis()
+            if (offset != off && offset < 108000000L && offset > -108000000L) {
+                settingsService.setOffset(offset)
+            }
         }
         var updateAllUser = Pair("", "")
         var loadPermissions = Pair("", "")
@@ -148,6 +154,7 @@ class HeartbeatService : KoinComponent {
         val deleteIds = arrayListOf<Pair<String, String>>()
         val deleteFP = arrayListOf<Pair<String, String>>()
         val updateProjectUserValues = arrayListOf<Pair<String, String>>()
+        val removeByWtId = arrayListOf<Pair<String, String>>()
         var lang = Pair("", "")
         var url = ""
         var updateProjectSettings = Pair("", "")
@@ -212,6 +219,10 @@ class HeartbeatService : KoinComponent {
 
                         TerminalCommands.COMMAND_UPDATE_PROJECT_TIME_TRACK_SETTING.ordinal -> {
                             updateProjectSettings = Pair(command, id)
+                        }
+
+                        TerminalCommands.COMMAND_REMOVE_STARTED_BY_WTID.ordinal -> {
+                            removeByWtId.add(Pair(command, id))
                         }
                     }
                 } else if (type == TerminalCommands.COMMAND_UPDATE_URL.ordinal) {
@@ -370,6 +381,15 @@ class HeartbeatService : KoinComponent {
                         }
                     }
                 }
+                if (removeByWtId.size > 0) {
+                    for (no in removeByWtId) {
+                        val wtId = no.first.toLongOrNull()
+                        if (wtId != null) {
+                            absenceService.deleteByWtId(wtId, no.second)
+                            projectTimeService.deleteByWtId(wtId, no.second)
+                        }
+                    }
+                }
                 if (updateAPK.first.isNotEmpty()) {
                     httpService.responseForCommand(updateAPK.second) { _, _, _ ->
                         val editor = sharedPrefService.getEditor()
@@ -394,6 +414,7 @@ class HeartbeatService : KoinComponent {
                     } else {
                         bookingService.sendSavedBooking(scope)
                         projectTimeService.sendSavedProjectTimes(scope)
+                        absenceService.sendSavedAbsenceEntries(scope)
                     }
                 }
             }
@@ -420,6 +441,9 @@ class HeartbeatService : KoinComponent {
         val lastDate = sharedPrefService.getString(SharedPreferenceKeys.LAST_DATE, "")
         val currentDate = Utils.getDateFromGC(Utils.getCal())
         if (lastDate != currentDate) {
+            languageService.requestLanguageFromServer(activity.getViewModel().viewModelScope, activity)
+            loginService.loadPermissions(activity.getViewModel().viewModelScope, activity) { _ -> }
+
             val editor = sharedPrefService.getEditor()
             editor.putString(SharedPreferenceKeys.LAST_DATE.name, currentDate)
             editor.apply()

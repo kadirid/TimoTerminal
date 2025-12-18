@@ -1,6 +1,5 @@
 package com.timo.timoterminal.fragmentViews
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.text.InputType
@@ -11,7 +10,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewModelScope
-import com.timo.timoterminal.BuildConfig
 import com.timo.timoterminal.MainApplication
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
@@ -29,7 +27,9 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class InfoFragment : Fragment() {
+class InfoFragment(
+    val isDefault: Boolean = false
+) : Fragment() {
 
     private lateinit var binding: FragmentInfoBinding
     private lateinit var itemBinding: FragmentInfoMessageSheetItemBinding
@@ -59,6 +59,7 @@ class InfoFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        (activity as MainActivity?)?.hideLoadMask()
 
         if (verifying) {
             register()
@@ -88,7 +89,9 @@ class InfoFragment : Fragment() {
         viewModel.viewModelScope.launch {
 
             binding.keyboardImage.setSafeOnClickListener {
-                (activity as MainActivity?)?.restartTimer()
+                if(!isDefault) {
+                    (activity as MainActivity?)?.restartTimer()
+                }
                 showVerificationAlert()
             }
 
@@ -96,30 +99,20 @@ class InfoFragment : Fragment() {
                 viewModel.restartTimer()
             }
 
-            if (BuildConfig.DEBUG) {
-                //Chill, das ist nur zum allgemeinen Testen der DL APK funktion und verschwindet wieder :)
-                binding.installNewAppButton.setOnClickListener {
-                    val launchIntent: Intent? =
-                        requireActivity().packageManager.getLaunchIntentForPackage("com.timo.timoupdate")
-                    if (launchIntent != null) {
-                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        launchIntent.putExtra(
-                            "src",
-                            "http://192.168.0.45/timo_prd/services/rest/zktecoTerminal/downloadAPK/?firma=prdjbtestzkteco&token=teHJdiMxvwV3steWsyXfaXp99U1721644328176&terminalSN=CKWN214760894&terminalId=6"
-                        )
-                        launchIntent.putExtra("version", "1.2.00000000000000000000000000000000000000000000001")
-                        startActivity(launchIntent) //null pointer check in case package name was not found
-                    }
-                }
-            }
             binding.installNewAppButton.visibility = View.GONE
 
             binding.fragmentInfoRootLayout.setOnClickListener {
-                (activity as MainActivity?)?.restartTimer()
+                if(!isDefault) {
+                    (activity as MainActivity?)?.restartTimer()
+                }
             }
 
-            binding.buttonBack.setOnClickListener {
-                parentFragmentManager.popBackStack()
+            if(isDefault) {
+                binding.buttonBack.visibility = View.GONE
+            } else {
+                binding.buttonBack.setOnClickListener {
+                    parentFragmentManager.popBackStack()
+                }
             }
 
             viewModel.liveRfidNumber.value = ""
@@ -147,14 +140,18 @@ class InfoFragment : Fragment() {
             viewModel.liveRestartTimer.value = false
             viewModel.liveRestartTimer.observe(viewLifecycleOwner) {
                 if (it == true) {
-                    (activity as MainActivity?)?.restartTimer()
+                    if(!isDefault) {
+                        (activity as MainActivity?)?.restartTimer()
+                    }
                     viewModel.liveRestartTimer.value = false
                 }
             }
             viewModel.liveDismissInfoSheet.value = false
             viewModel.liveDismissInfoSheet.observe(viewLifecycleOwner) {
                 if (it == true) {
-                    (activity as MainActivity?)?.restartTimer()
+                    if(!isDefault) {
+                        (activity as MainActivity?)?.restartTimer()
+                    }
                     register()
                     verifying = true
                     viewModel.liveDismissInfoSheet.value = false
@@ -248,7 +245,9 @@ class InfoFragment : Fragment() {
         dialogBinding.dialogTextInputEditValue.doOnTextChanged { _, _, _, _ ->
             alertTimer.cancel()
             alertTimer.start()
-            (activity as MainActivity?)?.restartTimer()
+            if(!isDefault) {
+                (activity as MainActivity?)?.restartTimer()
+            }
         }
         dialogBinding.dialogTextInputLayoutValue.hint =
             requireContext().getText(R.string.user_passcode)

@@ -50,6 +50,13 @@
             tools:text="Local Project Times" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonTerminalAbsenceEntry"
+            style="@style/SettingsViewButtons"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
+            tools:text="Local Absence Entry" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonActualizeTerminal"
             style="@style/SettingsViewButtons"
             android:layout_marginStart="6dp"

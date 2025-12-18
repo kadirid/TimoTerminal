@@ -76,6 +76,7 @@ class AttendanceFragment : Fragment() {
         setListener()
         setText()
         viewModel.loadSoundForAttendance()
+        (activity as MainActivity?)?.hideLoadMask(false)
         adaptLottieAnimationTime()
     }
 
@@ -154,8 +155,18 @@ class AttendanceFragment : Fragment() {
         MainApplication.lcdk.setFingerprintListener(viewModel)
     }
 
+    private val lastBookingTimestamps = mutableMapOf<String, Long>()
+
     // send all necessary information to timo to create a booking
     private fun sendBooking(card: String, inputCode: Int) {
+        val now = System.currentTimeMillis()
+        val lastBookingTime = lastBookingTimestamps[card] ?: 0L
+        if (now - lastBookingTime < 5000) {
+            notifyFailure(languageService.getText("#WaitBeforeRebooking"))
+            return
+        }
+        lastBookingTimestamps[card] = now
+
         (activity as MainActivity?)?.showLoadMask()
         if (Utils.isOnline(requireContext())) {
             viewModel.viewModelScope.launch {

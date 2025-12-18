@@ -50,11 +50,12 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:baselineAligned="false"
-                            android:dropDownWidth="704dp"
+                            android:dropDownWidth="684dp"
                             android:imeOptions="actionDone"
                             android:inputType="textNoSuggestions"
                             android:paddingTop="8dp"
                             android:paddingBottom="8dp"
+                            android:textSize="23sp"
                             android:singleLine="true" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -71,11 +72,12 @@
                             android:id="@+id/task"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:dropDownWidth="704dp"
+                            android:dropDownWidth="684dp"
                             android:imeOptions="actionDone"
                             android:inputType="textNoSuggestions"
                             android:paddingTop="8dp"
                             android:paddingBottom="8dp"
+                            android:textSize="23sp"
                             android:singleLine="true" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -94,11 +96,12 @@
                             android:id="@+id/customer"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:dropDownWidth="704dp"
+                            android:dropDownWidth="684dp"
                             android:imeOptions="actionDone"
                             android:inputType="textNoSuggestions"
                             android:paddingTop="8dp"
                             android:paddingBottom="8dp"
+                            android:textSize="23sp"
                             android:singleLine="true" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -132,14 +135,15 @@
                             android:layout_marginEnd="5dp"
                             android:gravity="center"
                             android:text="#Date"
-                            android:textSize="16sp" />
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/timeView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="#Date"
+                            android:text="#Time"
                             android:textSize="20sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -152,13 +156,9 @@
                         android:background="@drawable/rounded_container_16dp_ripple"
                         android:gravity="center"
                         android:text="@string/details"
+                        android:textSize="32sp"
                         android:textColor="?attr/colorOnPrimary"
-                        app:backgroundTint="?attr/colorPrimary"
-                        app:icon="@drawable/round_chevron_right_24"
-                        app:iconGravity="textTop"
-                        app:iconPadding="0dp"
-                        app:iconSize="32dp"
-                        app:iconTint="?attr/colorOnPrimary" />
+                        app:backgroundTint="?attr/colorPrimary" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -169,31 +169,34 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:baselineAligned="false">
-                <Button
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/stopProjectTimeButton"
-                    android:layout_weight="1"
-                    android:visibility="gone"
+                    android:layout_width="263dp"
+                    android:layout_height="120dp"
                     android:layout_marginEnd="20dp"
-                    android:layout_width="260dp"
-                    android:layout_height="100dp"
+                    android:layout_weight="1"
                     android:background="@drawable/rounded_container_16dp_ripple"
-                    android:text="Aktuelle PZ beenden"
-                    android:maxLines="1"
                     android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Projektzeit Ende"
+                    android:textSize="40sp"
                     android:textAlignment="viewStart"
                     android:textColor="@color/white"
+                    android:visibility="gone"
                     app:backgroundTint="@color/go"
                     app:icon="@drawable/stop_circle_24dp"
                     app:iconGravity="end"
-                    app:iconSize="48dp"
-                    app:iconTint="@color/white" />
-                <Button
+                    app:iconSize="96dp"
+                    app:iconTint="@color/white"
+                    tools:visibility="visible" />
+                <com.google.android.material.button.MaterialButton
                     android:layout_weight="1"
                     android:id="@+id/startProjectTimeButton"
                     android:layout_width="0dp"
-                    android:layout_height="100dp"
+                    android:layout_height="120dp"
                     android:background="@drawable/rounded_container_16dp_ripple"
-                    android:text="Projektzeit starten"
+                    android:textSize="48sp"
                     android:maxLines="2"
                     android:ellipsize="end"
                     android:textAlignment="viewStart"
@@ -201,7 +204,7 @@
                     app:backgroundTint="@color/come"
                     app:icon="@drawable/play_circle_24dp"
                     app:iconGravity="end"
-                    app:iconSize="48dp"
+                    app:iconSize="96dp"
                     app:iconTint="@color/white" />
             </LinearLayout>
         </LinearLayout>
@@ -216,7 +219,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            tools:visibility="invisible">
+            tools:visibility="gone">
 
             <ScrollView
                 android:id="@+id/secondPageScrollContainer"
@@ -256,6 +259,7 @@
                                 android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
+                                android:textSize="23sp"
                                 android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -310,11 +314,12 @@
                                 android:id="@+id/activity_type"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:dropDownWidth="704dp"
+                                android:dropDownWidth="684dp"
                                 android:imeOptions="actionDone"
                                 android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
+                                android:textSize="23sp"
                                 android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -336,11 +341,12 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:dropDownAnchor="@id/text_input_Layout_project_time_activity_type"
-                                android:dropDownWidth="704dp"
+                                android:dropDownWidth="684dp"
                                 android:imeOptions="actionDone"
                                 android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
+                                android:textSize="23sp"
                                 android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -361,11 +367,12 @@
                                 android:id="@+id/skill_level"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:dropDownWidth="704dp"
+                                android:dropDownWidth="684dp"
                                 android:imeOptions="actionDone"
                                 android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
+                                android:textSize="23sp"
                                 android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -374,24 +381,31 @@
                             android:layout_width="5dp"
                             android:layout_height="match_parent" />
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/text_input_Layout_project_time_unit"
+                        <FrameLayout
+                            android:id="@+id/unit_container"
                             android:layout_width="0dp"
                             android:layout_height="45dp"
-                            android:layout_weight="1"
-                            android:hint="@string/units"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_fromDate">
+                            android:layout_weight="1">
 
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/unit"
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/text_input_Layout_project_time_unit"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:imeOptions="actionDone"
-                                android:inputType="number"
-                                android:paddingTop="8dp"
-                                android:paddingBottom="8dp" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                                android:hint="@string/units"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/text_input_Layout_project_time_fromDate">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/unit"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:imeOptions="actionDone"
+                                    android:inputType="number"
+                                    android:paddingTop="8dp"
+                                    android:textSize="23sp"
+                                    android:paddingBottom="8dp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </FrameLayout>
                     </LinearLayout>
 
                     <LinearLayout
@@ -412,11 +426,12 @@
                                 android:id="@+id/ticket"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:dropDownWidth="704dp"
+                                android:dropDownWidth="684dp"
                                 android:imeOptions="actionDone"
                                 android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
+                                android:textSize="23sp"
                                 android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -438,11 +453,12 @@
                                 android:id="@+id/team"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:dropDownWidth="704dp"
+                                android:dropDownWidth="684dp"
                                 android:imeOptions="actionDone"
                                 android:inputType="textNoSuggestions"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
+                                android:textSize="23sp"
                                 android:singleLine="true" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -469,6 +485,7 @@
                                 android:layout_height="match_parent"
                                 android:imeOptions="actionDone"
                                 android:inputType="textMultiLine"
+                                android:textSize="23sp"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp" />
                         </com.google.android.material.textfield.TextInputLayout>
@@ -512,6 +529,7 @@
                                 android:layout_height="match_parent"
                                 android:imeOptions="actionDone"
                                 android:inputType="text"
+                                android:textSize="23sp"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp" />
                         </com.google.android.material.textfield.TextInputLayout>
@@ -536,6 +554,7 @@
                                 android:layout_height="match_parent"
                                 android:imeOptions="actionDone"
                                 android:inputType="number"
+                                android:textSize="23sp"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp" />
                         </com.google.android.material.textfield.TextInputLayout>
@@ -562,9 +581,10 @@
                                 android:id="@+id/journey"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:dropDownWidth="704dp"
+                                android:dropDownWidth="684dp"
                                 android:imeOptions="actionDone"
                                 android:inputType="textNoSuggestions"
+                                android:textSize="23sp"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp"
                                 android:singleLine="true" />
@@ -589,6 +609,7 @@
                                 android:focusable="true"
                                 android:imeOptions="actionDone"
                                 android:inputType="time"
+                                android:textSize="23sp"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp" />
                         </com.google.android.material.textfield.TextInputLayout>
@@ -610,6 +631,7 @@
                                 android:layout_height="match_parent"
                                 android:imeOptions="actionDone"
                                 android:inputType="number"
+                                android:textSize="23sp"
                                 android:paddingTop="8dp"
                                 android:paddingBottom="8dp" />
                         </com.google.android.material.textfield.TextInputLayout>
@@ -641,12 +663,13 @@
                 android:background="@drawable/rounded_container_16dp_ripple"
                 android:text="Go Back"
                 android:textAlignment="textStart"
+                android:textSize="40sp"
                 android:textColor="@color/white"
                 android:textStyle="bold"
                 app:backgroundTint="?attr/colorPrimary"
                 app:icon="@drawable/round_chevron_left_24"
                 app:iconGravity="start"
-                app:iconSize="48dp"
+                app:iconSize="96dp"
                 app:iconTint="@color/white" />
         </LinearLayout>
 
@@ -664,5 +687,20 @@
         android:src="@drawable/baseline_close_24"
         app:fabSize="normal"
         app:tint="@color/white" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/project_fragment_button_project_time_list"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="18dp"
+        android:layout_marginEnd="93dp"
+        android:background="@drawable/square_button_background"
+        android:textAllCaps="false"
+        android:visibility="gone"
+        app:icon="@drawable/baseline_list_24"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="24dp" />
 
 </FrameLayout>

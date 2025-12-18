@@ -48,7 +48,13 @@ class ProjectEntityAdaptor(
     }
 
     inner class StringFilter : Filter() {
-        override fun performFiltering(constraint: CharSequence): FilterResults {
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            if (constraint.isNullOrEmpty()) {
+                val results = FilterResults()
+                results.values = originalEntities
+                results.count = originalEntities.size
+                return results
+            }
             val filterString = constraint.toString().lowercase(Locale.getDefault())
             val results = FilterResults()
             val list = originalEntities
@@ -67,8 +73,7 @@ class ProjectEntityAdaptor(
         }
 
         override fun publishResults(constraint: CharSequence?, results: FilterResults) {
-            if (results.values != null)
-                projectEntities = results.values as List<ProjectEntity>
+            projectEntities = results.values as List<ProjectEntity>
             notifyDataSetChanged()
         }
     }
@@ -76,4 +81,6 @@ class ProjectEntityAdaptor(
     override fun getFilter(): Filter {
         return filter
     }
+
+
 }

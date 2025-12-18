@@ -1,8 +1,8 @@
 package com.timo.timoterminal.fragmentViews
 
-// --- Imports ---
 import android.app.TimePickerDialog
 import android.content.Context
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,18 +16,37 @@ import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
+import com.google.android.material.button.MaterialButton
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentProjectStopwatchBinding
-import com.timo.timoterminal.entityAdaptor.*
-import com.timo.timoterminal.entityClasses.*
+import com.timo.timoterminal.entityAdaptor.ActivityTypeEntityAdaptor
+import com.timo.timoterminal.entityAdaptor.ActivityTypeMatrixEntityAdaptor
+import com.timo.timoterminal.entityAdaptor.CustomerEntityAdapter
+import com.timo.timoterminal.entityAdaptor.JourneyEntityAdaptor
+import com.timo.timoterminal.entityAdaptor.ProjectEntityAdaptor
+import com.timo.timoterminal.entityAdaptor.SkillEntityAdaptor
+import com.timo.timoterminal.entityAdaptor.TaskEntityAdaptor
+import com.timo.timoterminal.entityAdaptor.TeamEntityAdaptor
+import com.timo.timoterminal.entityAdaptor.TicketEntityAdaptor
+import com.timo.timoterminal.entityClasses.ActivityTypeEntity
+import com.timo.timoterminal.entityClasses.ActivityTypeMatrixEntity
+import com.timo.timoterminal.entityClasses.JourneyEntity
+import com.timo.timoterminal.entityClasses.ProjectEntity
+import com.timo.timoterminal.entityClasses.ProjectTimeEntity
+import com.timo.timoterminal.entityClasses.ProjectTimeTrackSetting
+import com.timo.timoterminal.entityClasses.SkillEntity
+import com.timo.timoterminal.entityClasses.TaskEntity
+import com.timo.timoterminal.entityClasses.TeamEntity
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.ProjectFragmentViewModel
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import java.util.*
+import java.util.Calendar
 import java.util.logging.Logger
 
 /**
@@ -78,6 +97,9 @@ class ProjectFragmentStopwatch : Fragment() {
     private var hasAppliedCurrentWT = false
     private var populationInProgress = false
 
+    private var wtId: Long? = null
+    private var offlineSaved = false
+
     // --- Lifecycle Methods ---
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,11 +126,63 @@ class ProjectFragmentStopwatch : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         handler.post(updateTimeRunnable)
+
+        val rootView = requireActivity().window.decorView.findViewById<View>(android.R.id.content)
+
+        rootView.viewTreeObserver.addOnGlobalLayoutListener {
+            if (isAdded) {
+                val rect = Rect()
+                rootView.getWindowVisibleDisplayFrame(rect)
+                val screenHeight = rootView.height
+                val keypadHeight = screenHeight - rect.bottom
+                if (keypadHeight > screenHeight * 0.15) {
+                    // Keyboard is visible
+                    val focusedView = requireActivity().currentFocus
+                    if (focusedView != null) {
+                        val p2 = focusedView.parent.parent as View
+                        val p3 = p2.parent as View
+                        var y = p2.y.toInt()
+                        if (y == 0) {
+                            y = p3.y.toInt()
+                        }
+                        requireActivity().runOnUiThread {
+                            binding.secondPageScrollContainer.smoothScrollTo(0, y)
+                        }
+                    }
+
+                    requireActivity().runOnUiThread {
+                        val params =
+                            binding.secondPageScrollContainer.layoutParams as LinearLayout.LayoutParams
+                        if (params.height != rect.height() - 80) {
+                            params.height = rect.height() - 80
+                            params.weight = 0f
+                            binding.secondPageScrollContainer.layoutParams = params
+                        }
+                    }
+                } else {
+                    requireActivity().runOnUiThread {
+                        val params =
+                            binding.secondPageScrollContainer.layoutParams as LinearLayout.LayoutParams
+                        if (params.height != 0) {
+                            params.height = 0
+                            params.weight = 1f
+                            binding.secondPageScrollContainer.layoutParams = params
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
+        (activity as MainActivity?)?.hideLoadMask()
         viewModel.loadForProjectTimeTrack(requireContext())
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.liveHideMask.postValue(true)
     }
 
     override fun onDestroyView() {
@@ -130,13 +204,23 @@ class ProjectFragmentStopwatch : Fragment() {
             hideNonVisibleItems()
         }
         addTextWatcher()
+
+        viewModel.viewModelScope.launch {
+            if(viewModel.hasFailedProjectTimes()){
+                binding.projectFragmentButtonProjectTimeList.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun setUpAnimations() {
-        val fadeOutSlideOutLeft = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out_slide_out_left)
-        val fadeInSlideInRight = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in_slide_in_right)
-        val fadeInSlideInLeft = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in_slide_in_left)
-        val fadeOutSlideOutRight = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out_slide_out_right)
+        val fadeOutSlideOutLeft =
+            AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out_slide_out_left)
+        val fadeInSlideInRight =
+            AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in_slide_in_right)
+        val fadeInSlideInLeft =
+            AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in_slide_in_left)
+        val fadeOutSlideOutRight =
+            AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out_slide_out_right)
 
         binding.goToSecondPageButton.setOnClickListener {
             fadeOutSlideOutLeft.setAnimationListener(object : Animation.AnimationListener {
@@ -146,6 +230,7 @@ class ProjectFragmentStopwatch : Fragment() {
                     binding.secondPageContainer.visibility = View.VISIBLE
                     binding.secondPageContainer.startAnimation(fadeInSlideInRight)
                 }
+
                 override fun onAnimationRepeat(animation: Animation?) {}
             })
             binding.firstPageDetailLayout.startAnimation(fadeOutSlideOutLeft)
@@ -158,6 +243,7 @@ class ProjectFragmentStopwatch : Fragment() {
                     binding.firstPageDetailLayout.visibility = View.VISIBLE
                     binding.firstPageDetailLayout.startAnimation(fadeInSlideInLeft)
                 }
+
                 override fun onAnimationRepeat(animation: Animation?) {}
             })
             binding.secondPageContainer.startAnimation(fadeOutSlideOutRight)
@@ -186,17 +272,28 @@ class ProjectFragmentStopwatch : Fragment() {
         }
 
         binding.descriptionCloseButton.setOnClickListener {
-            val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            val imm =
+                requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(binding.description.windowToken, 0)
         }
 
         binding.startProjectTimeButton.setOnClickListener { startProjectTime() }
         binding.stopProjectTimeButton.setOnClickListener { stopProjectTime() }
+
+        binding.projectFragmentButtonProjectTimeList.setOnClickListener {
+            (activity as MainActivity?)?.restartTimer()
+            val frag = ProjectTimeListFragment()
+            val bundle = Bundle()
+            bundle.putString("userId", userId?.toString())
+            frag.arguments = bundle
+            parentFragmentManager.commit {
+                addToBackStack(null)
+                replace(R.id.fragment_container_view, frag)
+            }
+        }
     }
 
     private fun setUpOnItemClickListeners() {
-        val v = View.VISIBLE
-
         binding.project.setOnItemClickListener { parent, _, position, _ ->
             defOnItemClickListener()
             val selectedItem = parent.getItemAtPosition(position) as ProjectEntity
@@ -211,36 +308,14 @@ class ProjectFragmentStopwatch : Fragment() {
             defOnItemClickListener()
             val selectedItem = parent.getItemAtPosition(position) as TaskEntity
 
-            if (selectedItem.abrechenbarPBaum != 3L) {
-                binding.billable.isChecked = selectedItem.abrechenbarPBaum == 1L
-            }
-            binding.billable.isEnabled = !selectedItem.abrechenbarDisabled
-
-            updateHintForRequiredField(binding.textInputLayoutProjectTimeDescription, selectedItem.descriptionMust)
-            updateHintForRequiredField(binding.textInputLayoutProjectTimeActivityType, selectedItem.activityTypeMust)
-            updateHintForRequiredField(binding.textInputLayoutProjectTimeOrderNo, selectedItem.orderNoMust)
-
-            val activityTypeId = viewModel.getActivityTypeId(selectedItem.taskId)
-            if (activityTypeId.isNotEmpty()) {
-                binding.activityType.setText(activityTypeId, true)
-            }
-
-            if (binding.textInputLayoutProjectTimeTicket.visibility == v) {
-                val tickets = viewModel.getTickets(selectedItem.taskId)
-                binding.ticket.setAdapter(
-                    TicketEntityAdaptor(requireContext(), R.layout.dropdown_small, tickets)
-                )
-            }
-
-            if (!isCustomerTimeTrack) {
-                viewModel.showCustomers(selectedItem)
-            }
+            taskSelection(selectedItem)
         }
 
         binding.customer.setOnItemClickListener { parent, _, position, _ ->
             defOnItemClickListener()
             if (isCustomerTimeTrack) {
-                val selectedItem = parent.getItemAtPosition(position) as CustomerEntityAdapter.CustomerComboEntity
+                val selectedItem =
+                    parent.getItemAtPosition(position) as CustomerEntityAdapter.CustomerComboEntity
                 viewModel.showFilteredProjectsForCustomer(selectedItem.id)
             }
         }
@@ -254,7 +329,11 @@ class ProjectFragmentStopwatch : Fragment() {
             val matrices = viewModel.getActivityTypeMatrixId(selectedItem.activityTypeId)
             if (matrices.isNotEmpty()) {
                 binding.activityTypeMatrix.setAdapter(
-                    ActivityTypeMatrixEntityAdaptor(requireContext(), R.layout.dropdown_small, matrices)
+                    ActivityTypeMatrixEntityAdaptor(
+                        requireContext(),
+                        R.layout.dropdown_small,
+                        matrices
+                    )
                 )
             }
         }
@@ -272,18 +351,65 @@ class ProjectFragmentStopwatch : Fragment() {
         }
     }
 
-    private fun updateHintForRequiredField(textInputLayout: com.google.android.material.textfield.TextInputLayout, isRequired: Boolean) {
+    private fun taskSelection(selectedItem: TaskEntity) {
+        if (selectedItem.abrechenbarPBaum != 3L) {
+            binding.billable.isChecked = selectedItem.abrechenbarPBaum == 1L
+        }
+        binding.billable.isEnabled = !selectedItem.abrechenbarDisabled
+
+        viewModel.viewModelScope.launch {
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeDescription,
+                selectedItem.descriptionMust || perm("zeiterfassung.beschreibung.pflicht")
+            )
+        }
+        updateHintForRequiredField(
+            binding.textInputLayoutProjectTimeActivityType,
+            selectedItem.activityTypeMust
+        )
+        updateHintForRequiredField(
+            binding.textInputLayoutProjectTimeOrderNo,
+            selectedItem.orderNoMust
+        )
+        updateHintForRequiredField(
+            binding.textInputLayoutProjectTimeEvaluation,
+            selectedItem.abschaetzungMust
+        )
+
+        val activityTypeId = viewModel.getActivityTypeId(selectedItem.taskId)
+        if (activityTypeId.isNotEmpty()) {
+            binding.activityType.setText(activityTypeId, true)
+        }
+
+        if (binding.textInputLayoutProjectTimeTicket.visibility == View.VISIBLE) {
+            val tickets = viewModel.getTickets(selectedItem.taskId)
+            binding.ticket.setAdapter(
+                TicketEntityAdaptor(requireContext(), R.layout.dropdown_small, tickets)
+            )
+        }
+
+        if (!isCustomerTimeTrack) {
+            binding.customer.text = null
+            viewModel.showCustomers(selectedItem)
+        }
+    }
+
+    private fun updateHintForRequiredField(
+        textInputLayout: com.google.android.material.textfield.TextInputLayout,
+        isRequired: Boolean
+    ) {
         if (textInputLayout.visibility != View.VISIBLE) return
         var hint = textInputLayout.hint
         if (!hint.isNullOrEmpty()) {
-            if (hint.last() == '*') hint = hint.dropLast(1)
-            if (isRequired) hint = "${hint}*"
+            if (hint.first() == '*') hint = hint.drop(2)
+            if (isRequired) hint = "* $hint"
             textInputLayout.hint = hint
         }
     }
 
     private fun defOnItemClickListener() {
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(binding.project.windowToken, 0)
         (activity as MainActivity?)?.restartTimer()
     }
@@ -307,7 +433,10 @@ class ProjectFragmentStopwatch : Fragment() {
         viewModel.liveShowOfflineNotice.observe(viewLifecycleOwner) {
             if (it == true) {
                 requireActivity().runOnUiThread {
-                    Utils.showMessage(parentFragmentManager, "Hinweis\n\nDaten sind eventuell nicht vollständig")
+                    Utils.showMessage(
+                        parentFragmentManager,
+                        "Hinweis\n\nDaten sind eventuell nicht vollständig"
+                    )
                 }
                 viewModel.liveShowOfflineNotice.value = false
             }
@@ -335,6 +464,9 @@ class ProjectFragmentStopwatch : Fragment() {
             if (it.isNotEmpty()) {
                 val adapter = CustomerEntityAdapter(requireContext(), R.layout.dropdown_small, it)
                 binding.customer.setAdapter(adapter)
+                if(it.size == 1){
+                    binding.customer.setText(adapter.getItem(0).toString(), false)
+                }
                 attemptPopulateFromWT()
                 viewModel.liveCustomerEntities.value = emptyList()
             }
@@ -344,7 +476,6 @@ class ProjectFragmentStopwatch : Fragment() {
             if (it != null) {
                 processProjectTimeTrackSetting(it)
                 viewLifecycleOwner.lifecycleScope.launch {
-                    hideNonVisibleItems()
                     arrangeInputsBasedOnSettings(it)
                 }
                 viewModel.liveProjectTimeTrackSetting.value = null
@@ -353,7 +484,8 @@ class ProjectFragmentStopwatch : Fragment() {
         viewModel.liveActivityTypeEntities.value = emptyList()
         viewModel.liveActivityTypeEntities.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
-                val adapter = ActivityTypeEntityAdaptor(requireContext(), R.layout.dropdown_small, it)
+                val adapter =
+                    ActivityTypeEntityAdaptor(requireContext(), R.layout.dropdown_small, it)
                 binding.activityType.setAdapter(adapter)
                 attemptPopulateFromWT()
                 viewModel.liveActivityTypeEntities.value = emptyList()
@@ -398,13 +530,18 @@ class ProjectFragmentStopwatch : Fragment() {
                 viewModel.liveMessage.value = ""
             }
         }
+        viewModel.liveIsOffline.observe(viewLifecycleOwner) {
+            if (it) {
+                offlineSaved = true
+            }
+        }
 
         viewModel.currentOpenWorkingTime.observe(viewLifecycleOwner) { wt ->
             updateWorkingTimeButtons(wt)
             if (wt != null && !hasAppliedCurrentWT) {
                 val pid = wt.projectId.toLongOrNull()
                 if (pid != null) {
-                    viewModel.showTaskForProject(pid)
+                    viewModel.showFilteredTasksForProject(pid)
                     if (!isCustomerTimeTrack) {
                         viewModel.showCustomersForProject(pid)
                     }
@@ -412,54 +549,90 @@ class ProjectFragmentStopwatch : Fragment() {
             }
             attemptPopulateFromWT()
         }
+
+        viewModel.liveWtId.value = -1L
+        viewModel.liveWtId.observe(viewLifecycleOwner) {
+            if (it != -1L) {
+                wtId = it
+            }
+            viewModel.liveWtId.postValue(-1L)
+        }
     }
 
     // --- UI: Sprache setzen ---
     private fun setLanguageTexts() {
-        binding.textInputLayoutProjectTimeProject.hint = languageService.getText("ALLGEMEIN#Projekt")
-        binding.textInputLayoutProjectTimeOrderNo.hint = languageService.getText("ALLGEMEIN#Auftragsnummer")
-        binding.textInputLayoutProjectTimeUnit.hint = languageService.getText("CLIENT#Zeiterfassung_Einheiten")
+        binding.textInputLayoutProjectTimeProject.hint =
+            languageService.getText("ALLGEMEIN#Projekt")
+        binding.textInputLayoutProjectTimeOrderNo.hint =
+            languageService.getText("ALLGEMEIN#Auftragsnummer")
+        binding.textInputLayoutProjectTimeUnit.hint =
+            languageService.getText("CLIENT#Zeiterfassung_Einheiten")
         binding.textInputLayoutProjectTimeTask.hint = languageService.getText("ALLGEMEIN#Vorgang")
         binding.textInputLayoutProjectTimeCustomer.hint = languageService.getText("ALLGEMEIN#Kunde")
         binding.textInputLayoutProjectTimeTeam.hint = languageService.getText("TEAM#Team")
         binding.textInputLayoutProjectTimeTicket.hint = languageService.getText("ALLGEMEIN#Ticket")
-        binding.textInputLayoutProjectTimeActivityType.hint = languageService.getText("ALLGEMEIN#Leistungsart")
-        binding.textInputLayoutProjectTimeActivityTypeMatrix.hint = languageService.getText("Leistungsnachweis#Column_leistungsartmatrix")
-        binding.textInputLayoutProjectTimeSkillLevel.hint = languageService.getText("ALLGEMEIN#Skilllevel")
-        binding.textInputLayoutProjectTimeDescription.hint = languageService.getText("ALLGEMEIN#Beschreibung")
-        binding.textInputLayoutProjectTimePerformanceLocation.hint = languageService.getText("ALLGEMEIN#Leistungsort")
-        binding.textInputLayoutProjectTimeJourney.hint = languageService.getText("CLIENT#ReiseKosten_Reise")
-        binding.textInputLayoutProjectTimeTravelTime.hint = languageService.getText("ALLGEMEIN#Fahrtzeit")
-        binding.textInputLayoutProjectTimeDrivenKm.hint = languageService.getText("CLIENT#ReiseKosten_GefahreneKm")
-        binding.textInputLayoutProjectTimeEvaluation.hint = languageService.getText("ALLGEMEIN#Abschaetzung")
+        binding.textInputLayoutProjectTimeActivityType.hint =
+            languageService.getText("ALLGEMEIN#Leistungsart")
+        binding.textInputLayoutProjectTimeActivityTypeMatrix.hint =
+            languageService.getText("Leistungsnachweis#Column_leistungsartmatrix")
+        binding.textInputLayoutProjectTimeSkillLevel.hint =
+            languageService.getText("ALLGEMEIN#Skilllevel")
+        binding.textInputLayoutProjectTimeDescription.hint =
+            languageService.getText("ALLGEMEIN#Beschreibung")
+        binding.textInputLayoutProjectTimePerformanceLocation.hint =
+            languageService.getText("ALLGEMEIN#Leistungsort")
+        binding.textInputLayoutProjectTimeJourney.hint =
+            languageService.getText("CLIENT#ReiseKosten_Reise")
+        binding.textInputLayoutProjectTimeTravelTime.hint =
+            languageService.getText("ALLGEMEIN#Fahrtzeit")
+        binding.textInputLayoutProjectTimeDrivenKm.hint =
+            languageService.getText("CLIENT#ReiseKosten_GefahreneKm")
+        binding.textInputLayoutProjectTimeEvaluation.hint =
+            languageService.getText("ALLGEMEIN#Abschaetzung")
         binding.kmFlatRate.text = languageService.getText("#KmPausch")
         binding.billable.text = languageService.getText("ALLGEMEIN#Abrechenbar")
         binding.premiumable.text = languageService.getText("CLIENT#Zeiterfassung_Praemienrelevant")
+        binding.startProjectTimeButton.text = languageService.getText("#StartWorkingtime")
+        binding.stopProjectTimeButton.text = languageService.getText("#WorkingTimeEnd")
     }
 
     private suspend fun hideNonVisibleItems() {
         val g = View.GONE
         val permKeys = listOf(
-            "auftragsnummer.show", "einheiten.use", "kunde.use", "tab_zeiterfassung.kunde.show",
-            "teams.show", "zeiterfassung.teamauswahl.use", "tickets.use", "zeiterfassung.leistungsart.use",
-            "leistungsart.matrix.use", "zeiterfassung.skilllevel.use", "zeiterfassung.reise.use",
-            "reisekosten.use", "fertigstellungsgrad.use", "zeiterfassung.abschaetzung.use",
-            "abrechenbar.show", "praemienrelevant.show"
+            "auftragsnummer.show",
+            "einheiten.use",
+            "kunde.use",
+            "tab_zeiterfassung.kunde.show",
+            "teams.show",
+            "zeiterfassung.teamauswahl.use",
+            "tickets.use",
+            "zeiterfassung.leistungsart.use",
+            "leistungsart.matrix.use",
+            "zeiterfassung.skilllevel.use",
+            "zeiterfassung.reise.use",
+            "reisekosten.use",
+            "fertigstellungsgrad.use",
+            "zeiterfassung.abschaetzung.use",
+            "abrechenbar.show",
+            "praemienrelevant.show"
         )
         val permValues = permKeys.associateWith { perm(it) }
-        logger.info("Permission-Keys und Werte: $permValues")
 
         if (!perm("auftragsnummer.show")) binding.textInputLayoutProjectTimeOrderNo.visibility = g
-        if (!perm("einheiten.use")) binding.textInputLayoutProjectTimeUnit.visibility = g
+        if (!perm("einheiten.use")) binding.unitContainer.visibility = g
         val bCustomer = perm("kunde.use") && perm("tab_zeiterfassung.kunde.show")
         if (!bCustomer) binding.textInputLayoutProjectTimeCustomer.visibility = g
         val bTeam = perm("teams.show") && perm("zeiterfassung.teamauswahl.use")
         if (!bTeam) binding.textInputLayoutProjectTimeTeam.visibility = g
         if (!perm("tickets.use")) binding.textInputLayoutProjectTimeTicket.visibility = g
-        if (!perm("zeiterfassung.leistungsart.use")) binding.textInputLayoutProjectTimeActivityType.visibility = g
-        val bActivityTypeMatrix = perm("zeiterfassung.leistungsart.use") && perm("leistungsart.matrix.use")
-        if (!bActivityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility = g
-        if (!perm("zeiterfassung.skilllevel.use")) binding.textInputLayoutProjectTimeSkillLevel.visibility = g
+        if (!perm("zeiterfassung.leistungsart.use")) binding.textInputLayoutProjectTimeActivityType.visibility =
+            g
+        val bActivityTypeMatrix =
+            perm("zeiterfassung.leistungsart.use") && perm("leistungsart.matrix.use")
+        if (!bActivityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility =
+            g
+        if (!perm("zeiterfassung.skilllevel.use")) binding.textInputLayoutProjectTimeSkillLevel.visibility =
+            g
         val bJourney = perm("zeiterfassung.reise.use")
         val bJourneyCost = perm("reisekosten.use")
         if (!(bJourney || bJourneyCost)) {
@@ -481,11 +654,13 @@ class ProjectFragmentStopwatch : Fragment() {
 
     private fun processProjectTimeTrackSetting(it: ProjectTimeTrackSetting) {
         val g = View.GONE
+        val v = View.VISIBLE
         if (!it.activityType) {
             binding.textInputLayoutProjectTimeActivityType.visibility = g
             binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility = g
         }
-        if (!it.activityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility = g
+        if (!it.activityTypeMatrix) binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility =
+            g
         if (!it.billable) binding.billable.visibility = g
         if (!it.customer) binding.textInputLayoutProjectTimeCustomer.visibility = g
         if (!it.description) {
@@ -497,14 +672,38 @@ class ProjectFragmentStopwatch : Fragment() {
         if (!it.journey) binding.textInputLayoutProjectTimeJourney.visibility = g
         if (!it.kmFlatRate) binding.kmFlatRate.visibility = g
         if (!it.orderNo) binding.textInputLayoutProjectTimeOrderNo.visibility = g
-        if (!it.performanceLocation) binding.textInputLayoutProjectTimePerformanceLocation.visibility = g
+        if (!it.performanceLocation) binding.textInputLayoutProjectTimePerformanceLocation.visibility =
+            g
         if (!it.premiumable) binding.premiumable.visibility = g
         if (!it.skillLevel) binding.textInputLayoutProjectTimeSkillLevel.visibility = g
         if (!it.team) binding.textInputLayoutProjectTimeTeam.visibility = g
         if (!it.ticket) binding.textInputLayoutProjectTimeTicket.visibility = g
         if (!it.travelTime) binding.textInputLayoutProjectTimeTravelTime.visibility = g
-        if (!it.unit) binding.textInputLayoutProjectTimeUnit.visibility = g
+        if (!it.unit) binding.unitContainer.visibility = g
         updatePufferComponents()
+
+        viewModel.viewModelScope.launch {
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeCustomer,
+                binding.textInputLayoutProjectTimeCustomer.visibility == v
+                        && perm("tab_zeiterfassung.kunde.muss")
+            )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeSkillLevel,
+                binding.textInputLayoutProjectTimeSkillLevel.visibility == v
+                        && perm("zeiterfassung.skilllevel.pflicht")
+            )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeDescription,
+                binding.descriptionContainer.visibility == v
+                        && perm("zeiterfassung.beschreibung.pflicht")
+            )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimePerformanceLocation,
+                binding.textInputLayoutProjectTimePerformanceLocation.visibility == v
+                        && perm("zeiterfassung.leistungsort.pflicht")
+            )
+        }
     }
 
     private fun addTextWatcher() {
@@ -513,6 +712,7 @@ class ProjectFragmentStopwatch : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 (activity as MainActivity?)?.restartTimer()
             }
+
             override fun afterTextChanged(s: Editable?) {}
         }
         listOf(
@@ -543,11 +743,12 @@ class ProjectFragmentStopwatch : Fragment() {
             val conditionalFields = listOf(
                 binding.textInputLayoutProjectTimeDescription to binding.description.text,
                 binding.textInputLayoutProjectTimeOrderNo to binding.orderNo.text,
-                binding.textInputLayoutProjectTimeUnit to binding.unit.text
+                binding.textInputLayoutProjectTimeUnit to binding.unit.text,
+                binding.textInputLayoutProjectTimeEvaluation to binding.evaluation.text
             )
 
             conditionalFields.forEach { (layout, text) ->
-                if (layout.visibility == v && layout.hint?.last() == '*') {
+                if (layout.visibility == v && layout.hint?.first() == '*') {
                     if (text.isNullOrEmpty()) {
                         error = true
                         layout.error = "Required"
@@ -566,7 +767,7 @@ class ProjectFragmentStopwatch : Fragment() {
         )
 
         alwaysRequiredFields.forEach { (layout, text) ->
-            if (layout.visibility == v && layout.hint?.last() == '*') {
+            if (layout.visibility == v && layout.hint?.first() == '*') {
                 if (text.isNullOrEmpty()) {
                     error = true
                     layout.error = "Required"
@@ -582,6 +783,13 @@ class ProjectFragmentStopwatch : Fragment() {
     private fun updateWorkingTimeButtons(wt: ProjectTimeEntity?) {
         if (!this::binding.isInitialized) return
         binding.startProjectTimeButton.visibility = View.VISIBLE
+        if (wt != null) {
+            binding.startProjectTimeButton.text = ""
+            binding.startProjectTimeButton.iconGravity = MaterialButton.ICON_GRAVITY_TOP
+        } else {
+            binding.startProjectTimeButton.text = languageService.getText("#StartWorkingtime")
+            binding.startProjectTimeButton.iconGravity = MaterialButton.ICON_GRAVITY_END
+        }
         binding.stopProjectTimeButton.visibility = if (wt != null) View.VISIBLE else View.GONE
     }
 
@@ -595,7 +803,6 @@ class ProjectFragmentStopwatch : Fragment() {
             try {
                 populateSequentially(wt)
                 hasAppliedCurrentWT = true
-                logger.info("Population completed successfully!")
             } catch (e: Exception) {
                 logger.warning("Population failed: ${e.message}")
             } finally {
@@ -605,95 +812,104 @@ class ProjectFragmentStopwatch : Fragment() {
     }
 
     private suspend fun populateSequentially(wt: ProjectTimeEntity) {
-        logger.info("Starting sequential population for WT: projectId=${wt.projectId}, taskId=${wt.taskId}")
+
+        // 0) Kunde laden, falls Kunden-Zeiterfassung
+        if (isCustomerTimeTrack) {
+            if (wt.customerId.isNotEmpty() && binding.customer.text.isNullOrEmpty()) {
+                if (setCustomerById(wt.customerId)) {
+                    viewModel.showFilteredProjectsForCustomer(wt.customerId)
+                    awaitAdapterReady { (binding.project.adapter?.count ?: 0) > 0 }
+                }
+            }
+        }
 
         // 1) Projekt setzen und Tasks laden
         if (wt.projectId.isNotEmpty() && binding.project.text.isNullOrEmpty()) {
-            logger.info("Step 1: Setting project ${wt.projectId}")
             if (setProjectById(wt.projectId)) {
-                logger.info("Step 1: Project set, loading tasks/customers")
                 val pid = wt.projectId.toLongOrNull()
                 if (pid != null) {
-                    viewModel.showTaskForProject(pid)
+                    viewModel.showFilteredTasksForProject(pid)
                     awaitAdapterReady { (binding.task.adapter?.count ?: 0) > 0 }
-                    logger.info("Step 1: Tasks loaded")
-
-                    if (!isCustomerTimeTrack) {
-                        viewModel.showCustomersForProject(pid)
-                        awaitAdapterReady { (binding.customer.adapter?.count ?: 0) > 0 }
-                        logger.info("Step 1: Customers loaded")
-                    }
                 }
+            } else {
+                logger.warning("Step 1: Project adapter empty")
             }
         }
 
         // 2) Task setzen und spezifische Kunden laden
         if (wt.taskId.isNotEmpty() && binding.task.text.isNullOrEmpty()) {
-            logger.info("Step 2: Setting task ${wt.taskId}")
             if (setTaskById(wt.taskId)) {
-                logger.info("Step 2: Task set successfully")
-                if (!isCustomerTimeTrack) {
-                    val taskEntity = findInAdapter(binding.task.adapter) { (it as? TaskEntity)?.taskId?.toString() == wt.taskId } as? TaskEntity
-                    taskEntity?.let {
-                        viewModel.showCustomers(it)
+                val taskEntity =
+                    findInAdapter(binding.task.adapter) { (it as? TaskEntity)?.taskId?.toString() == wt.taskId } as? TaskEntity
+                if (taskEntity == null) {
+                    logger.warning("Step 2: Task entity not found in adapter")
+                } else {
+                    taskSelection(taskEntity)
+                    if (!isCustomerTimeTrack) {
                         awaitAdapterReady {
                             val adapter = binding.customer.adapter
                             adapter != null && adapter.count > 0
                         }
-                        logger.info("Step 2: Task-specific customers loaded")
+                    }
+                    if (binding.textInputLayoutProjectTimeTicket.visibility == View.VISIBLE) {
+                        val tickets = viewModel.getTickets(taskEntity.taskId)
+                        awaitAdapterReady {
+                            val adapter = binding.ticket.adapter
+                            adapter != null && adapter.count > 0
+                        }
+                        val ticketName =
+                            tickets.find { ti -> ti.ticketId.toString() == wt.ticketId }?.ticketName
+                        binding.ticket.setText(ticketName ?: "", false)
                     }
                 }
-                if (binding.textInputLayoutProjectTimeTicket.visibility == View.VISIBLE) {
-                    val taskEntity = findInAdapter(binding.task.adapter) { (it as? TaskEntity)?.taskId?.toString() == wt.taskId } as? TaskEntity
-                    taskEntity?.let { t ->
-                        val tickets = viewModel.getTickets(t.taskId)
-                        binding.ticket.setAdapter(TicketEntityAdaptor(requireContext(), R.layout.dropdown_small, tickets))
-                    }
-                }
+            } else {
+                logger.warning("Step 2: Task adapter empty")
             }
+
         }
 
         // Ab hier alles synchron ohne Warten
-        logger.info("Step 3+: Setting all remaining fields")
         populateRemainingFields(wt)
     }
 
     private fun populateRemainingFields(wt: ProjectTimeEntity) {
         // Dropdowns
-        if (wt.customerId.isNotEmpty() && binding.customer.text.isNullOrEmpty()) {
-            logger.info("Setting customer ${wt.customerId}")
-            setCustomerById("kid_"+wt.customerId)
+        if (wt.customerId.isNotEmpty() && binding.customer.text.isNullOrEmpty() && !isCustomerTimeTrack) {
+            setCustomerById(wt.customerId)
         }
 
         if (wt.activityType.isNotEmpty() && binding.activityType.text.isNullOrEmpty()) {
-            logger.info("Setting activityType ${wt.activityType}")
             if (setActivityTypeById(wt.activityType)) {
-                val atEntity = findInAdapter(binding.activityType.adapter) { (it as? ActivityTypeEntity)?.activityTypeId?.toString() == wt.activityType } as? ActivityTypeEntity
+                val atEntity =
+                    findInAdapter(binding.activityType.adapter) { (it as? ActivityTypeEntity)?.activityTypeId?.toString() == wt.activityType } as? ActivityTypeEntity
                 atEntity?.let { entity ->
                     val matrices = viewModel.getActivityTypeMatrixId(entity.activityTypeId)
                     if (matrices.isNotEmpty()) {
                         binding.activityTypeMatrix.setAdapter(
-                            ActivityTypeMatrixEntityAdaptor(requireContext(), R.layout.dropdown_small, matrices)
+                            ActivityTypeMatrixEntityAdaptor(
+                                requireContext(),
+                                R.layout.dropdown_small,
+                                matrices
+                            )
                         )
-                        logger.info("ActivityTypeMatrix adapter created")
+                        val matrixName =
+                            matrices.find { m -> m.activityTypeMatrixId.toString() == wt.activityTypeMatrix }?.activityTypeMatrixName
+                        binding.activityTypeMatrix.setText(matrixName ?: "", false)
                     }
                 }
             }
         }
 
         if (wt.activityTypeMatrix.isNotEmpty() && binding.activityTypeMatrix.text.isNullOrEmpty()) {
-            logger.info("Setting activityTypeMatrix ${wt.activityTypeMatrix}")
             setActivityTypeMatrixById(wt.activityTypeMatrix)
         }
 
         // Weitere Dropdowns
-        logger.info("Setting remaining dropdown fields")
-        if (wt.skillLevel.isNotEmpty() && binding.skillLevel.text.isNullOrEmpty()) setSkillByName(wt.skillLevel)
+        if (wt.skillLevel.isNotEmpty() && binding.skillLevel.text.isNullOrEmpty()) setSkillById(wt.skillLevel)
         if (wt.teamId.isNotEmpty() && binding.team.text.isNullOrEmpty()) setTeamById(wt.teamId)
         if (wt.journeyId.isNotEmpty() && binding.journey.text.isNullOrEmpty()) setJourneyById(wt.journeyId)
 
         // Textfelder
-        logger.info("Setting text fields")
         val textFields = mapOf(
             binding.description to wt.description,
             binding.orderNo to wt.orderNo,
@@ -710,10 +926,13 @@ class ProjectFragmentStopwatch : Fragment() {
         }
 
         // Checkboxes
-        logger.info("Setting checkboxes")
-        if (!binding.kmFlatRate.isChecked && wt.kmFlatRate == "1") binding.kmFlatRate.isChecked = true
-        if (!binding.billable.isChecked && wt.billable == "1") binding.billable.isChecked = true
-        if (!binding.premiumable.isChecked && wt.premium == "1") binding.premiumable.isChecked = true
+        if (!binding.kmFlatRate.isChecked && wt.kmFlatRate == "true") binding.kmFlatRate.isChecked =
+            true
+        if (!binding.billable.isChecked && wt.billable == "true") binding.billable.isChecked = true
+        if (!binding.premiumable.isChecked && wt.premium == "true") binding.premiumable.isChecked =
+            true
+
+        wtId = wt.wtId
     }
 
     private suspend fun awaitAdapterReady(condition: () -> Boolean) {
@@ -730,7 +949,10 @@ class ProjectFragmentStopwatch : Fragment() {
         }
     }
 
-    private fun findInAdapter(adapter: android.widget.ListAdapter?, predicate: (Any?) -> Boolean): Any? {
+    private fun findInAdapter(
+        adapter: android.widget.ListAdapter?,
+        predicate: (Any?) -> Boolean
+    ): Any? {
         adapter ?: return null
         for (i in 0 until adapter.count) {
             val item = adapter.getItem(i)
@@ -741,10 +963,20 @@ class ProjectFragmentStopwatch : Fragment() {
 
     private fun setProjectById(idStr: String): Boolean {
         val adapter = binding.project.adapter ?: return false
-        val entity = findInAdapter(adapter) { (it as? ProjectEntity)?.projectId?.toString() == idStr } as? ProjectEntity
+        val entity =
+            findInAdapter(adapter) { (it as? ProjectEntity)?.projectId?.toString() == idStr } as? ProjectEntity
         if (entity != null && binding.project.text.isNullOrEmpty()) {
             binding.project.setText(entity.projectName, false)
             return true
+        }
+        if (entity == null && binding.project.text.isNullOrEmpty()) {
+            Utils.showErrorMessage(
+                requireContext(),
+                languageService.getText("#ProjectTimeNotVisibleOnTerminal"),
+                true
+            ) {
+                parentFragmentManager.popBackStack()
+            }
         }
         // Falls nicht gefunden, Feld leer lassen und trotzdem true zurückgeben
         logger.warning("Project with ID $idStr not found in adapter, leaving field empty")
@@ -753,13 +985,18 @@ class ProjectFragmentStopwatch : Fragment() {
 
     private fun setTaskById(idStr: String): Boolean {
         val adapter = binding.task.adapter ?: return false
-        val entity = findInAdapter(adapter) { (it as? TaskEntity)?.taskId?.toString() == idStr } as? TaskEntity
+        val entity =
+            findInAdapter(adapter) { (it as? TaskEntity)?.taskId?.toString() == idStr } as? TaskEntity
         if (entity != null && binding.task.text.isNullOrEmpty()) {
             binding.task.setText(entity.taskName, false)
-            if (entity.abrechenbarPBaum != 3L) binding.billable.isChecked = entity.abrechenbarPBaum == 1L
+            if (entity.abrechenbarPBaum != 3L) binding.billable.isChecked =
+                entity.abrechenbarPBaum == 1L
             binding.billable.isEnabled = !entity.abrechenbarDisabled
             val activityTypeId = viewModel.getActivityTypeId(entity.taskId)
-            if (activityTypeId.isNotEmpty() && binding.activityType.text.isNullOrEmpty()) binding.activityType.setText(activityTypeId, true)
+            if (activityTypeId.isNotEmpty() && binding.activityType.text.isNullOrEmpty()) binding.activityType.setText(
+                activityTypeId,
+                true
+            )
             return true
         }
         // Falls nicht gefunden, Feld leer lassen und trotzdem true zurückgeben
@@ -769,7 +1006,8 @@ class ProjectFragmentStopwatch : Fragment() {
 
     private fun setCustomerById(idStr: String): Boolean {
         val adapter = binding.customer.adapter ?: return false
-        val entity = findInAdapter(adapter) { (it as? CustomerEntityAdapter.CustomerComboEntity)?.id == idStr } as? CustomerEntityAdapter.CustomerComboEntity
+        val entity =
+            findInAdapter(adapter) { (it as? CustomerEntityAdapter.CustomerComboEntity)?.id == idStr } as? CustomerEntityAdapter.CustomerComboEntity
         if (entity != null && binding.customer.text.isNullOrEmpty()) {
             binding.customer.setText(entity.name, false)
         } else {
@@ -780,7 +1018,8 @@ class ProjectFragmentStopwatch : Fragment() {
 
     private fun setActivityTypeById(idStr: String): Boolean {
         val adapter = binding.activityType.adapter ?: return false
-        val entity = findInAdapter(adapter) { (it as? ActivityTypeEntity)?.activityTypeId?.toString() == idStr } as? ActivityTypeEntity
+        val entity =
+            findInAdapter(adapter) { (it as? ActivityTypeEntity)?.activityTypeId?.toString() == idStr } as? ActivityTypeEntity
         if (entity != null && binding.activityType.text.isNullOrEmpty()) {
             binding.activityType.setText(entity.activityTypeName, false)
         } else {
@@ -791,7 +1030,8 @@ class ProjectFragmentStopwatch : Fragment() {
 
     private fun setActivityTypeMatrixById(idStr: String): Boolean {
         val adapter = binding.activityTypeMatrix.adapter ?: return false
-        val entity = findInAdapter(adapter) { (it as? ActivityTypeMatrixEntity)?.activityTypeMatrixId?.toString() == idStr } as? ActivityTypeMatrixEntity
+        val entity =
+            findInAdapter(adapter) { (it as? ActivityTypeMatrixEntity)?.activityTypeMatrixId?.toString() == idStr } as? ActivityTypeMatrixEntity
         if (entity != null && binding.activityTypeMatrix.text.isNullOrEmpty()) {
             binding.activityTypeMatrix.setText(entity.activityTypeMatrixName, false)
         } else {
@@ -800,20 +1040,22 @@ class ProjectFragmentStopwatch : Fragment() {
         return true
     }
 
-    private fun setSkillByName(name: String): Boolean {
+    private fun setSkillById(id: String): Boolean {
         val adapter = binding.skillLevel.adapter ?: return false
-        val entity = findInAdapter(adapter) { (it as? SkillEntity)?.skillName?.toString() == name } as? SkillEntity
+        val entity =
+            findInAdapter(adapter) { (it as? SkillEntity)?.skillId.toString() == id } as? SkillEntity
         if (entity != null && binding.skillLevel.text.isNullOrEmpty()) {
             binding.skillLevel.setText(entity.skillName, false)
         } else {
-            logger.warning("Skill with Name $name not found in adapter, leaving field empty")
+            logger.warning("Skill with id $id not found in adapter, leaving field empty")
         }
         return true
     }
 
     private fun setTeamById(idStr: String): Boolean {
         val adapter = binding.team.adapter ?: return false
-        val entity = findInAdapter(adapter) { (it as? TeamEntity)?.teamId?.toString() == idStr } as? TeamEntity
+        val entity =
+            findInAdapter(adapter) { (it as? TeamEntity)?.teamId?.toString() == idStr } as? TeamEntity
         if (entity != null && binding.team.text.isNullOrEmpty()) {
             binding.team.setText(entity.teamName, false)
         } else {
@@ -824,7 +1066,8 @@ class ProjectFragmentStopwatch : Fragment() {
 
     private fun setJourneyById(idStr: String): Boolean {
         val adapter = binding.journey.adapter ?: return false
-        val entity = findInAdapter(adapter) { (it as? JourneyEntity)?.journeyId?.toString() == idStr } as? JourneyEntity
+        val entity =
+            findInAdapter(adapter) { (it as? JourneyEntity)?.journeyId?.toString() == idStr } as? JourneyEntity
         if (entity != null && binding.journey.text.isNullOrEmpty()) {
             binding.journey.setText(entity.journeyName, false)
         } else {
@@ -844,7 +1087,7 @@ class ProjectFragmentStopwatch : Fragment() {
             binding.pufferBetweenTeamAndUnit to (binding.textInputLayoutProjectTimeTicket.visibility == v && binding.textInputLayoutProjectTimeTeam.visibility == v),
             binding.pufferBetweenActivityAndMatrix to (binding.textInputLayoutProjectTimeActivityType.visibility == v && binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility == v),
             binding.pufferBetweenActivityMatrixAndSkill to (binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility == v && binding.textInputLayoutProjectTimeSkillLevel.visibility == v),
-            binding.pufferBetweenActivitySkillAndUnits to (binding.textInputLayoutProjectTimeSkillLevel.visibility == v && binding.textInputLayoutProjectTimeUnit.visibility == v),
+            binding.pufferBetweenActivitySkillAndUnits to (binding.textInputLayoutProjectTimeSkillLevel.visibility == v && binding.unitContainer.visibility == v),
             binding.pufferBetweenJourneyAndTraveltime to (binding.textInputLayoutProjectTimeJourney.visibility == v && binding.textInputLayoutProjectTimeTravelTime.visibility == v),
             binding.pufferBetweenTraveltimeAndKm to (binding.textInputLayoutProjectTimeTravelTime.visibility == v && binding.textInputLayoutProjectTimeDrivenKm.visibility == v),
             binding.pufferBetweenKmAndKmblan to (binding.textInputLayoutProjectTimeDrivenKm.visibility == v && binding.kmFlatRate.visibility == v),
@@ -858,7 +1101,7 @@ class ProjectFragmentStopwatch : Fragment() {
         // Container-Sichtbarkeit
         val containers = mapOf(
             binding.assignmentContainer to (binding.textInputLayoutProjectTimeTicket.visibility == v || binding.textInputLayoutProjectTimeTeam.visibility == v),
-            binding.activityContainer to (binding.textInputLayoutProjectTimeActivityType.visibility == v || binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility == v || binding.textInputLayoutProjectTimeSkillLevel.visibility == v || binding.textInputLayoutProjectTimeUnit.visibility == v),
+            binding.activityContainer to (binding.textInputLayoutProjectTimeActivityType.visibility == v || binding.textInputLayoutProjectTimeActivityTypeMatrix.visibility == v || binding.textInputLayoutProjectTimeSkillLevel.visibility == v || binding.unitContainer.visibility == v),
             binding.billableContainer to (binding.textInputLayoutProjectTimeOrderNo.visibility == v || binding.billable.visibility == v || binding.premiumable.visibility == v),
             binding.journeyContainer to (binding.textInputLayoutProjectTimeJourney.visibility == v || binding.textInputLayoutProjectTimeTravelTime.visibility == v || binding.textInputLayoutProjectTimeDrivenKm.visibility == v || binding.kmFlatRate.visibility == v),
             binding.descriptionContainer to (binding.textInputLayoutProjectTimeDescription.visibility == v || binding.descriptionCloseButton.visibility == v),
@@ -876,37 +1119,44 @@ class ProjectFragmentStopwatch : Fragment() {
         val standardMargin = 10.dpToPx()
         val firstContainerMargin = 0.dpToPx()
         val containers = listOf(
-            binding.billableContainer, binding.activityContainer, binding.assignmentContainer,
-            binding.descriptionContainer, binding.locationEvaluationContainer, binding.journeyContainer
+            binding.billableContainer,
+            binding.activityContainer,
+            binding.assignmentContainer,
+            binding.descriptionContainer,
+            binding.locationEvaluationContainer,
+            binding.journeyContainer
         )
         var isFirstVisibleContainer = true
         for (container in containers) {
             if (container.visibility == View.VISIBLE) {
                 val layoutParams = container.layoutParams as LinearLayout.LayoutParams
-                layoutParams.topMargin = if (isFirstVisibleContainer) firstContainerMargin else standardMargin
+                layoutParams.topMargin =
+                    if (isFirstVisibleContainer) firstContainerMargin else standardMargin
                 container.layoutParams = layoutParams
                 isFirstVisibleContainer = false
             }
         }
     }
 
-    private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()
+    private fun Int.dpToPx(): Int = Utils.dpToPx(this, resources.displayMetrics.density)
 
     private fun arrangeInputsBasedOnSettings(settings: ProjectTimeTrackSetting) {
         try {
             val normalized = settings.fieldOrder.trim()
-            val isCustomOrder = normalized.isNotEmpty() && normalized != ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
+            val isCustomOrder =
+                normalized.isNotEmpty() && normalized != ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
             flatReorderMode = isCustomOrder
 
             val arrangement = settings.arrangeInputsBasedOnSettingsForStopwatch(isCustomerTimeTrack)
-            reorderFirstPageInputs(arrangement.firstPageOrder)
 
             if (flatReorderMode) {
-                val keysForSecondPage = (settings.fieldOrder.takeIf { it.isNotBlank() } ?: ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER)
+                reorderFirstPageInputs(arrangement.firstPageOrder)
+                val keysForSecondPage = (settings.fieldOrder.takeIf { it.isNotBlank() }
+                    ?: ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER)
                     .split(',')
                     .map { it.trim() }
                     .filter { it.isNotEmpty() && it !in arrangement.firstPageOrder }
-                reorderSecondPageFlat(keysForSecondPage)
+                reorderSecondPageFlat(keysForSecondPage, !settings.description)
             } else {
                 reorderSecondPageContainers(arrangement.secondPageContainerOrder)
                 updateContainerMargins()
@@ -919,10 +1169,10 @@ class ProjectFragmentStopwatch : Fragment() {
     private fun reorderFirstPageInputs(order: List<String>) {
         val parent = binding.dropdownMenuLayout
         // Basis-Mapping für Seite 1 (Textfelder)
-        val baseMapping = mutableMapOf(
+        val baseMapping = mutableMapOf<String, View>(
             ProjectTimeTrackSetting.Keys.PROJECT to binding.textInputLayoutProjectTimeProject,
             ProjectTimeTrackSetting.Keys.TASK to binding.textInputLayoutProjectTimeTask,
-            ProjectTimeTrackSetting.Keys.CUSTOMER to binding.textInputLayoutProjectTimeCustomer,
+            ProjectTimeTrackSetting.Keys.CUSTOMER to binding.textInputLayoutProjectTimeCustomer
         )
         // Optional: weitere Felder im Flat-Mode zulassen
         val checkboxMap: Map<String, View> = if (flatReorderMode) {
@@ -938,7 +1188,7 @@ class ProjectFragmentStopwatch : Fragment() {
                     ProjectTimeTrackSetting.Keys.JOURNEY to binding.textInputLayoutProjectTimeJourney,
                     ProjectTimeTrackSetting.Keys.TRAVEL_TIME to binding.textInputLayoutProjectTimeTravelTime,
                     ProjectTimeTrackSetting.Keys.DRIVEN_KM to binding.textInputLayoutProjectTimeDrivenKm,
-                    ProjectTimeTrackSetting.Keys.DESCRIPTION to binding.textInputLayoutProjectTimeDescription,
+                    ProjectTimeTrackSetting.Keys.DESCRIPTION to binding.descriptionContainer,
                     ProjectTimeTrackSetting.Keys.PERFORMANCE_LOCATION to binding.textInputLayoutProjectTimePerformanceLocation,
                     ProjectTimeTrackSetting.Keys.EVALUATION to binding.textInputLayoutProjectTimeEvaluation
                 )
@@ -957,9 +1207,9 @@ class ProjectFragmentStopwatch : Fragment() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             lp.topMargin = if (isFirst) 0 else 10.dpToPx()
-            lp.bottomMargin = 10.dpToPx()
             return lp
         }
+
         fun firstPageInlineLp(): LinearLayout.LayoutParams {
             return LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -992,7 +1242,9 @@ class ProjectFragmentStopwatch : Fragment() {
                 while (j < order.size) {
                     val k = order[j]
                     val v = checkboxMap[k] ?: break
-                    if (v.visibility == View.GONE) { j++; continue }
+                    if (v.visibility == View.GONE) {
+                        j++; continue
+                    }
                     (v.parent as? ViewGroup)?.removeView(v)
                     row.addView(v, firstPageInlineLp())
                     added = true
@@ -1008,7 +1260,11 @@ class ProjectFragmentStopwatch : Fragment() {
             val view = baseMapping[key]
             if (view != null && view.visibility != View.GONE) {
                 (view.parent as? ViewGroup)?.removeView(view)
-                view.layoutParams = firstPageRowLp(isFirstAdded)
+                val params = firstPageRowLp(isFirstAdded)
+                if (view.layoutParams.height >= 75.dpToPx()) {
+                    params.height = 75
+                }
+                view.layoutParams = params
                 parent.addView(view, parent.childCount)
                 isFirstAdded = false
             }
@@ -1032,13 +1288,14 @@ class ProjectFragmentStopwatch : Fragment() {
             if (view.visibility == View.GONE) continue
             // detach and insert before the back button so it stays last
             (view.parent as? ViewGroup)?.removeView(view)
-            val insertIndex = parent.indexOfChild(backButton).takeIf { it >= 0 } ?: parent.childCount
+            val insertIndex =
+                parent.indexOfChild(backButton).takeIf { it >= 0 } ?: parent.childCount
             parent.addView(view, insertIndex)
         }
     }
 
     // Flacher Aufbau der zweiten Seite ohne Container-Gruppierung
-    private fun reorderSecondPageFlat(keys: List<String>) {
+    private fun reorderSecondPageFlat(keys: List<String>, hideDescription: Boolean) {
         val parent = binding.secondPageDetailLayout
 
         // Container ausblenden, damit sie nicht doppelt erscheinen
@@ -1049,7 +1306,8 @@ class ProjectFragmentStopwatch : Fragment() {
         binding.locationEvaluationContainer.visibility = View.GONE
         // Beschreibung darf als eigener Block sichtbar bleiben, wenn gewählt
         // Wir fügen aber bevorzugt das Textfeld direkt ein; der Container wird nicht benötigt
-        binding.descriptionContainer.visibility = View.GONE
+        if (hideDescription)
+            binding.descriptionContainer.visibility = View.GONE
 
         // Back-Button sichern und alle Kinder entfernen
         parent.removeAllViews()
@@ -1067,7 +1325,7 @@ class ProjectFragmentStopwatch : Fragment() {
             ProjectTimeTrackSetting.Keys.JOURNEY to binding.textInputLayoutProjectTimeJourney,
             ProjectTimeTrackSetting.Keys.TRAVEL_TIME to binding.textInputLayoutProjectTimeTravelTime,
             ProjectTimeTrackSetting.Keys.DRIVEN_KM to binding.textInputLayoutProjectTimeDrivenKm,
-            ProjectTimeTrackSetting.Keys.DESCRIPTION to binding.textInputLayoutProjectTimeDescription,
+            ProjectTimeTrackSetting.Keys.DESCRIPTION to binding.descriptionContainer,
             ProjectTimeTrackSetting.Keys.PERFORMANCE_LOCATION to binding.textInputLayoutProjectTimePerformanceLocation,
             ProjectTimeTrackSetting.Keys.EVALUATION to binding.textInputLayoutProjectTimeEvaluation
         )
@@ -1078,12 +1336,19 @@ class ProjectFragmentStopwatch : Fragment() {
         )
 
         fun lpRow(first: Boolean): LinearLayout.LayoutParams {
-            val p = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            val p = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
             p.topMargin = if (first) 0 else 10.dpToPx()
             return p
         }
+
         fun lpWrap(): LinearLayout.LayoutParams {
-            return LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            return LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
         var first = true
@@ -1102,7 +1367,9 @@ class ProjectFragmentStopwatch : Fragment() {
                 while (j < keys.size) {
                     val k = keys[j]
                     val v = checkboxMap[k] ?: break
-                    if (v.visibility == View.GONE) { j++; continue }
+                    if (v.visibility == View.GONE) {
+                        j++; continue
+                    }
                     // Aus altem Parent lösen und hinzufügen
                     (v.parent as? ViewGroup)?.removeView(v)
                     row.addView(v, lpWrap())
@@ -1117,11 +1384,18 @@ class ProjectFragmentStopwatch : Fragment() {
                 continue
             }
             val view = viewMap[key]
-            if (view == null) { i++; continue }
-            if (view.visibility == View.GONE) { i++; continue }
+            if (view == null) {
+                i++; continue
+            }
+            if (view.visibility == View.GONE) {
+                i++; continue
+            }
             // Lösen und als volle Zeile einfügen
             (view.parent as? ViewGroup)?.removeView(view)
             val params = lpRow(first)
+            if (view.layoutParams.height >= 75.dpToPx()) {
+                params.height = 75
+            }
             view.layoutParams = params
             parent.addView(view)
             first = false
@@ -1130,10 +1404,16 @@ class ProjectFragmentStopwatch : Fragment() {
     }
 
     private fun startProjectTime() {
-        if (!isValid(true)) return
+        if (!isValid(true)) {
+            Utils.showErrorMessage(
+                requireContext(),
+                languageService.getText("ALLGEMEIN#WeiterePflichtfelder")
+            )
+            return
+        }
 
+        val cal = Utils.getCal()
         val data = HashMap<String, String>().apply {
-            val cal = Utils.getCal()
             put("userId", userId.toString())
             put("date", Utils.getDateForTransfer(cal))
             put("from", Utils.getTimeFromGC(cal))
@@ -1148,25 +1428,145 @@ class ProjectFragmentStopwatch : Fragment() {
             put("billable", if (binding.billable.isChecked) "true" else "false")
             put("premium", if (binding.premiumable.isChecked) "true" else "false")
             put("timeEntryType", "10")
+            put("editorId", userId.toString())
 
             // Adapter-based IDs
-            (binding.customer.adapter as? CustomerEntityAdapter)?.getItemByName(binding.customer.text.toString())?.id?.let { put("customerId", it) }
-            (binding.ticket.adapter as? TicketEntityAdaptor)?.getItemByName(binding.ticket.text.toString())?.ticketId?.let { put("ticketId", it.toString()) }
-            (binding.project.adapter as? ProjectEntityAdaptor)?.getItemByName(binding.project.text.toString())?.projectId?.let { put("projectId", it.toString()) }
-            (binding.task.adapter as? TaskEntityAdaptor)?.getItemByName(binding.task.text.toString())?.taskId?.let { put("taskId", it.toString()) }
-            (binding.activityType.adapter as? ActivityTypeEntityAdaptor)?.getItemByName(binding.activityType.text.toString())?.activityTypeId?.let { put("activityType", it.toString()) }
-            (binding.activityTypeMatrix.adapter as? ActivityTypeMatrixEntityAdaptor)?.getItemByName(binding.activityTypeMatrix.text.toString())?.activityTypeMatrixId?.let { put("activityTypeMatrix", it.toString()) }
-            (binding.skillLevel.adapter as? SkillEntityAdaptor)?.getItemByName(binding.skillLevel.text.toString())?.skillId?.let { put("skillLevel", it.toString()) }
-            (binding.team.adapter as? TeamEntityAdaptor)?.getItemByName(binding.team.text.toString())?.teamId?.let { put("teamId", it.toString()) }
-            (binding.journey.adapter as? JourneyEntityAdaptor)?.getItemByName(binding.journey.text.toString())?.journeyId?.let { put("journeyId", it.toString()) }
+            (binding.customer.adapter as? CustomerEntityAdapter)?.getItemByName(binding.customer.text.toString())?.id?.let {
+                put(
+                    "customerId",
+                    it
+                )
+            }
+            (binding.ticket.adapter as? TicketEntityAdaptor)?.getItemByName(binding.ticket.text.toString())?.ticketId?.let {
+                put(
+                    "ticketId",
+                    it.toString()
+                )
+            }
+            (binding.project.adapter as? ProjectEntityAdaptor)?.getItemByName(binding.project.text.toString())?.projectId?.let {
+                put(
+                    "projectId",
+                    it.toString()
+                )
+            }
+            (binding.task.adapter as? TaskEntityAdaptor)?.getItemByName(binding.task.text.toString())?.taskId?.let {
+                put(
+                    "taskId",
+                    it.toString()
+                )
+            }
+            (binding.activityType.adapter as? ActivityTypeEntityAdaptor)?.getItemByName(binding.activityType.text.toString())?.activityTypeId?.let {
+                put(
+                    "activityType",
+                    it.toString()
+                )
+            }
+            (binding.activityTypeMatrix.adapter as? ActivityTypeMatrixEntityAdaptor)?.getItemByName(
+                binding.activityTypeMatrix.text.toString()
+            )?.activityTypeMatrixId?.let { put("activityTypeMatrix", it.toString()) }
+            (binding.skillLevel.adapter as? SkillEntityAdaptor)?.getItemByName(binding.skillLevel.text.toString())?.skillId?.let {
+                put(
+                    "skillLevel",
+                    it.toString()
+                )
+            }
+            (binding.team.adapter as? TeamEntityAdaptor)?.getItemByName(binding.team.text.toString())?.teamId?.let {
+                put(
+                    "teamId",
+                    it.toString()
+                )
+            }
+            (binding.journey.adapter as? JourneyEntityAdaptor)?.getItemByName(binding.journey.text.toString())?.journeyId?.let {
+                put(
+                    "journeyId",
+                    it.toString()
+                )
+            }
         }
 
         viewModel.startWorkingTime(data, requireContext(), this)
     }
 
     private fun stopProjectTime() {
-        if (!isValid(false)) return
-        viewModel.stopLatestOpenWorkingTime(requireContext(), this)
+        if (!isValid(false)) {
+            Utils.showErrorMessage(
+                requireContext(),
+                languageService.getText("ALLGEMEIN#WeiterePflichtfelder")
+            )
+            return
+        }
+        val cal = Utils.getCal()
+        val data = HashMap<String, String>().apply {
+            put("userId", userId.toString())
+            put("dateTo", Utils.getDateForTransfer(cal))
+            put("to", Utils.getTimeFromGC(cal))
+            put("description", binding.description.text.toString())
+            put("orderNo", binding.orderNo.text.toString())
+            put("performanceLocation", binding.performanceLocation.text.toString())
+            put("travelTime", binding.travelTime.text.toString())
+            put("drivenKm", binding.drivenKm.text.toString())
+            put("units", binding.unit.text.toString())
+            put("estimation", binding.evaluation.text.toString())
+            put("kmFlatRate", if (binding.kmFlatRate.isChecked) "true" else "false")
+            put("billable", if (binding.billable.isChecked) "true" else "false")
+            put("premium", if (binding.premiumable.isChecked) "true" else "false")
+            put("timeEntryType", "10")
+            put("wtId", wtId.toString())
+
+            // Adapter-based IDs
+            (binding.customer.adapter as? CustomerEntityAdapter)?.getItemByName(binding.customer.text.toString())?.id?.let {
+                put(
+                    "customerId",
+                    it
+                )
+            }
+            (binding.ticket.adapter as? TicketEntityAdaptor)?.getItemByName(binding.ticket.text.toString())?.ticketId?.let {
+                put(
+                    "ticketId",
+                    it.toString()
+                )
+            }
+            (binding.project.adapter as? ProjectEntityAdaptor)?.getItemByName(binding.project.text.toString())?.projectId?.let {
+                put(
+                    "projectId",
+                    it.toString()
+                )
+            }
+            (binding.task.adapter as? TaskEntityAdaptor)?.getItemByName(binding.task.text.toString())?.taskId?.let {
+                put(
+                    "taskId",
+                    it.toString()
+                )
+            }
+            (binding.activityType.adapter as? ActivityTypeEntityAdaptor)?.getItemByName(binding.activityType.text.toString())?.activityTypeId?.let {
+                put(
+                    "activityType",
+                    it.toString()
+                )
+            }
+            (binding.activityTypeMatrix.adapter as? ActivityTypeMatrixEntityAdaptor)?.getItemByName(
+                binding.activityTypeMatrix.text.toString()
+            )?.activityTypeMatrixId?.let { put("activityTypeMatrix", it.toString()) }
+            (binding.skillLevel.adapter as? SkillEntityAdaptor)?.getItemByName(binding.skillLevel.text.toString())?.skillId?.let {
+                put(
+                    "skillLevel",
+                    it.toString()
+                )
+            }
+            (binding.team.adapter as? TeamEntityAdaptor)?.getItemByName(binding.team.text.toString())?.teamId?.let {
+                put(
+                    "teamId",
+                    it.toString()
+                )
+            }
+            (binding.journey.adapter as? JourneyEntityAdaptor)?.getItemByName(binding.journey.text.toString())?.journeyId?.let {
+                put(
+                    "journeyId",
+                    it.toString()
+                )
+            }
+        }
+        viewModel.stopLatestOpenWorkingTime(data, requireContext(), this, offlineSaved)
     }
 
     // --- Runnable ---
@@ -1175,8 +1575,10 @@ class ProjectFragmentStopwatch : Fragment() {
             val cal = Utils.getCal()
             val currentTime = Utils.getTimeWithSecondsFormGC(cal)
             val currentDate = Utils.getDateFromGC(cal)
-            binding.dateView.text = currentDate
-            binding.timeView.text = currentTime
+            if(binding.firstPageDetailLayout.visibility == View.VISIBLE) {
+                binding.dateView.text = currentDate
+                binding.timeView.text = currentTime
+            }
             handler.postDelayed(this, 998)
         }
     }

@@ -1,8 +1,7 @@
 package com.timo.timoterminal.fragmentViews
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +15,7 @@ import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
+import com.google.android.material.textfield.TextInputLayout
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentProjectBinding
@@ -34,8 +34,11 @@ import com.timo.timoterminal.entityClasses.ProjectEntity
 import com.timo.timoterminal.entityClasses.ProjectTimeEntity
 import com.timo.timoterminal.entityClasses.ProjectTimeTrackSetting
 import com.timo.timoterminal.entityClasses.TaskEntity
+import com.timo.timoterminal.modalBottomSheets.MBFragmentProjectErrorSheet
 import com.timo.timoterminal.service.LanguageService
 import com.timo.timoterminal.utils.Utils
+import com.timo.timoterminal.utils.classes.CustomDatePicker
+import com.timo.timoterminal.utils.classes.CustomTimePicker
 import com.timo.timoterminal.viewModel.ProjectFragmentViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -47,6 +50,7 @@ private const val ARG_CUSTOMER_TIME_TRACK = "customerTimeTrack"
 private const val ARG_TIME_ENTRY_TYPE = "timeEntryType"
 private const val ARG_CROSS_DAY = "crossDay"
 private const val ARG_PROJECT_TIME_ENTITY = "projectTimeEntity"
+private const val ARG_EDITOR_ID = "editorId"
 
 class ProjectFragment : Fragment() {
     private val languageService: LanguageService by inject()
@@ -55,6 +59,7 @@ class ProjectFragment : Fragment() {
     private var timeEntryType: Long? = null
     private var crossDay: Boolean = false
     private var projectTimeEntity: ProjectTimeEntity? = null
+    private var editorId: String? = null
 
     private lateinit var binding: FragmentProjectBinding
 
@@ -72,6 +77,9 @@ class ProjectFragment : Fragment() {
     private val v = View.VISIBLE
     private val g = View.GONE
 
+
+    private var darkMode: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -86,6 +94,7 @@ class ProjectFragment : Fragment() {
                 @Suppress("DEPRECATION")
                 projectTimeEntity = it.getParcelable(ARG_PROJECT_TIME_ENTITY)
             }
+            editorId = it.getString(ARG_EDITOR_ID, it.getLong(ARG_USERID).toString())
         }
         viewModel.userId = userId ?: -1L
         viewModel.isCustomerTimeTrack = isCustomerTimeTrack
@@ -97,7 +106,7 @@ class ProjectFragment : Fragment() {
     ): View {
         binding = FragmentProjectBinding.inflate(inflater, container, false)
 
-        setUp()
+        binding.fromDate.setText(Utils.getDateFromGC(Utils.getCal()))
 
         return binding.root
     }
@@ -105,6 +114,8 @@ class ProjectFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        darkMode =
+            (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val rootView = requireActivity().window.decorView.findViewById<View>(android.R.id.content)
 
         rootView.viewTreeObserver.addOnGlobalLayoutListener {
@@ -150,16 +161,26 @@ class ProjectFragment : Fragment() {
                 }
             }
         }
+
+        setUp()
     }
 
     override fun onResume() {
         super.onResume()
+        viewModel.userId = userId ?: -1L
         viewModel.loadForProjectTimeTrack(requireContext())
-        binding.fromDate.setText(Utils.getDateFromGC(Utils.getCal()) as CharSequence)
+        (activity as MainActivity?)?.hideLoadMask()
+
+        viewModel.viewModelScope.launch {
+            if(projectTimeEntity == null && viewModel.hasFailedProjectTimes()){
+                binding.projectFragmentButtonProjectTimeList.visibility = v
+            }
+        }
     }
 
     override fun onPause() {
         super.onPause()
+        viewModel.liveHideMask.postValue(true)
         viewModel.userId = -1L
     }
 
@@ -169,100 +190,106 @@ class ProjectFragment : Fragment() {
         }
 
         binding.fromDate.setOnClickListener {
+            val value = binding.fromDate.text.toString().split(".")
             val greg = Utils.getCal()
-            val datePickerDialog = DatePickerDialog(
-                requireContext(),
+            val datePickerDialog = CustomDatePicker.newInstance(
                 { _, year, month, dayOfMonth ->
                     val selectedDate = "%02d.%02d.%04d".format(dayOfMonth, month + 1, year)
                     binding.fromDate.setText(selectedDate)
                     viewModel.getJourneys(selectedDate)
                 },
-                greg.get(Calendar.YEAR),
-                greg.get(Calendar.MONTH),
-                greg.get(Calendar.DAY_OF_MONTH)
+                if(value.size > 2) value[2].toInt() else greg.get(Calendar.YEAR),
+                if(value.size > 2) value[1].toInt() - 1 else greg.get(Calendar.MONTH),
+                if(value.size > 2) value[0].toInt() else greg.get(Calendar.DAY_OF_MONTH)
             )
             (activity as MainActivity?)?.restartTimer()
-            datePickerDialog.show()
+            datePickerDialog.isThemeDark = darkMode
+            datePickerDialog.show(parentFragmentManager, "DatePickerDialog")
         }
 
         binding.toDate.setOnClickListener {
+            val value = binding.toDate.text.toString().split(".")
             val greg = Utils.getCal()
-            val datePickerDialog = DatePickerDialog(
-                requireContext(),
+            val datePickerDialog = CustomDatePicker.newInstance(
                 { _, year, month, dayOfMonth ->
                     val selectedDate = "%02d.%02d.%04d".format(dayOfMonth, month + 1, year)
                     binding.toDate.setText(selectedDate)
                 },
-                greg.get(Calendar.YEAR),
-                greg.get(Calendar.MONTH),
-                greg.get(Calendar.DAY_OF_MONTH)
+                if(value.size > 2) value[2].toInt() else greg.get(Calendar.YEAR),
+                if(value.size > 2) value[1].toInt() - 1 else greg.get(Calendar.MONTH),
+                if(value.size > 2) value[0].toInt() else greg.get(Calendar.DAY_OF_MONTH)
             )
             (activity as MainActivity?)?.restartTimer()
-            datePickerDialog.show()
+            datePickerDialog.isThemeDark = darkMode
+            datePickerDialog.show(parentFragmentManager, "DatePickerDialog")
         }
 
         binding.from.setOnClickListener {
+            val value = binding.from.text.toString().split(":")
             val greg = Utils.getCal()
-            val timePickerDialog = TimePickerDialog(
-                requireContext(),
-                { _, hourOfDay, minute ->
+            val timePickerDialog = CustomTimePicker.newInstance(
+                { _, hourOfDay, minute, _ ->
                     val selectedTime = "%02d:%02d".format(hourOfDay, minute)
                     binding.from.setText(selectedTime)
                 },
-                greg.get(Calendar.HOUR_OF_DAY),
-                greg.get(Calendar.MINUTE),
+                if(value.size > 1) value[0].toInt() else greg.get(Calendar.HOUR_OF_DAY),
+                if(value.size > 1) value[1].toInt() else greg.get(Calendar.MINUTE),
                 true
             )
             (activity as MainActivity?)?.restartTimer()
-            timePickerDialog.show()
+            timePickerDialog.isThemeDark = darkMode
+            timePickerDialog.show(parentFragmentManager, "TimePickerDialog")
         }
 
         binding.to.setOnClickListener {
+            val value = binding.to.text.toString().split(":")
             val greg = Utils.getCal()
-            val timePickerDialog = TimePickerDialog(
-                requireContext(),
-                { _, hourOfDay, minute ->
+            val timePickerDialog = CustomTimePicker.newInstance(
+                { _, hourOfDay, minute, _ ->
                     val selectedTime = "%02d:%02d".format(hourOfDay, minute)
                     binding.to.setText(selectedTime)
                 },
-                greg.get(Calendar.HOUR_OF_DAY),
-                greg.get(Calendar.MINUTE),
+                if(value.size > 1) value[0].toInt() else greg.get(Calendar.HOUR_OF_DAY),
+                if(value.size > 1) value[1].toInt() else greg.get(Calendar.MINUTE),
                 true
             )
             (activity as MainActivity?)?.restartTimer()
-            timePickerDialog.show()
+            timePickerDialog.isThemeDark = darkMode
+            timePickerDialog.show(parentFragmentManager, "TimePickerDialog")
         }
 
         binding.hours.setOnClickListener {
+            val value = binding.hours.text.toString().split(":")
             val greg = Utils.getCal()
-            val timePickerDialog = TimePickerDialog(
-                requireContext(),
-                { _, hourOfDay, minute ->
+            val timePickerDialog = CustomTimePicker.newInstance(
+                { _, hourOfDay, minute, _ ->
                     val selectedTime = "%02d:%02d".format(hourOfDay, minute)
                     binding.hours.setText(selectedTime)
                 },
-                greg.get(Calendar.HOUR_OF_DAY),
-                greg.get(Calendar.MINUTE),
+                if(value.size > 1) value[0].toInt() else greg.get(Calendar.HOUR_OF_DAY),
+                if(value.size > 1) value[1].toInt() else greg.get(Calendar.MINUTE),
                 true
             )
             (activity as MainActivity?)?.restartTimer()
-            timePickerDialog.show()
+            timePickerDialog.isThemeDark = darkMode
+            timePickerDialog.show(parentFragmentManager, "TimePickerDialog")
         }
 
         binding.travelTime.setOnClickListener {
+            val value = binding.travelTime.text.toString().split(":")
             val greg = Utils.getCal()
-            val timePickerDialog = TimePickerDialog(
-                requireContext(),
-                { _, hourOfDay, minute ->
+            val timePickerDialog = CustomTimePicker.newInstance(
+                { _, hourOfDay, minute, _ ->
                     val selectedTime = "%02d:%02d".format(hourOfDay, minute)
                     binding.travelTime.setText(selectedTime)
                 },
-                greg.get(Calendar.HOUR_OF_DAY),
-                greg.get(Calendar.MINUTE),
+                if(value.size > 1) value[0].toInt() else greg.get(Calendar.HOUR_OF_DAY),
+                if(value.size > 1) value[1].toInt() else greg.get(Calendar.MINUTE),
                 true
             )
             (activity as MainActivity?)?.restartTimer()
-            timePickerDialog.show()
+            timePickerDialog.isThemeDark = darkMode
+            timePickerDialog.show(parentFragmentManager, "TimePickerDialog")
         }
 
         binding.saveProjectTimeButton.setOnClickListener {
@@ -318,8 +345,16 @@ class ProjectFragment : Fragment() {
     }
 
     private fun loadValuesFromOldProjectTimeEntity() {
-        binding.fromDate.setText(projectTimeEntity?.date ?: "")
-        binding.toDate.setText(projectTimeEntity?.dateTo ?: "")
+        binding.fromDate.setText(
+            if (projectTimeEntity?.date.isNullOrEmpty()) "" else Utils.getDateFromGC(
+                Utils.parseDateFromTransfer(projectTimeEntity?.date)
+            )
+        )
+        binding.toDate.setText(
+            if (projectTimeEntity?.dateTo.isNullOrEmpty()) "" else Utils.getDateFromGC(
+                Utils.parseDateFromTransfer(projectTimeEntity?.dateTo)
+            )
+        )
         binding.from.setText(projectTimeEntity?.from ?: "")
         binding.to.setText(projectTimeEntity?.to ?: "")
         binding.hours.setText(projectTimeEntity?.hours ?: "")
@@ -334,6 +369,14 @@ class ProjectFragment : Fragment() {
         binding.premiumable.isChecked = projectTimeEntity?.premium == "true"
         binding.unit.setText(projectTimeEntity?.units ?: "")
         binding.evaluation.setText(projectTimeEntity?.evaluation ?: "")
+
+        if(!projectTimeEntity?.message.isNullOrEmpty()) {
+            val sheet = MBFragmentProjectErrorSheet()
+            val bundle = Bundle()
+            bundle.putString("message", projectTimeEntity!!.message)
+            sheet.arguments = bundle
+            sheet.show(parentFragmentManager, MBFragmentProjectErrorSheet.TAG)
+        }
     }
 
     private fun addTextWatcher() {
@@ -351,7 +394,27 @@ class ProjectFragment : Fragment() {
         binding.description.addTextChangedListener(timerRestartTextWatcher)
         binding.performanceLocation.addTextChangedListener(timerRestartTextWatcher)
         binding.drivenKm.addTextChangedListener(timerRestartTextWatcher)
-        binding.evaluation.addTextChangedListener(timerRestartTextWatcher)
+
+        binding.evaluation.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                (activity as MainActivity?)?.restartTimer()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                val value = s.toString().toIntOrNull()
+                if (value != null) {
+                    when {
+                        value < 0 -> binding.evaluation.setText(0.toString())
+                        value > 100 -> binding.evaluation.setText(100.toString())
+                    }
+                    binding.evaluation.setSelection(binding.evaluation.text?.length ?: 0)
+                }
+            }
+        })
+
+        binding.manDays.filters = arrayOf(Utils.DecimalSeparatorInputFilter())
+        binding.manDays.addTextChangedListener(Utils.DecimalSeparatorTextWatcher())
     }
 
     private fun saveData() {
@@ -413,6 +476,7 @@ class ProjectFragment : Fragment() {
         data["units"] = binding.unit.text.toString()
         data["evaluation"] = binding.evaluation.text.toString()
         data["timeEntryType"] = timeEntryType.toString()
+        data["editorId"] = editorId ?: userId.toString()
 
         viewModel.saveProjectTime(data, requireContext())
     }
@@ -480,42 +544,24 @@ class ProjectFragment : Fragment() {
         } else {
             binding.billable.isEnabled = true
         }
-        if (binding.textInputLayoutProjectTimeDescription.visibility == v) {
-            var hint = binding.textInputLayoutProjectTimeDescription.hint
-            if (!hint.isNullOrEmpty()) {
-                if (hint.last() == '*') {
-                    hint = hint.dropLast(1)
-                }
-                if (selectedItem.descriptionMust) {
-                    hint = "${hint}*"
-                }
-            }
-            binding.textInputLayoutProjectTimeDescription.hint = hint
+        viewModel.viewModelScope.launch {
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeDescription,
+                selectedItem.descriptionMust || perm("zeiterfassung.beschreibung.pflicht")
+            )
         }
-        if (binding.textInputLayoutProjectTimeActivityType.visibility == v) {
-            var hint = binding.textInputLayoutProjectTimeActivityType.hint
-            if (!hint.isNullOrEmpty()) {
-                if (hint.last() == '*') {
-                    hint = hint.dropLast(1)
-                }
-                if (selectedItem.activityTypeMust) {
-                    hint = "${hint}*"
-                }
-            }
-            binding.textInputLayoutProjectTimeActivityType.hint = hint
-        }
-        if (binding.textInputLayoutProjectTimeOrderNo.visibility == v) {
-            var hint = binding.textInputLayoutProjectTimeOrderNo.hint
-            if (!hint.isNullOrEmpty()) {
-                if (hint.last() == '*') {
-                    hint = hint.dropLast(1)
-                }
-                if (selectedItem.orderNoMust) {
-                    hint = "${hint}*"
-                }
-            }
-            binding.textInputLayoutProjectTimeOrderNo.hint = hint
-        }
+        updateHintForRequiredField(
+            binding.textInputLayoutProjectTimeActivityType,
+            selectedItem.activityTypeMust
+        )
+        updateHintForRequiredField(
+            binding.textInputLayoutProjectTimeOrderNo,
+            selectedItem.orderNoMust
+        )
+        updateHintForRequiredField(
+            binding.textInputLayoutProjectTimeEvaluation,
+            selectedItem.abschaetzungMust
+        )
         val activityTypeId = viewModel.getActivityTypeId(selectedItem.taskId)
         if (activityTypeId.isNotEmpty()) {
             binding.activityType.setText(activityTypeId, true)
@@ -580,9 +626,13 @@ class ProjectFragment : Fragment() {
                     val projectName =
                         it.find { p -> p.projectId.toString() == projectTimeEntity?.projectId }?.projectName
                     binding.project.setText(projectName ?: "", false)
-                    viewModel.showFilteredTasksForProject(
-                        projectTimeEntity?.projectId?.toLong() ?: -1L
-                    )
+                    try {
+                        viewModel.showFilteredTasksForProject(
+                            projectTimeEntity?.projectId?.toLong() ?: -1L
+                        )
+                    } catch (e: Exception) {
+                        viewModel.showFilteredTasksForProject(-1L)
+                    }
                 }
             }
         }
@@ -608,6 +658,9 @@ class ProjectFragment : Fragment() {
             if (it.isNotEmpty()) {
                 val adapter = CustomerEntityAdapter(requireContext(), R.layout.dropdown_small, it)
                 binding.customer.setAdapter(adapter)
+                if(it.size == 1){
+                    binding.customer.setText(adapter.getItem(0).toString(), false)
+                }
                 viewModel.liveCustomerEntities.value = emptyList()
                 if (projectTimeEntity != null && firstC) {
                     firstC = false
@@ -789,93 +842,64 @@ class ProjectFragment : Fragment() {
             binding.textInputLayoutProjectTimeTravelTime.visibility = g
         }
         if (!it.unit) {
-            binding.textInputLayoutProjectTimeUnit.visibility = g
+            binding.unitContainer.visibility = g
         }
 
-        if (it.entryType == 1) {
-            binding.textInputLayoutProjectTimeFromDate.visibility = g
-            binding.textInputLayoutProjectTimeToDate.visibility = g
-            binding.textInputLayoutProjectTimeFrom.visibility = g
-            binding.textInputLayoutProjectTimeTo.visibility = g
-            binding.textInputLayoutProjectTimeHours.visibility = g
-            binding.textInputLayoutProjectTimeManDays.visibility = g
-        } else {
-            when (timeEntryType) {
-                1L -> {
-                    binding.textInputLayoutProjectTimeFromDate.visibility = v
-                    binding.textInputLayoutProjectTimeToDate.visibility =
-                        if (crossDay) v else g
-                    binding.textInputLayoutProjectTimeFrom.visibility = v
-                    binding.textInputLayoutProjectTimeTo.visibility = v
-                    binding.textInputLayoutProjectTimeHours.visibility = g
-                    binding.textInputLayoutProjectTimeManDays.visibility = g
-                }
+        when (timeEntryType) {
+            1L, 10L -> {
+                binding.textInputLayoutProjectTimeFromDate.visibility = v
+                binding.textInputLayoutProjectTimeToDate.visibility =
+                    if (crossDay) v else g
+                binding.textInputLayoutProjectTimeFrom.visibility = v
+                binding.textInputLayoutProjectTimeTo.visibility = v
+                binding.textInputLayoutProjectTimeHours.visibility = g
+                binding.textInputLayoutProjectTimeManDays.visibility = g
+            }
 
-                3L, 5L, 8L -> {
-                    binding.textInputLayoutProjectTimeFromDate.visibility = v
-                    binding.textInputLayoutProjectTimeToDate.visibility = g
-                    binding.textInputLayoutProjectTimeFrom.visibility = g
-                    binding.textInputLayoutProjectTimeTo.visibility = g
-                    binding.textInputLayoutProjectTimeHours.visibility = v
-                    binding.textInputLayoutProjectTimeManDays.visibility = g
-                }
+            3L, 5L, 8L -> {
+                binding.textInputLayoutProjectTimeFromDate.visibility = v
+                binding.textInputLayoutProjectTimeToDate.visibility = g
+                binding.textInputLayoutProjectTimeFrom.visibility = g
+                binding.textInputLayoutProjectTimeTo.visibility = g
+                binding.textInputLayoutProjectTimeHours.visibility = v
+                binding.textInputLayoutProjectTimeManDays.visibility = g
+            }
 
-                6L -> {
-                    binding.textInputLayoutProjectTimeFromDate.visibility = v
-                    binding.textInputLayoutProjectTimeToDate.visibility = g
-                    binding.textInputLayoutProjectTimeFrom.visibility = g
-                    binding.textInputLayoutProjectTimeTo.visibility = g
-                    binding.textInputLayoutProjectTimeHours.visibility = g
-                    binding.textInputLayoutProjectTimeManDays.visibility = v
-                }
+            6L -> {
+                binding.textInputLayoutProjectTimeFromDate.visibility = v
+                binding.textInputLayoutProjectTimeToDate.visibility = g
+                binding.textInputLayoutProjectTimeFrom.visibility = g
+                binding.textInputLayoutProjectTimeTo.visibility = g
+                binding.textInputLayoutProjectTimeHours.visibility = g
+                binding.textInputLayoutProjectTimeManDays.visibility = v
             }
         }
 
         viewModel.viewModelScope.launch {
-            if (binding.textInputLayoutProjectTimeTo.visibility == v
-                && perm("zeiterfassung.normal.auto-bis")
-                && binding.textInputLayoutProjectTimeTo.hint?.last() != '*'
-            ) {
-                binding.textInputLayoutProjectTimeTo.hint =
-                    "${binding.textInputLayoutProjectTimeTo.hint ?: ""}*"
-            }
-            if (binding.textInputLayoutProjectTimeUnit.visibility == v
-                && perm("einheiten.pflicht")
-                && it.entryType != 1
-                && timeEntryType != 10L
-                && binding.textInputLayoutProjectTimeUnit.hint?.last() != '*'
-            ) {
-                binding.textInputLayoutProjectTimeUnit.hint =
-                    "${binding.textInputLayoutProjectTimeUnit.hint ?: ""}*"
-            }
-            if (binding.textInputLayoutProjectTimeCustomer.visibility == v
-                && perm("tab_zeiterfassung.kunde.muss")
-                && binding.textInputLayoutProjectTimeCustomer.hint?.last() != '*'
-            ) {
-                binding.textInputLayoutProjectTimeCustomer.hint =
-                    "${binding.textInputLayoutProjectTimeCustomer.hint ?: ""}*"
-            }
-            if (binding.textInputLayoutProjectTimeSkillLevel.visibility == v
-                && perm("zeiterfassung.skilllevel.pflicht")
-                && binding.textInputLayoutProjectTimeSkillLevel.hint?.last() != '*'
-            ) {
-                binding.textInputLayoutProjectTimeSkillLevel.hint =
-                    "${binding.textInputLayoutProjectTimeSkillLevel.hint ?: ""}*"
-            }
-            if (binding.descriptionContainer.visibility == v
-                && perm("zeiterfassung.beschreibung.pflicht")
-                && binding.textInputLayoutProjectTimeDescription.hint?.last() != '*'
-            ) {
-                binding.textInputLayoutProjectTimeDescription.hint =
-                    "${binding.textInputLayoutProjectTimeDescription.hint ?: ""}*"
-            }
-            if (binding.textInputLayoutProjectTimePerformanceLocation.visibility == v
-                && perm("zeiterfassung.leistungsort.pflicht")
-                && binding.textInputLayoutProjectTimePerformanceLocation.hint?.last() != '*'
-            ) {
-                binding.textInputLayoutProjectTimePerformanceLocation.hint =
-                    "${binding.textInputLayoutProjectTimePerformanceLocation.hint ?: ""}*"
-            }
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeOrderNo,
+                !perm("zeiterfassung.normal.auto-bis")
+            )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeUnit,
+                perm("einheiten.pflicht") && it.entryType != 1 && timeEntryType != 10L
+            )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeCustomer,
+                perm("tab_zeiterfassung.kunde.muss")
+            )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeSkillLevel,
+                perm("zeiterfassung.skilllevel.pflicht")
+            )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeDescription,
+                perm("zeiterfassung.beschreibung.pflicht")
+            )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimePerformanceLocation,
+                perm("zeiterfassung.leistungsort.pflicht")
+            )
         }
 
         // Prüfe ob Layout-Neuanordnung nötig ist (wenn Einstellungen nicht dem Default entsprechen)
@@ -887,7 +911,7 @@ class ProjectFragment : Fragment() {
             if (it.team) {
                 if (it.customer && !isCustomerTimeTrack && binding.textInputLayoutProjectTimeCustomer.visibility == v) {
                     binding.team.dropDownAnchor = binding.customer.id
-                } else if (isCustomerTimeTrack && binding.textInputLayoutProjectTimeTask.visibility == v) {
+                } else if (isCustomerTimeTrack) {
                     binding.team.dropDownAnchor = binding.task.id
                 }
             }
@@ -919,6 +943,7 @@ class ProjectFragment : Fragment() {
         // Identifiziere alle Container-Views, die entfernt werden müssen
         val containersToRemove = listOfNotNull(
             binding.customerContainer,
+            binding.projectOrderUnitContainer,
             binding.textInputLayoutProjectTimeActivityType.parent as? ViewGroup,
             binding.textInputLayoutProjectTimeJourney.parent as? ViewGroup,
             binding.textInputLayoutProjectTimeEvaluation.parent as? ViewGroup
@@ -954,11 +979,31 @@ class ProjectFragment : Fragment() {
 
         val allViews = mutableListOf<View>()
 
+        if (isCustomerTimeTrack) {
+            val customerView = viewMap[ProjectTimeTrackSetting.Keys.CUSTOMER]
+            if (customerView != null && customerView.visibility != View.GONE) {
+                // Entferne View aus seinem aktuellen Parent (falls vorhanden)
+                (customerView.parent as? ViewGroup)?.removeView(customerView)
+                allViews.add(customerView)
+            }
+        }
+
+        for (key in listOf(
+            ProjectTimeTrackSetting.Keys.PROJECT,
+            ProjectTimeTrackSetting.Keys.TASK
+        )) {
+            val view = viewMap[key]
+            if (view != null && view.visibility != View.GONE) {
+                // Entferne View aus seinem aktuellen Parent (falls vorhanden)
+                (view.parent as? ViewGroup)?.removeView(view)
+                allViews.add(view)
+            }
+        }
 
         // Füge Views in der Reihenfolge aus fieldOrder hinzu
         for (key in fieldOrder) {
             val view = viewMap[key]
-            if (view != null && view.visibility != View.GONE) {
+            if (view != null && view.visibility != View.GONE && !allViews.contains(view)) {
                 // Entferne View aus seinem aktuellen Parent (falls vorhanden)
                 (view.parent as? ViewGroup)?.removeView(view)
                 allViews.add(view)
@@ -1019,7 +1064,7 @@ class ProjectFragment : Fragment() {
 
     private suspend fun hideNonVisibleItems() {
         if (!perm("auftragsnummer.show")) binding.textInputLayoutProjectTimeOrderNo.visibility = g
-        if (!perm("einheiten.use")) binding.textInputLayoutProjectTimeUnit.visibility = g
+        if (!perm("einheiten.use")) binding.unitContainer.visibility = g
         val bCustomer = perm("kunde.use") && perm("tab_zeiterfassung.kunde.show")
         if (!bCustomer) binding.textInputLayoutProjectTimeCustomer.visibility = g
         val bTeam = perm("teams.show") && perm("zeiterfassung.teamauswahl.use")
@@ -1053,6 +1098,11 @@ class ProjectFragment : Fragment() {
     }
 
     private fun setLanguageTexts() {
+        binding.textInputLayoutProjectTimeFromDate.hint = languageService.getText("#Date from")
+        binding.textInputLayoutProjectTimeToDate.hint = languageService.getText("#Date to")
+        binding.textInputLayoutProjectTimeFrom.hint = languageService.getText("#Time from")
+        binding.textInputLayoutProjectTimeTo.hint = languageService.getText("#Time to")
+
         binding.textInputLayoutProjectTimeProject.hint =
             languageService.getText("ALLGEMEIN#Projekt")
         binding.textInputLayoutProjectTimeOrderNo.hint =
@@ -1087,85 +1137,86 @@ class ProjectFragment : Fragment() {
     }
 
     private fun isValid(): Boolean {
+        val errorTxt = languageService.getText("ALLGEMEIN#Pflichtfelder mit Stern")
         var error = false
         // ... Pflichtfeldprüfung ...
         if (binding.project.text.isNullOrEmpty()) {
             error = true
-            binding.textInputLayoutProjectTimeProject.error = "Required"
+            binding.textInputLayoutProjectTimeProject.error = errorTxt
         } else {
             binding.textInputLayoutProjectTimeProject.error = null
         }
         if (binding.task.text.isNullOrEmpty()) {
             error = true
-            binding.textInputLayoutProjectTimeTask.error = "Required"
+            binding.textInputLayoutProjectTimeTask.error = errorTxt
         } else {
             binding.textInputLayoutProjectTimeTask.error = null
         }
         if (binding.descriptionContainer.visibility == v) {
-            if (binding.textInputLayoutProjectTimeDescription.hint?.last() == '*') {
+            if (binding.textInputLayoutProjectTimeDescription.hint?.first() == '*') {
                 if (binding.description.text.isNullOrEmpty()) {
                     error = true
-                    binding.textInputLayoutProjectTimeDescription.error = "Required"
+                    binding.textInputLayoutProjectTimeDescription.error = errorTxt
                 } else {
                     binding.textInputLayoutProjectTimeDescription.error = null
                 }
             }
         }
         if (binding.textInputLayoutProjectTimeActivityType.visibility == v) {
-            if (binding.textInputLayoutProjectTimeActivityType.hint?.last() == '*') {
+            if (binding.textInputLayoutProjectTimeActivityType.hint?.first() == '*') {
                 if (binding.activityType.text.isNullOrEmpty()) {
                     error = true
-                    binding.textInputLayoutProjectTimeActivityType.error = "Required"
+                    binding.textInputLayoutProjectTimeActivityType.error = errorTxt
                 } else {
                     binding.textInputLayoutProjectTimeActivityType.error = null
                 }
             }
         }
         if (binding.textInputLayoutProjectTimeOrderNo.visibility == v) {
-            if (binding.textInputLayoutProjectTimeOrderNo.hint?.last() == '*') {
+            if (binding.textInputLayoutProjectTimeOrderNo.hint?.first() == '*') {
                 if (binding.orderNo.text.isNullOrEmpty()) {
                     error = true
-                    binding.textInputLayoutProjectTimeOrderNo.error = "Required"
+                    binding.textInputLayoutProjectTimeOrderNo.error = errorTxt
                 } else {
                     binding.textInputLayoutProjectTimeOrderNo.error = null
                 }
             }
         }
-        if (binding.textInputLayoutProjectTimeUnit.visibility == v) {
-            if (binding.textInputLayoutProjectTimeUnit.hint?.last() == '*') {
+        if (binding.unitContainer.visibility == v) {
+            if (binding.textInputLayoutProjectTimeUnit.hint?.first() == '*') {
                 if (binding.unit.text.isNullOrEmpty()) {
                     error = true
-                    binding.textInputLayoutProjectTimeUnit.error = "Required"
+                    binding.textInputLayoutProjectTimeUnit.error = errorTxt
                 } else {
                     binding.textInputLayoutProjectTimeUnit.error = null
                 }
             }
         }
         if (binding.textInputLayoutProjectTimeCustomer.visibility == v) {
-            if (binding.textInputLayoutProjectTimeCustomer.hint?.last() == '*') {
+            if (binding.textInputLayoutProjectTimeCustomer.hint?.first() == '*') {
                 if (binding.customer.text.isNullOrEmpty()) {
                     error = true
-                    binding.textInputLayoutProjectTimeCustomer.error = "Required"
+                    binding.textInputLayoutProjectTimeCustomer.error = errorTxt
                 } else {
                     binding.textInputLayoutProjectTimeCustomer.error = null
                 }
             }
         }
         if (binding.textInputLayoutProjectTimeSkillLevel.visibility == v) {
-            if (binding.textInputLayoutProjectTimeSkillLevel.hint?.last() == '*') {
+            if (binding.textInputLayoutProjectTimeSkillLevel.hint?.first() == '*') {
                 if (binding.skillLevel.text.isNullOrEmpty()) {
                     error = true
-                    binding.textInputLayoutProjectTimeSkillLevel.error = "Required"
+                    binding.textInputLayoutProjectTimeSkillLevel.error = errorTxt
                 } else {
                     binding.textInputLayoutProjectTimeSkillLevel.error = null
                 }
             }
         }
         if (binding.textInputLayoutProjectTimePerformanceLocation.visibility == v) {
-            if (binding.textInputLayoutProjectTimePerformanceLocation.hint?.last() == '*') {
+            if (binding.textInputLayoutProjectTimePerformanceLocation.hint?.first() == '*') {
                 if (binding.performanceLocation.text.isNullOrEmpty()) {
                     error = true
-                    binding.textInputLayoutProjectTimePerformanceLocation.error = "Required"
+                    binding.textInputLayoutProjectTimePerformanceLocation.error = errorTxt
                 } else {
                     binding.textInputLayoutProjectTimePerformanceLocation.error = null
                 }
@@ -1173,33 +1224,41 @@ class ProjectFragment : Fragment() {
         }
 
         if (binding.textInputLayoutProjectTimeFromDate.visibility == v) {
-            if (binding.fromDate.text == null || binding.fromDate.text!!.isEmpty()) {
+            if (binding.fromDate.text == null || binding.fromDate.text!!.isEmpty()
+                && projectTimeEntity?.date?.isNotEmpty() == true
+            ) {
                 error = true
-                binding.textInputLayoutProjectTimeFromDate.error = "Required"
+                binding.textInputLayoutProjectTimeFromDate.error = errorTxt
             } else {
                 binding.textInputLayoutProjectTimeFromDate.error = null
             }
         }
         if (binding.textInputLayoutProjectTimeToDate.visibility == v) {
-            if (binding.toDate.text == null || binding.toDate.text!!.isEmpty()) {
+            if ((binding.toDate.text == null || binding.toDate.text!!.isEmpty())
+                && projectTimeEntity?.dateTo?.isNotEmpty() == true
+            ) {
                 error = true
-                binding.textInputLayoutProjectTimeToDate.error = "Required"
+                binding.textInputLayoutProjectTimeToDate.error = errorTxt
             } else {
                 binding.textInputLayoutProjectTimeToDate.error = null
             }
         }
         if (binding.textInputLayoutProjectTimeFrom.visibility == v) {
-            if (binding.from.text == null || binding.from.text!!.isEmpty()) {
+            if (binding.from.text == null || binding.from.text!!.isEmpty()
+                && projectTimeEntity?.from?.isNotEmpty() == true
+            ) {
                 error = true
-                binding.textInputLayoutProjectTimeFrom.error = "Required"
+                binding.textInputLayoutProjectTimeFrom.error = errorTxt
             } else {
                 binding.textInputLayoutProjectTimeFrom.error = null
             }
         }
-        if (binding.textInputLayoutProjectTimeFromDate.visibility == v) {
-            if (binding.to.text == null || binding.to.text!!.isEmpty()) {
+        if (binding.textInputLayoutProjectTimeTo.visibility == v) {
+            if ((binding.to.text == null || binding.to.text!!.isEmpty())
+                && projectTimeEntity?.to?.isNotEmpty() == true
+            ) {
                 error = true
-                binding.textInputLayoutProjectTimeTo.error = "Required"
+                binding.textInputLayoutProjectTimeTo.error = errorTxt
             } else {
                 binding.textInputLayoutProjectTimeTo.error = null
             }
@@ -1207,7 +1266,7 @@ class ProjectFragment : Fragment() {
         if (binding.textInputLayoutProjectTimeHours.visibility == v) {
             if (binding.hours.text == null || binding.hours.text!!.isEmpty()) {
                 error = true
-                binding.textInputLayoutProjectTimeHours.error = "Required"
+                binding.textInputLayoutProjectTimeHours.error = errorTxt
             } else {
                 binding.textInputLayoutProjectTimeHours.error = null
             }
@@ -1215,13 +1274,33 @@ class ProjectFragment : Fragment() {
         if (binding.textInputLayoutProjectTimeManDays.visibility == v) {
             if (binding.manDays.text == null || binding.manDays.text!!.isEmpty()) {
                 error = true
-                binding.textInputLayoutProjectTimeManDays.error = "Required"
+                binding.textInputLayoutProjectTimeManDays.error = errorTxt
             } else {
                 binding.textInputLayoutProjectTimeManDays.error = null
             }
         }
+        if (binding.textInputLayoutProjectTimeEvaluation.visibility == v) {
+            if (binding.textInputLayoutProjectTimeEvaluation.hint?.first() == '*') {
+                if (binding.evaluation.text.isNullOrEmpty()) {
+                    error = true
+                    binding.textInputLayoutProjectTimeEvaluation.error = errorTxt
+                } else {
+                    binding.textInputLayoutProjectTimeEvaluation.error = null
+                }
+            }
+        }
 
         return !error
+    }
+
+    private fun updateHintForRequiredField(textInputLayout: TextInputLayout, isRequired: Boolean) {
+        if (textInputLayout.visibility != v) return
+        var hint = textInputLayout.hint
+        if (!hint.isNullOrEmpty()) {
+            if (hint.first() == '*') hint = hint.drop(2)
+            if (isRequired) hint = "* $hint"
+            textInputLayout.hint = hint
+        }
     }
 
     companion object {
@@ -1230,7 +1309,8 @@ class ProjectFragment : Fragment() {
             userId: Long,
             isCustomerTimeTrack: Boolean,
             timeEntryType: Long,
-            crossDay: Boolean
+            crossDay: Boolean,
+            editor: String
         ) =
             ProjectFragment().apply {
                 arguments = Bundle().apply {
@@ -1238,10 +1318,12 @@ class ProjectFragment : Fragment() {
                     putBoolean(ARG_CUSTOMER_TIME_TRACK, isCustomerTimeTrack)
                     putLong(ARG_TIME_ENTRY_TYPE, timeEntryType)
                     putBoolean(ARG_CROSS_DAY, crossDay)
+                    putString(ARG_EDITOR_ID, editor)
                 }
             }
 
         fun newInstance(
+            editor: String,
             userId: Long,
             isCustomerTimeTrack: Boolean,
             timeEntryType: Long,
@@ -1255,6 +1337,7 @@ class ProjectFragment : Fragment() {
                     putLong(ARG_TIME_ENTRY_TYPE, timeEntryType)
                     putBoolean(ARG_CROSS_DAY, crossDay)
                     putParcelable(ARG_PROJECT_TIME_ENTITY, projectTimeEntity)
+                    putString(ARG_EDITOR_ID, editor)
                 }
             }
     }

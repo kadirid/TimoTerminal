@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="mdtp_text_size_multiplier_inner_v2" format="float" translatable="false" type="string">
+        0.11
+    </item>
+    <item name="mdtp_text_size_multiplier_outer_v2" format="float" translatable="false" type="string">
+        0.12
+    </item>
+
+    <dimen name="mdtp_material_button_textsize">32sp</dimen>
+
+    <dimen name="mdtp_date_picker_component_width_v2">500dp</dimen>
+
+    <dimen name="mdtp_datepicker_year_selection_text_size">32sp</dimen>
+    <dimen name="mdtp_month_day_label_text_size">24sp</dimen>
+    <dimen name="mdtp_month_label_size">240sp</dimen>
+    <dimen name="mdtp_day_number_select_circle_radius_v2">32dp</dimen>
+    <dimen name="mdtp_day_number_size">240sp</dimen>
+    <dimen name="mdtp_date_picker_header_text_size">120dp</dimen>
+    <dimen name="mdtp_selected_date_month_size">250dp</dimen>
+    <dimen name="mdtp_date_picker_view_animator_height_v2">418dp</dimen>
+    <dimen name="mdtp_date_picker_view_animator_padding_v2">8dp</dimen>
+    <dimen name="mdtp_month_list_item_header_height_v2">96dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+</resources>

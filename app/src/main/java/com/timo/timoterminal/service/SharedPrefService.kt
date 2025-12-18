@@ -76,16 +76,16 @@ class SharedPrefService(context: Context) : KoinComponent {
     }
 
     fun checkIfCredsAreSaved(): Boolean {
-        val UUID = getString(SharedPreferenceKeys.DEVICE_UUID)
-        val T_ID = getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
-        val TOKEN = getString(SharedPreferenceKeys.TOKEN)
-        val COMPANY = getString(SharedPreferenceKeys.COMPANY)
-        val URL = getString(SharedPreferenceKeys.SERVER_URL)
-        val USERHASH = getString(SharedPreferenceKeys.USER)
-        val PWHASH = getString(SharedPreferenceKeys.PASSWORD)
-        return !UUID.isNullOrEmpty() && T_ID != -1 && !TOKEN.isNullOrEmpty() &&
-                !COMPANY.isNullOrEmpty() && !URL.isNullOrEmpty() &&
-                !USERHASH.isNullOrEmpty() && !PWHASH.isNullOrEmpty()
+        val uuid = getString(SharedPreferenceKeys.DEVICE_UUID)
+        val tId = getInt(SharedPreferenceKeys.TIMO_TERMINAL_ID, -1)
+        val token = getString(SharedPreferenceKeys.TOKEN)
+        val company = getString(SharedPreferenceKeys.COMPANY)
+        val url = getString(SharedPreferenceKeys.SERVER_URL)
+        val userHash = getString(SharedPreferenceKeys.USER)
+        val pwHash = getString(SharedPreferenceKeys.PASSWORD)
+        return !uuid.isNullOrEmpty() && tId != -1 && !token.isNullOrEmpty() &&
+                !company.isNullOrEmpty() && !url.isNullOrEmpty() &&
+                !userHash.isNullOrEmpty() && !pwHash.isNullOrEmpty()
 
     }
 

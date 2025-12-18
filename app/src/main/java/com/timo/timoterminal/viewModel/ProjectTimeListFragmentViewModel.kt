@@ -23,7 +23,9 @@ class ProjectTimeListFragmentViewModel(
                 // Fetch data
                 val newItems = projectTimeRepository.getPageAsList(currentPage, userId)
                 _items.value = _items.value?.plus(newItems) ?: newItems
-                currentPage++
+                if(newItems.isNotEmpty()) {
+                    currentPage++
+                }
                 isLoading = false
             }
         }

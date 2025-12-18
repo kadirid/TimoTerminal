@@ -20,15 +20,15 @@ class TaskRepository(private val taskDAO: TaskDAO) {
     }
 
     @WorkerThread
-    suspend fun insertAllTasks(tasks: List<com.timo.timoterminal.entityClasses.TaskEntity>) {
+    suspend fun insertAllTasks(tasks: List<TaskEntity>) {
         taskDAO.insertAllTasks(tasks)
     }
 
-    suspend fun updateTask(task: com.timo.timoterminal.entityClasses.TaskEntity) {
+    suspend fun updateTask(task: TaskEntity) {
         taskDAO.updateTask(task)
     }
 
-    suspend fun deleteTask(task: com.timo.timoterminal.entityClasses.TaskEntity) {
+    suspend fun deleteTask(task: TaskEntity) {
         taskDAO.deleteTask(task)
     }
 

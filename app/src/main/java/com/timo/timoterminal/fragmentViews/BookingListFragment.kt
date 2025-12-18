@@ -51,15 +51,6 @@ class BookingListFragment : Fragment() {
     }
 
     private fun setAdapter() {
-        binding.viewRecyclerBuBookingAll.adapter = BookingBUEntityAdapter(
-            emptyList(),
-            emptyMap(),
-            emptyMap(),
-            emptyMap(),
-            object : BookingBUEntityAdapter.OnItemClickListener {
-                override fun onItemClick(entity: BookingBUEntity) {}
-            })
-
         binding.viewRecyclerBuBookingAll.addOnScrollListener(object :
             RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -72,6 +63,7 @@ class BookingListFragment : Fragment() {
         })
 
         bookingListFragmentViewModel.items.observe(viewLifecycleOwner) {
+            if (it.isNullOrEmpty()) return@observe
             bookingListFragmentViewModel.viewModelScope.launch {
                 val userEntities = userRepository.getAllAsList()
                 val userMap = HashMap<String, String>()

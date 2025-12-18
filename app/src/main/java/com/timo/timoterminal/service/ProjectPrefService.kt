@@ -7,15 +7,12 @@ import com.timo.timoterminal.enums.ProjectPreferenceKeys
 import com.timo.timoterminal.utils.Constants
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
-import java.util.logging.Logger
 
 // This is a preference service for managing project-related preferences.
 class ProjectPrefService(
     private val settingsService: SettingsService,
     context: Context
 ) : KoinComponent {
-
-    private val logger = Logger.getLogger(ProjectPrefService::class.java.name)
 
     private var sharedPreferences: SharedPreferences =
         context.getSharedPreferences(Constants.SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE)
@@ -63,7 +60,7 @@ class ProjectPrefService(
         val ticket = obj.getBoolean("ticket")
         val travelTime = obj.getBoolean("travel_time")
         val unit = obj.getBoolean("unit")
-        val field_order = obj.optString(
+        val fieldOrder = obj.optString(
             "field_order",
             ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
         )
@@ -93,7 +90,7 @@ class ProjectPrefService(
         editor.putBoolean(ProjectPreferenceKeys.PROJECT_TICKET.name, ticket)
         editor.putBoolean(ProjectPreferenceKeys.PROJECT_TRAVEL_TIME.name, travelTime)
         editor.putBoolean(ProjectPreferenceKeys.PROJECT_UNIT.name, unit)
-        editor.putString(ProjectPreferenceKeys.PROJECT_FIELD_ORDER.name, field_order)
+        editor.putString(ProjectPreferenceKeys.PROJECT_FIELD_ORDER.name, fieldOrder)
         editor.apply()
 
         return ProjectTimeTrackSetting(
@@ -115,43 +112,41 @@ class ProjectPrefService(
             ticket,
             travelTime,
             unit,
-            field_order
+            fieldOrder
         )
     }
 
     fun getProjectTimeTrackSetting(force: Boolean?): ProjectTimeTrackSetting {
-        if (!sharedPreferences.contains(ProjectPreferenceKeys.PROJECT_ENTRY_TYPE.name) || force ?: false) {
+        if (!sharedPreferences.contains(ProjectPreferenceKeys.PROJECT_ENTRY_TYPE.name) || force == true) {
             var result: ProjectTimeTrackSetting? = null
             val latch = java.util.concurrent.CountDownLatch(1)
             settingsService.getSettingForProjectTimeTrack { success, obj ->
                 if (success && obj != null) {
                     result = saveProjectTimeTrackSetting(obj)
-                    logger.info("Fetched project time track settings: $result")
-
                 }
                 latch.countDown()
             }
             latch.await()
             return result ?: ProjectTimeTrackSetting(
                 2,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
+                activityType = true,
+                activityTypeMatrix = true,
+                billable = true,
+                customer = true,
+                description = true,
+                drivenKm = true,
+                evaluation = true,
+                journey = true,
+                kmFlatRate = true,
+                orderNo = true,
+                performanceLocation = true,
+                premiumable = true,
+                skillLevel = true,
+                team = true,
+                ticket = true,
+                travelTime = true,
+                unit = true,
+                fieldOrder = ProjectTimeTrackSetting.DEFAULT_FIELD_ORDER
             )
         }
 

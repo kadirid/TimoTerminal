@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginHorizontal="50dp"
+    android:layout_marginStart="30dp"
     android:layout_marginTop="75dp"
-    tools:layout_marginEnd="50dp"
-    tools:layout_marginStart="250dp">
+    android:layout_marginEnd="50dp"
+    tools:layout_marginStart="230dp">
 
     <LinearLayout
         android:id="@+id/view_recycler_project_time_list_header"
@@ -22,10 +22,10 @@
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/text_input_layout_project_time_list_dropdown"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="0dp"
+            android:layout_width="213dp"
             android:layout_height="60dp"
             android:layout_marginEnd="5dp"
-            android:layout_weight="0.5"
+            android:layout_marginStart="20dp"
             android:hint="@string/filter">
 
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -42,8 +42,8 @@
             android:layout_width="0dp"
             android:layout_height="60dp"
             android:layout_marginEnd="5dp"
-            android:layout_weight="1"
             android:hint="@string/search_text"
+            android:layout_weight="1"
             app:endIconMode="clear_text"
             tools:visibility="gone">
 
@@ -61,9 +61,9 @@
             android:layout_width="0dp"
             android:layout_height="60dp"
             android:layout_marginEnd="5dp"
-            android:layout_weight="1"
             android:visibility="gone"
             android:hint="@string/date_range"
+            android:layout_weight="1"
             app:endIconMode="clear_text"
             tools:visibility="visible">
 
@@ -96,80 +96,97 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="5dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/view_recycler_project_time_list_header">
 
+        <TextView
+            android:id="@+id/text_view_sort_label"
+            android:textAppearance="@style/NormalFontWeightAppearance"
+            android:layout_width="213dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="10dp"
+            tools:text="Sortierung:"
+            android:textSize="14sp"
+            />
+
         <com.timo.timoterminal.components.ResIdMaterialButton
             android:id="@+id/button_sort_date"
+            android:textAppearance="@style/NormalFontWeightAppearance"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="5dp"
             android:layout_weight="1"
-            android:background="@drawable/square_button_background_ripple"
-            android:paddingHorizontal="6dp"
+            android:background="@drawable/small_button_background_ripple"
+            android:paddingHorizontal="0dp"
             android:text="@string/date"
-            android:textColor="@color/md_theme_onSurface"
-            app:backgroundTint="@color/md_theme_surfaceVariant"
-            app:iconGravity="end"
-            app:iconSize="24dp" />
+            android:contentDescription="@string/date"
+            android:textColor="@color/md_theme_onBackground"
+            app:iconGravity="textEnd"
+            app:backgroundTint="@color/md_theme_background" />
 
         <com.timo.timoterminal.components.ResIdMaterialButton
             android:id="@+id/button_sort_employee"
+            android:textAppearance="@style/NormalFontWeightAppearance"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="10dp"
-            android:layout_weight="1"
-            android:background="@drawable/square_button_background_ripple"
-            android:paddingHorizontal="6dp"
+            android:layout_marginHorizontal="5dp"
+            android:layout_weight="1.2"
+            android:background="@drawable/small_button_background_ripple"
+            android:paddingHorizontal="0dp"
             android:text="@string/employee"
-            android:textColor="@color/md_theme_onSurface"
-            app:backgroundTint="@color/md_theme_surfaceVariant"
-            app:iconGravity="end"
-            app:iconSize="24dp" />
+            android:contentDescription="@string/employee"
+            android:textColor="@color/md_theme_onBackground"
+            app:iconGravity="textEnd"
+            app:backgroundTint="@color/md_theme_background" />
 
         <com.timo.timoterminal.components.ResIdMaterialButton
             android:id="@+id/button_sort_project"
+            android:textAppearance="@style/NormalFontWeightAppearance"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="5dp"
             android:layout_weight="1"
-            android:background="@drawable/square_button_background_ripple"
-            android:paddingHorizontal="6dp"
+            android:background="@drawable/small_button_background_ripple"
+            android:paddingHorizontal="2dp"
             android:text="@string/project"
-            android:textColor="@color/md_theme_onSurface"
-            app:backgroundTint="@color/md_theme_surfaceVariant"
-            app:iconGravity="end"
-            app:iconSize="24dp" />
+            android:contentDescription="@string/project"
+            android:textColor="@color/md_theme_onBackground"
+            app:iconGravity="textEnd"
+            app:backgroundTint="@color/md_theme_background" />
 
         <com.timo.timoterminal.components.ResIdMaterialButton
             android:id="@+id/button_sort_task"
+            android:textAppearance="@style/NormalFontWeightAppearance"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="5dp"
             android:layout_weight="1"
-            android:background="@drawable/square_button_background_ripple"
-            android:paddingHorizontal="6dp"
+            android:background="@drawable/small_button_background_ripple"
+            android:paddingHorizontal="0dp"
             android:text="@string/task"
-            android:textColor="@color/md_theme_onSurface"
-            app:backgroundTint="@color/md_theme_surfaceVariant"
-            app:iconGravity="end"
-            app:iconSize="24dp" />
+            android:contentDescription="@string/task"
+            android:textColor="@color/md_theme_onBackground"
+            app:iconGravity="textEnd"
+            app:backgroundTint="@color/md_theme_background" />
 
         <com.timo.timoterminal.components.ResIdMaterialButton
             android:id="@+id/button_sort_customer"
+            android:textAppearance="@style/NormalFontWeightAppearance"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="5dp"
             android:layout_weight="1"
-            android:background="@drawable/square_button_background_ripple"
-            android:paddingHorizontal="6dp"
+            android:background="@drawable/small_button_background_ripple"
+            android:paddingHorizontal="0dp"
             android:text="@string/customer"
-            android:textColor="@color/md_theme_onSurface"
-            app:backgroundTint="@color/md_theme_surfaceVariant"
-            app:iconGravity="end"
-            app:iconSize="24dp" />
+            android:contentDescription="@string/customer"
+            android:textColor="@color/md_theme_onBackground"
+            app:iconGravity="textEnd"
+            app:backgroundTint="@color/md_theme_background" />
 
     </LinearLayout>
 
@@ -182,10 +199,10 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/view_recycler_project_time_list_sort_header"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintVertical_bias="1.0"
         tools:listitem="@layout/item_project_time"
         tools:visibility="visible" />
 
@@ -194,6 +211,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
+        android:layout_marginStart="20dp"
         android:textSize="50sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

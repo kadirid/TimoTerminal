@@ -314,10 +314,10 @@ class UserService(
         coroutineScope.launch {
             for (i in 0 until data.length()) {
                 val obj = data.getJSONObject(i)
-                if (!obj.has("id")) {
+                if (!obj.has("userId")) {
                     continue
                 }
-                val userId = obj.getLong("id")
+                val userId = obj.getLong("userId")
                 val crossDay = obj.optBoolean("crossDay", false)
                 userRepository.updateCrossDay(userId, crossDay)
             }

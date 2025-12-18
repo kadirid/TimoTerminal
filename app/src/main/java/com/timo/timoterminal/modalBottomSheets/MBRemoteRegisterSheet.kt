@@ -283,6 +283,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, IFi
                 showLoadMask()
                 viewModel.updateUser(paramMap) { obj ->
                     if (obj.optString("error", "").isEmpty()) {
+                        soundSource.playSound(SoundSource.successSound)
                         afterUpdate(
                             obj.getBoolean("success"),
                             obj.optString("message", "")
@@ -299,44 +300,46 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, IFi
     }
 
     private fun show() {
-        viewModel.viewModelScope.launch {
-            val handlerThread = HandlerThread("backgroundThread")
-            if (!handlerThread.isAlive) handlerThread.start()
-            val handler = Handler(handlerThread.looper)
-            handler.postDelayed({
-                activity?.runOnUiThread {
-                    val valueAnimator = ValueAnimator.ofInt(
-                        binding.remoteRegisterBottomSheet.measuredHeight,
-                        binding.remoteRegisterBottomSheet.measuredHeight + if (isFP) 300 else 0
-                    )
-                    valueAnimator.duration = if (isFP) 500L else 0L
-                    valueAnimator.addUpdateListener {
-                        val animatedValue = valueAnimator.animatedValue as Int
-                        val layoutParams = binding.remoteRegisterBottomSheet.layoutParams
-                        layoutParams.height = animatedValue
-                        binding.remoteRegisterBottomSheet.layoutParams = layoutParams
-                    }
-                    valueAnimator.doOnEnd {
-                        val sound = when (finger) {
-                            0 -> SoundSource.placeLeftLittleFinger
-                            1 -> SoundSource.placeLeftRingFinger
-                            2 -> SoundSource.placeLeftMiddleFinger
-                            3 -> SoundSource.placeLeftIndexFinger
-                            4 -> SoundSource.placeLeftThumb
-                            5 -> SoundSource.placeRightThumb
-                            6 -> SoundSource.placeRightIndexFinger
-                            7 -> SoundSource.placeRightMiddleFinger
-                            8 -> SoundSource.placeRightRingFinger
-                            9 -> SoundSource.placeRightLittleFinger
-                            else -> -1
+        if (isFP) {
+            viewModel.viewModelScope.launch {
+                val handlerThread = HandlerThread("backgroundThread")
+                if (!handlerThread.isAlive) handlerThread.start()
+                val handler = Handler(handlerThread.looper)
+                handler.postDelayed({
+                    activity?.runOnUiThread {
+                        val valueAnimator = ValueAnimator.ofInt(
+                            binding.remoteRegisterBottomSheet.measuredHeight,
+                            binding.remoteRegisterBottomSheet.measuredHeight + 300
+                        )
+                        valueAnimator.duration = 500L
+                        valueAnimator.addUpdateListener {
+                            val animatedValue = valueAnimator.animatedValue as Int
+                            val layoutParams = binding.remoteRegisterBottomSheet.layoutParams
+                            layoutParams.height = animatedValue
+                            binding.remoteRegisterBottomSheet.layoutParams = layoutParams
                         }
-                        if (sound != -1)
-                            soundSource.playSound(sound)
-                        binding.buttonClose.visibility = View.VISIBLE
+                        valueAnimator.doOnEnd {
+                            val sound = when (finger) {
+                                0 -> SoundSource.placeLeftLittleFinger
+                                1 -> SoundSource.placeLeftRingFinger
+                                2 -> SoundSource.placeLeftMiddleFinger
+                                3 -> SoundSource.placeLeftIndexFinger
+                                4 -> SoundSource.placeLeftThumb
+                                5 -> SoundSource.placeRightThumb
+                                6 -> SoundSource.placeRightIndexFinger
+                                7 -> SoundSource.placeRightMiddleFinger
+                                8 -> SoundSource.placeRightRingFinger
+                                9 -> SoundSource.placeRightLittleFinger
+                                else -> -1
+                            }
+                            if (sound != -1)
+                                soundSource.playSound(sound)
+                            binding.buttonClose.visibility = View.VISIBLE
+                        }
+                        valueAnimator.start()
                     }
-                    valueAnimator.start()
-                }
-            }, if (isFP) 1000L else 10L)
+                }, 1000L)
+            }
         }
     }
 
@@ -347,7 +350,7 @@ class MBRemoteRegisterSheet : BottomSheetDialogFragment(), TimoRfidListener, IFi
         MainApplication.lcdk.setFingerprintListener(null)
         val frag = parentFragmentManager.findFragmentByTag(AttendanceFragment.TAG)
         if (frag == null || !frag.isVisible) {
-            (activity as MainActivity?)?.showAttendanceFragment()
+            (activity as MainActivity?)?.showDefault()
         } else {
             (frag as AttendanceFragment).onResume()
         }

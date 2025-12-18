@@ -32,7 +32,9 @@ class LoginService(
     private val userService: UserService,
     private val settingsService: SettingsService,
     private val languageService: LanguageService,
-    private val bookingService: BookingService
+    private val bookingService: BookingService,
+    private val projectTimeService: ProjectTimeService,
+    private val absenceService: AbsenceService
 ) : KoinComponent {
     private val soundSource: SoundSource by inject()
     private val heartbeatService: HeartbeatService by inject()
@@ -359,7 +361,10 @@ class LoginService(
             configRepository.deleteAll()
         }
         bookingService.deleteAll(coroutineScope)
+        projectTimeService.deleteAll(coroutineScope)
+        absenceService.deleteAll(coroutineScope)
         heartbeatService.stopHeartBeat()
+
         FeedReaderDbHelper(context, "room.db").writableDatabase.apply {
             execSQL("CREATE TABLE dummy (id INTEGER PRIMARY KEY AUTOINCREMENT);")
             execSQL("DROP TABLE dummy;")
@@ -368,6 +373,9 @@ class LoginService(
             execSQL("DELETE FROM sqlite_sequence WHERE name='UserEntity';")
             execSQL("DELETE FROM sqlite_sequence WHERE name='BookingBUEntity';")
             execSQL("DELETE FROM sqlite_sequence WHERE name='BookingEntity';")
+            execSQL("DELETE FROM sqlite_sequence WHERE name='ProjectTimeEntity';")
+            execSQL("DELETE FROM sqlite_sequence WHERE name='AbsenceEntryEntity';")
+            close()
         }
         logout(context)
     }

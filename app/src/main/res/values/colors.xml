@@ -159,4 +159,5 @@
     <color name="red">#FF0000</color>
     <color name="greyed_out_background">#636564</color>
     <dimen name="navigationRailIconSize">32dp</dimen>
+    <color name="highlight_inverse">@color/ripple_material_dark</color>
 </resources>

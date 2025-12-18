@@ -9,7 +9,6 @@ import android.widget.Filter
 import android.widget.Filterable
 import android.widget.TextView
 import com.timo.timoterminal.R
-import com.timo.timoterminal.entityClasses.CustomerEntity
 
 class CustomerEntityAdapter(
     context: Context?,
@@ -49,7 +48,13 @@ class CustomerEntityAdapter(
     }
 
     inner class StringFilter : Filter() {
-        override fun performFiltering(constraint: CharSequence): FilterResults {
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            if (constraint.isNullOrEmpty()) {
+                val results = FilterResults()
+                results.values = originalEntities
+                results.count = originalEntities.size
+                return results
+            }
             val filterString = constraint.toString().lowercase()
             val results = FilterResults()
             val list = originalEntities
@@ -67,7 +72,7 @@ class CustomerEntityAdapter(
             return results
         }
 
-        override fun publishResults(constraint: CharSequence, results: FilterResults) {
+        override fun publishResults(constraint: CharSequence?, results: FilterResults) {
             allEntities = results.values as List<CustomerComboEntity>
             notifyDataSetChanged()
         }

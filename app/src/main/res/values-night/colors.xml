@@ -13,7 +13,7 @@
     <color name="md_theme_onTertiary">#322C4C</color>
     <color name="md_theme_tertiaryContainer">#494264</color>
     <color name="md_theme_onTertiaryContainer">#E7DEFF</color>
-    <color name="md_theme_error">#FFB4AB</color>
+    <color name="md_theme_error">#E57373</color>
     <color name="md_theme_onError">#690005</color>
     <color name="md_theme_errorContainer">#93000A</color>
     <color name="md_theme_onErrorContainer">#FFDAD6</color>
@@ -142,4 +142,5 @@
     <color name="md_theme_surfaceContainer_highContrast">#2C3134</color>
     <color name="md_theme_surfaceContainerHigh_highContrast">#373C3F</color>
     <color name="md_theme_surfaceContainerHighest_highContrast">#43474B</color>
+    <color name="highlight_inverse">@color/ripple_material_light</color>
 </resources>

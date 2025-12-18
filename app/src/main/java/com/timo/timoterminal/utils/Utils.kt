@@ -6,6 +6,7 @@ import android.app.DownloadManager
 import android.app.DownloadManager.*
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.DialogInterface.OnDismissListener
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -17,6 +18,10 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.text.Editable
+import android.text.InputFilter
+import android.text.Spanned
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -58,6 +63,7 @@ class Utils {
         private var timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
         private var secondFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         private var dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+        private var dbFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         private var dateNameFormatter = SimpleDateFormat("EE dd.MM.yyyy", Locale.getDefault())
         private var databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
         private var dayTransferFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -239,6 +245,14 @@ class Utils {
             return greg
         }
 
+        fun parseDBValue(date:String): GregorianCalendar {
+            val greg = GregorianCalendar()
+            val pDate = dbFormatter.parse(date)
+            if (pDate != null)
+                greg.time = pDate
+            return greg
+        }
+
         fun parseDBDateTime(date: String): GregorianCalendar {
             val greg = GregorianCalendar()
             val pDate = databaseFormatter.parse(date)
@@ -271,9 +285,9 @@ class Utils {
             return dayTransferFormatter.format(gc.time)
         }
 
-        fun parseDateFromTransfer(date: String): GregorianCalendar {
+        fun parseDateFromTransfer(date: String?): GregorianCalendar {
             val greg = GregorianCalendar()
-            val pDate = dayTransferFormatter.parse(date)
+            val pDate = date?.let { dayTransferFormatter.parse(it) }
             if (pDate != null)
                 greg.time = pDate
             return greg
@@ -304,7 +318,7 @@ class Utils {
                 sign1 = "-"
             }
 
-            return sign1 + (if (hrs1 < 10) "0$hrs1" else "$hrs1") + ":" + (if (min1 < 10) "0$min1" else "$min1")
+            return sign1 + "$hrs1".padStart(2, '0') + ":" + "$min1".padStart(2, '0')
         }
 
         fun getOffset(offsetInMilliSec: Int): String {
@@ -314,6 +328,39 @@ class Utils {
             val hrs = (min - minOff) / 60
 
             return getTimeString(hrs, "+", minOff)
+        }
+
+        fun convertTimeWithSeconds(zeit: Long): String {
+            if (zeit == 0.toLong()) {
+                return "00:00:00"
+            }
+
+            val totalSeconds = zeit.toInt()
+            val seconds = totalSeconds % 60
+            val totalMinutes = (totalSeconds - seconds) / 60
+            val minutes = totalMinutes % 60
+            val hours = (totalMinutes - minutes) / 60
+
+            var hrs = hours
+            var sign = ""
+            var min = minutes
+            var sec = seconds
+            if (hrs < 0) {
+                hrs *= -1
+                sign = "-"
+            }
+            if (min < 0) {
+                min *= -1
+                sign = "-"
+            }
+            if (sec < 0) {
+                sec *= -1
+                sign = "-"
+            }
+
+            return sign + "$hrs".padStart(2, '0') + ":" +
+                    "$min".padStart(2, '0') + ":" +
+                    "$sec".padStart(2, '0')
         }
 
         fun showMessage(fragMan: FragmentManager, message: String): MBMessageSheet {
@@ -331,6 +378,7 @@ class Utils {
             timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
             secondFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             dateTimeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+            dbFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             dateNameFormatter = SimpleDateFormat("EE, dd.MM.yyyy", Locale.getDefault())
             databaseFormatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
             dayTransferFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -343,11 +391,13 @@ class Utils {
             var runnable: Runnable? = null
 
             runnable = Runnable {
-                handler!!.postDelayed(runnable!!, 998L)
                 calendar.add(Calendar.SECOND, 1)
+
+                val now = System.currentTimeMillis()
+                val next = 1000 - (now % 1000)
+                handler!!.postDelayed(runnable!!, next)
             }
-            handler!!.postDelayed(runnable, 998L)
-            calendar.add(Calendar.SECOND, 1)
+            handler!!.post(runnable)
         }
 
         fun setCal(cal: GregorianCalendar) {
@@ -357,7 +407,7 @@ class Utils {
 
         fun getCal() = calendar.clone() as GregorianCalendar
 
-        fun showErrorMessage(context: Context, msg: String, isWarning: Boolean = true) {
+        fun showErrorMessage(context: Context, msg: String, isWarning: Boolean = true, onDismissListener: OnDismissListener? = null) {
             Handler(context.mainLooper).post {
                 val dialog = MaterialAlertDialogBuilder(context, R.style.MySingleButtonDialog)
                 if(isWarning) {
@@ -390,6 +440,9 @@ class Utils {
                     params?.height = 48
                     params?.width = 48
                     imageView?.layoutParams = params
+                }
+                if(onDismissListener != null) {
+                    dia.setOnDismissListener(onDismissListener)
                 }
                 dia.show()
                 val positiveButton: Button = dia.getButton(AlertDialog.BUTTON_POSITIVE)
@@ -549,6 +602,36 @@ class Utils {
                     append(String.format("%02x", byte.toInt() and 0xFF))
                 }
             }.toString()
+        }
+
+        fun dpToPx(dp:Int, density: Float): Int = (dp * density).toInt()
+    }
+
+    class DecimalSeparatorInputFilter : InputFilter {
+        override fun filter(
+            source: CharSequence, start: Int, end: Int,
+            dest: Spanned, dstart: Int, dend: Int
+        ): CharSequence? {
+            val result = StringBuilder(dest).replace(dstart, dend, source.subSequence(start, end).toString())
+            val regex = Regex("^\\d*[.,]?\\d*$")
+            return if (regex.matches(result)) null else ""
+        }
+    }
+
+    class DecimalSeparatorTextWatcher : TextWatcher {
+        private val regex = Regex("^\\d*[.,]?\\d*$")
+
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+        override fun afterTextChanged(s: Editable?) {
+            s?.let {
+                if (!regex.matches(it)) {
+                    // Remove last entered character if it doesn't match the pattern
+                    it.delete(it.length - 1, it.length)
+                }
+            }
         }
     }
 }

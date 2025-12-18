@@ -116,9 +116,11 @@ class ProjectTimeTrackSetting(
                 val pt = listOf(Keys.TASK, Keys.PROJECT).sortedBy { rankOf(it) }
                 listOf(Keys.CUSTOMER) + pt
             } else {
-                listOf(Keys.TASK, Keys.PROJECT).sortedBy { rankOf(it) } + listOf(
-                    if (!isCustomOrder) Keys.CUSTOMER else ""
-                )
+                val list = listOf(Keys.TASK, Keys.PROJECT).sortedBy { rankOf(it) }
+                if (!isCustomOrder){
+                    list + listOf(Keys.CUSTOMER)
+                }
+                list
             }
             val visibleHead = sortedHead.filter { visible(it) }
             val headSet = (if (isCustomerTimeTrack) listOf(
