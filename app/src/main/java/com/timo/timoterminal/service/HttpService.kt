@@ -25,6 +25,7 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -52,6 +53,17 @@ class HttpService : KoinComponent {
 
     companion object {
         var mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+
+        fun isValidUrl(url: String?): Boolean {
+            if (url.isNullOrBlank()) {
+                return false
+            }
+            return try {
+                url.toHttpUrlOrNull() != null
+            } catch (e: Exception) {
+                false
+            }
+        }
 
         fun buildUrl(scheme: String, host: String, params: HashMap<String, String>): HttpUrl {
             val httpBuilder = HttpUrl.Builder()
@@ -170,6 +182,10 @@ class HttpService : KoinComponent {
         }
     ) {
         val route = appendParametersToUrl(url, parameters)
+        if (!isValidUrl(route)) {
+            errorCallback(IllegalArgumentException("Invalid URL: $route"), null, context, null)
+            return
+        }
         val request = Request.Builder().url(route).build()
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
@@ -217,6 +233,10 @@ class HttpService : KoinComponent {
         successCallback: (objResponse: JSONObject?, arrResponse: JSONArray?, strResponse: String?) -> Unit?,
         errorCallback: (e: Exception?, response: Response?, context: Context?, output: ResponseToJSON?) -> Unit
     ) {
+        if (!isValidUrl(url)) {
+            errorCallback(IllegalArgumentException("Invalid URL: $url"), null, context, null)
+            return
+        }
         val formBody: RequestBody = createRequestBody(parameters)
         val request = Request.Builder()
             .url(url)
@@ -254,6 +274,10 @@ class HttpService : KoinComponent {
             )
         }
     ) {
+        if (!isValidUrl(url)) {
+            errorCallback(IllegalArgumentException("Invalid URL: $url"), null, context, null)
+            return
+        }
         val formBody = parametersJson.toRequestBody(mediaType)
         val request = Request.Builder()
             .url(url)
@@ -286,6 +310,9 @@ class HttpService : KoinComponent {
         progressListener: ProgressListener,
         successCallback: (response: ByteArray) -> Any
     ) {
+        if (!isValidUrl(url)) {
+            return
+        }
         val request = Request.Builder()
             .url(url)
             .build()

@@ -208,6 +208,12 @@ class LoginFragment : Fragment() {
                 }
             })
             activity?.runOnUiThread {
+                binding.volumeTextView.startAnimation(animSet)
+                binding.screenSaverContainerText.startAnimation(animSet)
+                binding.screenSaverBtn.startAnimation(animSet)
+                binding.volumeSeekBar.startAnimation(animSet)
+                binding.buttonSubmit.startAnimation(animSet)
+                binding.buttonPlaySound.startAnimation(animSet)
                 binding.dropdownMenuLayoutLanguage.startAnimation(animSet)
                 binding.dropdownMenuLayoutTimezone.startAnimation(animSet)
             }
