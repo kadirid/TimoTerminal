@@ -703,6 +703,11 @@ class ProjectFragmentStopwatch : Fragment() {
                 binding.textInputLayoutProjectTimePerformanceLocation.visibility == v
                         && perm("zeiterfassung.leistungsort.pflicht")
             )
+            updateHintForRequiredField(
+                binding.textInputLayoutProjectTimeUnit,
+                binding.unitContainer.visibility == v
+                        && perm("einheiten.pflicht") && !perm("zeiterfassung.einheiten.automatisch")
+            )
         }
     }
 

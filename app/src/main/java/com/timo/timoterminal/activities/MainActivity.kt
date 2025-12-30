@@ -218,7 +218,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
             val attendancePermission = mainActivityViewModel.permission("kommengehen.use")
             binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
-                attendancePermission != "true"
+                attendancePermission == "true"
 
             val absencePermission = mainActivityViewModel.permission("terminal.absence")
             binding.navigationRail.menu.findItem(R.id.absence).isVisible =
@@ -226,7 +226,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
 
             val infoPermission = mainActivityViewModel.permission("terminal.infobutton.use")
             binding.navigationRail.menu.findItem(R.id.info).isVisible =
-                infoPermission != "true"
+                infoPermission == "true"
         }
 
         setText()
