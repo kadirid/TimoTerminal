@@ -220,7 +220,7 @@ class MainActivity : AppCompatActivity(), BatteryReceiver.BatteryStatusCallback,
             binding.navigationRail.menu.findItem(R.id.attendance).isVisible =
                 attendancePermission == "true"
 
-            val absencePermission = mainActivityViewModel.permission("terminal.absence")
+            val absencePermission = mainActivityViewModel.permission("terminal.absence.use")
             binding.navigationRail.menu.findItem(R.id.absence).isVisible =
                 absencePermission == "true"
 
