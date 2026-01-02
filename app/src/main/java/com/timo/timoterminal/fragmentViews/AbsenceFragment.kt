@@ -57,6 +57,15 @@ class AbsenceFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
+        // Connect search field to view model
+        binding.searchAbsenceEditText.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                viewModel.liveSearchQuery.postValue(s?.toString() ?: "")
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+
         // Observe favorites and update only the star icons in the already-rendered list
         viewModel.liveFavoriteAbsenceTypeIds.observe(viewLifecycleOwner) { favIds ->
             val count = binding.buttonContainer.childCount
@@ -77,9 +86,15 @@ class AbsenceFragment : Fragment() {
 
         // Observe favorite entities and render them in the horizontal favorites bar
         viewModel.liveFavoriteAbsenceEntities.observe(viewLifecycleOwner) { favList ->
+            // Control visibility of favorites section based on whether there are favorites
+            val hasFavorites = !favList.isNullOrEmpty()
+            binding.favoritesSection.visibility = if (hasFavorites) View.VISIBLE else View.GONE
+            binding.favoritesScrollView.visibility = if (hasFavorites) View.VISIBLE else View.GONE
+            binding.favoritesDivider.visibility = if (hasFavorites) View.VISIBLE else View.GONE
+
             // Clear existing favorites
             binding.favoritesContainer.removeAllViews()
-            if (favList.isNullOrEmpty()) return@observe
+            if (!hasFavorites) return@observe
 
             for (absenceType in favList) {
                 // container for each favorite tile so gradient can be applied behind the button

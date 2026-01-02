@@ -31,7 +31,8 @@ class AbsenceFragmentViewModel(
     val liveHideMask = MutableLiveData<Boolean>()
     val liveShowMask = MutableLiveData<Boolean>()
     val liveShowOfflineNotice = MutableLiveData<Boolean>()
-    val liveAbsenceTypes = MutableLiveData<List<AbsenceTypeEntity>>()
+    val liveSearchQuery = MutableLiveData<String>("")
+    val liveAbsenceTypes = MediatorLiveData<List<AbsenceTypeEntity>>()
     val liveFavoriteAbsenceTypeIds = MutableLiveData<Set<Long>>()
     // derive favorite entities from liveAbsenceTypes + favorite ids so we keep a single source of truth
     val liveFavoriteAbsenceEntities = MediatorLiveData<List<AbsenceTypeEntity>>()
@@ -42,20 +43,32 @@ class AbsenceFragmentViewModel(
     private var repoLoad: Long = 0L
 
     private var absenceTypeEntities: List<AbsenceTypeEntity> = emptyList()
+    private var filteredAbsenceTypes: List<AbsenceTypeEntity> = emptyList()
     private var absenceTypeMatrixEntities: List<AbsenceTypeMatrixEntity> = emptyList()
     private var absenceTypeRightEntities: List<AbsenceTypeRightEntity> = emptyList()
     private var absenceDeputyEntities = emptyList<AbsenceDeputyEntity>()
 
     init {
+        // recompute absence types when search query or unfiltered list changes
+        fun recomputeAbsenceTypes() {
+            val query = liveSearchQuery.value?.trim() ?: ""
+            val filtered = if (query.isEmpty()) {
+                filteredAbsenceTypes
+            } else {
+                filteredAbsenceTypes.filter { it.name.contains(query, ignoreCase = true) }
+            }
+            liveAbsenceTypes.postValue(filtered)
+        }
+        liveAbsenceTypes.addSource(liveSearchQuery) { recomputeAbsenceTypes() }
+
         // recompute favorites whenever visible list or favorite ids change
-        fun recompute() {
+        fun recomputeFavorites() {
             val types = liveAbsenceTypes.value ?: emptyList()
             val ids = liveFavoriteAbsenceTypeIds.value ?: emptySet()
-            // use postValue for thread-safety (might be called from background)
             liveFavoriteAbsenceEntities.postValue(types.filter { ids.contains(it.id) })
         }
-        liveFavoriteAbsenceEntities.addSource(liveAbsenceTypes) { recompute() }
-        liveFavoriteAbsenceEntities.addSource(liveFavoriteAbsenceTypeIds) { recompute() }
+        liveFavoriteAbsenceEntities.addSource(liveAbsenceTypes) { recomputeFavorites() }
+        liveFavoriteAbsenceEntities.addSource(liveFavoriteAbsenceTypeIds) { recomputeFavorites() }
     }
 
     // --- Public API ---------------------------------------------------------
@@ -76,10 +89,12 @@ class AbsenceFragmentViewModel(
 
                 // filter absence types by user rights and publish them
                 val visible = filterByUserRights(absenceTypeEntities)
+                filteredAbsenceTypes = visible
                 if (!latestOpen.has("wtId")) {
-                    liveAbsenceTypes.postValue(visible)
+                    // trigger search filter (which will update liveAbsenceTypes)
+                    liveSearchQuery.postValue(liveSearchQuery.value ?: "")
 
-                    // load favorites asynchronously (refreshFavorites now only posts ids)
+                    // load favorites asynchronously
                     viewModelScope.launch {
                         refreshFavorites()
                     }
@@ -130,7 +145,9 @@ class AbsenceFragmentViewModel(
             liveHideMask.postValue(true)
 
             val visible = filterByUserRights(absenceTypeEntities)
-            liveAbsenceTypes.postValue(visible)
+            filteredAbsenceTypes = visible
+            // trigger search filter
+            liveSearchQuery.postValue(liveSearchQuery.value ?: "")
 
             // load favorites from local DB and compute favorite entities for visible list
             viewModelScope.launch {
