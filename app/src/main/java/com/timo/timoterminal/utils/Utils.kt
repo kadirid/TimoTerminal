@@ -605,6 +605,21 @@ class Utils {
         }
 
         fun dpToPx(dp:Int, density: Float): Int = (dp * density).toInt()
+
+        fun adaptFontColorToBackground(bgColor: Int): Int {
+            val r = (bgColor shr 16) and 0xff
+            val g = (bgColor shr 8) and 0xff
+            val b = bgColor and 0xff
+            val luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+
+            return if (luminance > 0.5) {
+                // Dark text for light backgrounds
+                0xFF000000.toInt() // Black
+            } else {
+                // Light text for dark backgrounds
+                0xFFFFFFFF.toInt() // White
+            }
+        }
     }
 
     class DecimalSeparatorInputFilter : InputFilter {

@@ -1,13 +1,18 @@
 package com.timo.timoterminal.fragmentViews
 
 import android.os.Bundle
-import android.util.Log
-import android.view.ContextThemeWrapper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
+import android.widget.LinearLayout
+import android.graphics.drawable.GradientDrawable
+import android.graphics.Color
+import android.content.res.ColorStateList
+import android.graphics.drawable.RippleDrawable
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.OvalShape
 import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.button.MaterialButton
@@ -18,6 +23,7 @@ import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.AbsenceFragmentViewModel
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import androidx.core.graphics.toColorInt
 
 private const val ARG_USERID = "userId"
 private const val ARG_EDITOR_ID = "editorId"
@@ -52,15 +58,22 @@ class AbsenceFragment : Fragment() {
         binding.buttonBack.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
-        binding.absenceEditFragmentListButton.setOnClickListener {
-            (activity as MainActivity?)?.restartTimer()
-            val frag = AbsenceListFragment()
-            val bundle = Bundle()
-            bundle.putString("userId", userId.toString())
-            frag.arguments = bundle
-            parentFragmentManager.commit {
-                addToBackStack(null)
-                replace(R.id.fragment_container_view, frag)
+
+        // Observe favorites and update only the star icons in the already-rendered list
+        viewModel.liveFavoriteAbsenceTypeIds.observe(viewLifecycleOwner) { favIds ->
+            val count = binding.buttonContainer.childCount
+            for (i in 0 until count) {
+                val container = binding.buttonContainer.getChildAt(i) as? LinearLayout ?: continue
+                val tagVal = container.tag ?: continue
+                val atId: Long = when (tagVal) {
+                    is Long -> tagVal
+                    is Int -> tagVal.toLong()
+                    is String -> tagVal.toLongOrNull() ?: continue
+                    else -> continue
+                }
+                // find the favorite button by its specific tag
+                val favBtn = container.findViewWithTag<MaterialButton>("favBtn_${atId}")
+                favBtn?.setIconResource(if (favIds.contains(atId)) R.drawable.baseline_star_24 else R.drawable.baseline_star_empty_24)
             }
         }
 
@@ -103,22 +116,80 @@ class AbsenceFragment : Fragment() {
                 viewModel.liveShowOfflineNotice.value = false
             }
         }
-        viewModel.liveAbsenceTypes.value = emptyList()
-        viewModel.liveAbsenceTypes.observe(viewLifecycleOwner) {
-            if (it.isNotEmpty()) {
+        // don't pre-clear liveAbsenceTypes here; let the ViewModel populate it
+        viewModel.liveAbsenceTypes.observe(viewLifecycleOwner) { list ->
+            if (list.isNotEmpty()) {
                 first = false
-                val buttonStyle = ContextThemeWrapper(requireContext(), R.style.SettingsViewButtons)
-                for (absenceType in it) {
-                    val button = MaterialButton(buttonStyle)
+                binding.buttonContainer.removeAllViews()
+                val favoriteIds = viewModel.liveFavoriteAbsenceTypeIds.value ?: emptySet()
+                for (absenceType in list) {
+                    // Create container LinearLayout for button + icons
+                    val container = LinearLayout(requireContext())
+                    // tag the container with the absenceType id so favorite updates can find it later
+                    container.tag = absenceType.id
+                    container.layoutParams = LinearLayout.LayoutParams(
+                        GridLayout.LayoutParams.MATCH_PARENT,
+                        70.dpToPx()
+                    ).apply {
+                        bottomMargin = 12.dpToPx()
+                    }
+                    container.orientation = LinearLayout.HORIZONTAL
+                    container.gravity = android.view.Gravity.CENTER_VERTICAL
+                    // give the whole container horizontal padding so the gradient also shows behind icons
+                    container.setPadding(12.dpToPx(), 0, 12.dpToPx(), 0)
+
+                    // Create main button (text only) - make the button transparent so the container's background shows through
+                    val button = MaterialButton(requireContext())
                     button.text = absenceType.name
-                    button.cornerRadius = 16.dpToPx()
-                    button.textSize = 20f
-                    val params = GridLayout.LayoutParams()
-                    params.width = 330.dpToPx()
-                    params.height = 70.dpToPx()
-                    params.marginStart = 6.dpToPx()
-                    params.marginEnd = 6.dpToPx()
-                    button.layoutParams = params
+                    // corner radius is handled by the container background gradient
+                    button.textSize = 16f
+                    button.gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+                    // keep left padding for text, right padding not necessary because icons sit on the right
+                    button.setPadding(24.dpToPx(), 0, 0, 0)
+
+                    // Parse base color and compute faded-left (60% opacity) and full-right colors
+                    val baseColorInt = try {
+                        absenceType.color.toColorInt()
+                    } catch (_: IllegalArgumentException) {
+                        // fallback color
+                        "#2C5AA0".toColorInt()
+                    }
+
+                    val fadedLeft = Color.argb(
+                        (Color.alpha(baseColorInt) * 0.6f).toInt(),
+                        Color.red(baseColorInt),
+                        Color.green(baseColorInt),
+                        Color.blue(baseColorInt)
+                    )
+
+                    // Create gradient drawable and apply to the whole container so icons appear on the gradient too
+                    val gradientDrawable = GradientDrawable().apply {
+                        shape = GradientDrawable.RECTANGLE
+                        cornerRadius = 16.dpToPx().toFloat()
+                        // left = faded (60% opacity), right = full color
+                        colors = intArrayOf(fadedLeft, baseColorInt)
+                        orientation = GradientDrawable.Orientation.LEFT_RIGHT
+                    }
+                    container.background = gradientDrawable
+
+                    // Make the button background transparent so the container's gradient is visible behind it
+                    button.background = null
+
+                    // Decide font/icon color based on background luminance
+                    val fontColor = Utils.adaptFontColorToBackground(baseColorInt)
+
+                    // Apply font color (icons will be tinted after their creation)
+                    button.setTextColor(fontColor)
+                    button.setRippleColorResource(android.R.color.transparent)
+                    button.elevation = 0f
+
+                    val buttonParams = LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        1f
+                    )
+                    button.layoutParams = buttonParams
+
                     button.setOnClickListener {
                         val frag = if (absenceType.startStop){
                             AbsenceStartStopFragment.newInstance(
@@ -138,15 +209,106 @@ class AbsenceFragment : Fragment() {
                         }
                     }
 
-                    binding.buttonContainer.addView(button)
-                }
-                viewModel.liveAbsenceTypes.value = emptyList()
+                    // Create icon placeholder view
+                    val iconPlaceholder = MaterialButton(requireContext())
+                    iconPlaceholder.icon = null
+                    iconPlaceholder.setIconResource(R.drawable.baseline_edit_24)
+                    iconPlaceholder.iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+                    iconPlaceholder.iconPadding = 0
+                    iconPlaceholder.text = ""
+                    // iconTint will be applied based on computed fontColor below
+                    iconPlaceholder.cornerRadius = 0
+                    iconPlaceholder.elevation = 0f
+                    iconPlaceholder.setRippleColorResource(android.R.color.transparent)
+                    iconPlaceholder.insetTop = 0
+                    iconPlaceholder.insetBottom = 0
+                    iconPlaceholder.iconTint =  ColorStateList.valueOf(fontColor)
+                    // Remove extra paddings/minimums so the view is truly 44x44 and the mask becomes perfectly circular
+                    iconPlaceholder.minimumWidth = 0
+                    iconPlaceholder.minimumHeight = 0
+                    iconPlaceholder.setPadding(0, 0, 0, 0)
 
-                viewModel.viewModelScope.launch {
-                    if (viewModel.hasUserErrorAbsenceEntries()){
-                        binding.absenceEditFragmentListButton.visibility = View.VISIBLE
+                    val iconParams = LinearLayout.LayoutParams(
+                        44.dpToPx(),
+                        44.dpToPx()
+                    ).apply {
+                        marginStart = 12.dpToPx()
+                        gravity = android.view.Gravity.CENTER_VERTICAL
                     }
+                    iconPlaceholder.layoutParams = iconParams
+                    iconPlaceholder.background = null
+
+                    // Create favorite toggle button
+                    val favouriteIsSet = favoriteIds.contains(absenceType.id)
+                    val favoriteButton = MaterialButton(requireContext())
+                    // tag the favorite button so it can be found later by the favorites observer
+                    favoriteButton.tag = "favBtn_${absenceType.id}"
+                    favoriteButton.icon = null
+                    favoriteButton.setIconResource(
+                        if (favouriteIsSet)
+                            R.drawable.baseline_star_24
+                        else
+                            R.drawable.baseline_star_empty_24
+                    )
+                    favoriteButton.iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+                    favoriteButton.iconPadding = 0
+                    favoriteButton.text = ""
+                    favoriteButton.cornerRadius = 0
+                    favoriteButton.elevation = 0f
+                    favoriteButton.insetTop = 0
+                    favoriteButton.insetBottom = 0
+                    favoriteButton.iconTint =  ColorStateList.valueOf(fontColor)
+                    favoriteButton.minimumWidth = 0
+                    favoriteButton.minimumHeight = 0
+                    favoriteButton.setPadding(0, 0, 0, 0)
+
+                    val favoriteParams = LinearLayout.LayoutParams(
+                        44.dpToPx(),
+                        44.dpToPx()
+                    ).apply {
+                        marginStart = 12.dpToPx()
+                        marginEnd = 12.dpToPx()
+                        gravity = android.view.Gravity.CENTER_VERTICAL
+                    }
+                    favoriteButton.layoutParams = favoriteParams
+                    favoriteButton.background = null
+
+                    favoriteButton.setOnClickListener {
+                        val willBeMarked = ! (viewModel.liveFavoriteAbsenceTypeIds.value?.contains(absenceType.id) ?: false)
+                        // Optimistic UI toggle: only change the icon of this button immediately
+                        favoriteButton.setIconResource(if (willBeMarked) R.drawable.baseline_star_24 else R.drawable.baseline_star_empty_24)
+                        // Persist change
+                        viewModel.setMarkedAsFavorite(absenceType.id, willBeMarked)
+                    }
+
+                    // Apply icon tint using computed fontColor so icons/fonts adapt to background
+                    iconPlaceholder.icon?.setTint(fontColor)
+                    favoriteButton.icon?.setTint(fontColor)
+
+                    // Create a subtle circular ripple using the font color (transparentized)
+                    val rippleAlpha = 0x66 // ~40% alpha
+                    val rippleColor = Color.argb(
+                        rippleAlpha,
+                        Color.red(fontColor),
+                        Color.green(fontColor),
+                        Color.blue(fontColor)
+                    )
+                    val mask = ShapeDrawable(OvalShape())
+                    val rippleDrawable = RippleDrawable(ColorStateList.valueOf(rippleColor), null, mask)
+
+                    // Set as foreground on newer APIs so the ripple overlays the gradient without replacing background
+                    favoriteButton.foreground = rippleDrawable
+
+                    // Add views to container
+                    container.addView(button)
+                    container.addView(iconPlaceholder)
+                    container.addView(favoriteButton)
+
+                    binding.buttonContainer.addView(container)
                 }
+                // do not clear liveAbsenceTypes here; keep the rendered list intact
+
+                // optional: check for error entries and show UI later if needed
             }
         }
         viewModel.liveLatestOpen.value = null

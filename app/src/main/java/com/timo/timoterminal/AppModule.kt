@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.timo.timoterminal.database.AbsenceDeputyDatabase
 import com.timo.timoterminal.database.AbsenceEntryDatabase
 import com.timo.timoterminal.database.AbsenceTypeDatabase
+import com.timo.timoterminal.database.AbsenceTypeFavoriteDatabase
 import com.timo.timoterminal.database.AbsenceTypeMatrixDatabase
 import com.timo.timoterminal.database.AbsenceTypeRightDatabase
 import com.timo.timoterminal.database.ActivityTypeDatabase
@@ -25,12 +26,12 @@ import com.timo.timoterminal.database.TeamDatabase
 import com.timo.timoterminal.database.TicketDatabase
 import com.timo.timoterminal.database.User2TaskDatabase
 import com.timo.timoterminal.database.UserDatabase
-import com.timo.timoterminal.migration.AbsenceTypeMigration
 import com.timo.timoterminal.migration.AbsenceTypeRightMigration
 import com.timo.timoterminal.migration.ProjectTimeMigration
 import com.timo.timoterminal.migration.UserMigration
 import com.timo.timoterminal.repositories.AbsenceDeputyRepository
 import com.timo.timoterminal.repositories.AbsenceEntryRepository
+import com.timo.timoterminal.repositories.AbsenceTypeFavoriteRepository
 import com.timo.timoterminal.repositories.AbsenceTypeMatrixRepository
 import com.timo.timoterminal.repositories.AbsenceTypeRepository
 import com.timo.timoterminal.repositories.AbsenceTypeRightRepository
@@ -256,7 +257,6 @@ var appModule = module {
             AbsenceTypeDatabase::class.java,
             "absence_type_entity"
         )
-            .addMigrations(AbsenceTypeMigration.MIGRATION_1_2)
             .build()
     }
 
@@ -282,19 +282,26 @@ var appModule = module {
     single {
         Room.databaseBuilder(
             androidContext(),
-            AbsenceDeputyDatabase::class.java,
-            "absence_deputy_entity"
-        )
-            .build()
+            AbsenceEntryDatabase::class.java,
+            "absence_entry_entity"
+        ).build()
+    }
+
+    // Absence type favorites DB (user scoped favorites)
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            AbsenceTypeFavoriteDatabase::class.java,
+            "absence_type_favorite_entity"
+        ).build()
     }
 
     single {
         Room.databaseBuilder(
             androidContext(),
-            AbsenceEntryDatabase::class.java,
-            "absence_entry_entity"
-        )
-            .build()
+            AbsenceDeputyDatabase::class.java,
+            "absence_deputy_entity"
+        ).build()
     }
 
 
@@ -321,7 +328,8 @@ var appModule = module {
     single { get<AbsenceTypeMatrixDatabase>().absenceTypeMatrixDao() }
     single { get<AbsenceTypeRightDatabase>().absenceTypeRightDao() }
     single { get<AbsenceDeputyDatabase>().absenceDeputyDao() }
-    single { get<AbsenceEntryDatabase>().absenceEntryDao() }
+    single<com.timo.timoterminal.dao.AbsenceEntryDAO> { get<AbsenceEntryDatabase>().absenceEntryDao() }
+    single { get<AbsenceTypeFavoriteDatabase>().absenceTypeFavoriteDao() }
 
 
     single { UserRepository(get()) }
@@ -347,7 +355,8 @@ var appModule = module {
     single { AbsenceTypeMatrixRepository(get()) }
     single { AbsenceTypeRightRepository(get()) }
     single { AbsenceDeputyRepository(get()) }
-    single { AbsenceEntryRepository(get()) }
+    single<AbsenceEntryRepository> { AbsenceEntryRepository(get()) }
+    single { AbsenceTypeFavoriteRepository(get()) }
 
 
     single { HttpService() }
@@ -377,7 +386,7 @@ var appModule = module {
     viewModel { InfoFragmentViewModel(get(), get(), get(), get(), get()) }
     viewModel { UserSettingsFragmentViewModel(get(), get(), get(), get()) }
     viewModel { MBRemoteRegisterSheetViewModel(get(), get(), get(), get()) }
-    viewModel { AbsenceFragmentViewModel(get(), get(), get(), get(), get()) }
+    viewModel { AbsenceFragmentViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { MainActivityViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { AbsenceEditViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { MBSheetFingerprintCardReaderViewModel(get(), get(), get(), get(), get(), get()) }
