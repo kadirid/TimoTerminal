@@ -25,6 +25,7 @@ import com.timo.timoterminal.database.TeamDatabase
 import com.timo.timoterminal.database.TicketDatabase
 import com.timo.timoterminal.database.User2TaskDatabase
 import com.timo.timoterminal.database.UserDatabase
+import com.timo.timoterminal.migration.AbsenceTypeMigration
 import com.timo.timoterminal.migration.AbsenceTypeRightMigration
 import com.timo.timoterminal.migration.ProjectTimeMigration
 import com.timo.timoterminal.migration.UserMigration
@@ -255,6 +256,7 @@ var appModule = module {
             AbsenceTypeDatabase::class.java,
             "absence_type_entity"
         )
+            .addMigrations(AbsenceTypeMigration.MIGRATION_1_2)
             .build()
     }
 

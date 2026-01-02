@@ -13,7 +13,8 @@ class AbsenceTypeEntity (
     @ColumnInfo(name = "absence_type_subject_to_approval") var subjectToApproval: Boolean,
     @ColumnInfo(name = "absence_type_hours") var hours: Boolean,
     @ColumnInfo(name = "absence_type_from_to") var fromTo: Boolean,
-    @ColumnInfo(name = "absence_type_start_stop") var startStop: Boolean
+    @ColumnInfo(name = "absence_type_start_stop") var startStop: Boolean,
+    @ColumnInfo(name = "absence_type_marked_as_favorite") var markedAsFavorite: Boolean = false
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -30,6 +31,7 @@ class AbsenceTypeEntity (
         if(hours != other.hours) return false
         if(fromTo != other.fromTo) return false
         if(startStop != other.startStop) return false
+        if(markedAsFavorite != other.markedAsFavorite) return false
 
         return true
     }
@@ -42,6 +44,7 @@ class AbsenceTypeEntity (
         result = 31 * result + hours.hashCode()
         result = 31 * result + fromTo.hashCode()
         result = 31 * result + startStop.hashCode()
+        result = 31 * result + markedAsFavorite.hashCode()
         return result
     }
 
@@ -62,6 +65,8 @@ class AbsenceTypeEntity (
                 val hours = absenceTypeObj.getBoolean("hours")
                 val fromTo = absenceTypeObj.getBoolean("fromTo")
                 val startStop = absenceTypeObj.getBoolean("startStop")
+                val markedAsFavorite = if (absenceTypeObj.has("markedAsFavorite"))
+                    absenceTypeObj.getBoolean("markedAsFavorite") else false
                 absenceTypes.add(
                     AbsenceTypeEntity(
                         id,
@@ -70,7 +75,8 @@ class AbsenceTypeEntity (
                         subjectToApproval,
                         hours,
                         fromTo,
-                        startStop
+                        startStop,
+                        markedAsFavorite
                     )
                 )
             }
