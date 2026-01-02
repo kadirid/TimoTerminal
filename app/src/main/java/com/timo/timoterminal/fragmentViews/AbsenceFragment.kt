@@ -14,14 +14,12 @@ import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.OvalShape
 import androidx.fragment.app.commit
-import androidx.lifecycle.viewModelScope
 import com.google.android.material.button.MaterialButton
 import com.timo.timoterminal.R
 import com.timo.timoterminal.activities.MainActivity
 import com.timo.timoterminal.databinding.FragmentAbsenceBinding
 import com.timo.timoterminal.utils.Utils
 import com.timo.timoterminal.viewModel.AbsenceFragmentViewModel
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import androidx.core.graphics.toColorInt
 
@@ -74,6 +72,80 @@ class AbsenceFragment : Fragment() {
                 // find the favorite button by its specific tag
                 val favBtn = container.findViewWithTag<MaterialButton>("favBtn_${atId}")
                 favBtn?.setIconResource(if (favIds.contains(atId)) R.drawable.baseline_star_24 else R.drawable.baseline_star_empty_24)
+            }
+        }
+
+        // Observe favorite entities and render them in the horizontal favorites bar
+        viewModel.liveFavoriteAbsenceEntities.observe(viewLifecycleOwner) { favList ->
+            // Clear existing favorites
+            binding.favoritesContainer.removeAllViews()
+            if (favList.isNullOrEmpty()) return@observe
+
+            for (absenceType in favList) {
+                // container for each favorite tile so gradient can be applied behind the button
+                val favContainer = LinearLayout(requireContext())
+                favContainer.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    56.dpToPx()
+                ).apply {
+                    rightMargin = 12.dpToPx()
+                }
+                favContainer.orientation = LinearLayout.VERTICAL
+                favContainer.gravity = android.view.Gravity.CENTER_VERTICAL
+
+                // gradient background for the tile (shorter, rounded)
+                val baseColorInt = try { absenceType.color.toColorInt() } catch (_: IllegalArgumentException) { "#2C5AA0".toColorInt() }
+                val fadedLeft = Color.argb(
+                    (Color.alpha(baseColorInt) * 0.6f).toInt(),
+                    Color.red(baseColorInt),
+                    Color.green(baseColorInt),
+                    Color.blue(baseColorInt)
+                )
+                val gradientDrawable = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    cornerRadius = 12.dpToPx().toFloat()
+                    colors = intArrayOf(fadedLeft, baseColorInt)
+                    orientation = GradientDrawable.Orientation.LEFT_RIGHT
+                }
+                favContainer.background = gradientDrawable
+
+                // short text button centered
+                val favButton = MaterialButton(requireContext())
+                favButton.text = absenceType.name
+                favButton.textSize = 14f
+                favButton.setPadding(20.dpToPx(), 0, 20.dpToPx(), 0)
+                favButton.background = null
+                favButton.minimumHeight = 0
+                favButton.minimumWidth = 0
+                favButton.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                )
+                // adapt text color
+                val fontColor = Utils.adaptFontColorToBackground(baseColorInt)
+                favButton.setTextColor(fontColor)
+
+                favButton.setOnClickListener {
+                    val frag = if (absenceType.startStop) {
+                        AbsenceStartStopFragment.newInstance(
+                            userId = userId ?: -1L,
+                            absenceTypeId = absenceType.id
+                        )
+                    } else {
+                        AbsenceFormFragment.newInstance(
+                            userId = userId ?: -1L,
+                            editorId = editorId ?: "",
+                            absenceTypeId = absenceType.id
+                        )
+                    }
+                    parentFragmentManager.commit {
+                        addToBackStack(null)
+                        replace(R.id.fragment_container_view, frag)
+                    }
+                }
+
+                favContainer.addView(favButton)
+                binding.favoritesContainer.addView(favContainer)
             }
         }
 
